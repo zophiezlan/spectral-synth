@@ -800,6 +800,33 @@ const ResponsiveCanvas = {
     setupCanvas(canvas, aspectRatio = 2) {
         if (!canvas) return;
 
+        // Define redraw handlers once to avoid repeated object creation
+        const redrawHandlers = {
+            'ftir-canvas': () => {
+                if (typeof visualizer !== 'undefined' && visualizer.currentSpectrum) {
+                    visualizer.drawFTIRSpectrum(visualizer.currentSpectrum, visualizer.currentPeaks || []);
+                }
+            },
+            'audio-canvas': () => {
+                // Only redraw if visualizer exists and has been initialized with audio
+                if (typeof visualizer !== 'undefined' && visualizer.audioStaticCached !== undefined) {
+                    // Clear audio canvas static cache and trigger immediate redraw
+                    visualizer.audioStaticCached = false;
+                    visualizer.stopAudioAnimation(); // Redraws with cleared cache
+                }
+            },
+            'ftir-canvas-a': () => {
+                if (typeof visualizerA !== 'undefined' && visualizerA.currentSpectrum) {
+                    visualizerA.drawFTIRSpectrum(visualizerA.currentSpectrum, visualizerA.currentPeaks || []);
+                }
+            },
+            'ftir-canvas-b': () => {
+                if (typeof visualizerB !== 'undefined' && visualizerB.currentSpectrum) {
+                    visualizerB.drawFTIRSpectrum(visualizerB.currentSpectrum, visualizerB.currentPeaks || []);
+                }
+            }
+        };
+
         const resize = () => {
             const container = canvas.parentElement;
             if (!container) return;
@@ -832,32 +859,6 @@ const ResponsiveCanvas = {
             }
             
             // Trigger redraw of current visualization after resize
-            // This ensures the canvas is redrawn with the new dimensions
-            const redrawHandlers = {
-                'ftir-canvas': () => {
-                    if (typeof visualizer !== 'undefined' && visualizer.currentSpectrum) {
-                        visualizer.drawFTIRSpectrum(visualizer.currentSpectrum, visualizer.currentPeaks || []);
-                    }
-                },
-                'audio-canvas': () => {
-                    if (typeof visualizer !== 'undefined') {
-                        // Clear audio canvas static cache and trigger immediate redraw
-                        visualizer.audioStaticCached = false;
-                        visualizer.stopAudioAnimation(); // Redraws with cleared cache
-                    }
-                },
-                'ftir-canvas-a': () => {
-                    if (typeof visualizerA !== 'undefined' && visualizerA.currentSpectrum) {
-                        visualizerA.drawFTIRSpectrum(visualizerA.currentSpectrum, visualizerA.currentPeaks || []);
-                    }
-                },
-                'ftir-canvas-b': () => {
-                    if (typeof visualizerB !== 'undefined' && visualizerB.currentSpectrum) {
-                        visualizerB.drawFTIRSpectrum(visualizerB.currentSpectrum, visualizerB.currentPeaks || []);
-                    }
-                }
-            };
-            
             const handler = redrawHandlers[canvas.id];
             if (handler) {
                 handler();
