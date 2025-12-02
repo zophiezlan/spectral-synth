@@ -26,8 +26,8 @@ const CONFIG = {
     // Audio synthesis parameters
     audio: {
         DEFAULT_VOLUME: 0.3,         // Default master volume (0-1)
-        DEFAULT_FADE_IN: 0.05,       // Fade in duration in seconds
-        DEFAULT_FADE_OUT: 0.1,       // Fade out duration in seconds
+        DEFAULT_FADE_IN: 0.05,       // Fade in duration in seconds (deprecated - use ADSR)
+        DEFAULT_FADE_OUT: 0.1,       // Fade out duration in seconds (deprecated - use ADSR)
         REVERB_DURATION: 2,          // Reverb impulse duration in seconds
         FFT_SIZE: 2048,              // FFT size for analyser
         ANALYSER_SMOOTHING: 0.8,     // Analyser smoothing time constant
@@ -35,6 +35,44 @@ const CONFIG = {
         DEFAULT_DURATION: 2.0,       // Default playback duration in seconds
         MIN_DURATION: 0.5,           // Minimum playback duration
         MAX_DURATION: 5.0,           // Maximum playback duration
+    },
+    
+    // ADSR envelope parameters
+    adsr: {
+        // Default values
+        DEFAULT_ATTACK: 0.05,        // Attack time in seconds (0.01 - 2.0)
+        DEFAULT_DECAY: 0.1,          // Decay time in seconds (0.01 - 2.0)
+        DEFAULT_SUSTAIN: 0.7,        // Sustain level (0.0 - 1.0)
+        DEFAULT_RELEASE: 0.1,        // Release time in seconds (0.01 - 3.0)
+        
+        // Ranges for UI controls
+        MIN_ATTACK: 0.001,
+        MAX_ATTACK: 2.0,
+        MIN_DECAY: 0.001,
+        MAX_DECAY: 2.0,
+        MIN_SUSTAIN: 0.0,
+        MAX_SUSTAIN: 1.0,
+        MIN_RELEASE: 0.001,
+        MAX_RELEASE: 3.0,
+        
+        // Curve types
+        DEFAULT_CURVE: 'exponential', // Default curve type
+    },
+    
+    // ADSR curve types
+    adsrCurves: {
+        'linear': {
+            name: 'Linear',
+            description: 'Straight line transition',
+        },
+        'exponential': {
+            name: 'Exponential',
+            description: 'Natural exponential curve',
+        },
+        'logarithmic': {
+            name: 'Logarithmic',
+            description: 'Fast start, slow end',
+        },
     },
     
     // Visualization parameters
@@ -132,6 +170,9 @@ Object.freeze(CONFIG);
 Object.freeze(CONFIG.frequency);
 Object.freeze(CONFIG.peakDetection);
 Object.freeze(CONFIG.audio);
+Object.freeze(CONFIG.adsr);
+Object.freeze(CONFIG.adsrCurves);
+Object.keys(CONFIG.adsrCurves).forEach(key => Object.freeze(CONFIG.adsrCurves[key]));
 Object.freeze(CONFIG.visualization);
 Object.freeze(CONFIG.ui);
 Object.freeze(CONFIG.library);

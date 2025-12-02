@@ -287,6 +287,41 @@ section {
     cursor: pointer;
 }
 
+/* ADSR Controls */
+.adsr-controls {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.adsr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.adsr-curve-controls {
+    margin-top: 1rem;
+}
+
+.adsr-curve-controls label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #a78bfa;
+}
+
+.adsr-curve-controls select {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.95rem;
+    background: rgba(0, 0, 0, 0.4);
+    color: #e0e0e0;
+    border: 2px solid #8b5cf6;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 .playback-mode-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
