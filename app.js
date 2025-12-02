@@ -1021,7 +1021,8 @@ function setupCollapsibleSections() {
             
             // Force canvas repaint on touch devices (especially iPad Safari)
             // after the CSS transition completes
-            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            const COLLAPSIBLE_TRANSITION_DELAY_MS = 450; // CSS transition time (400ms) + buffer (50ms)
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
                 setTimeout(() => {
                     // Trigger a repaint by requesting the canvas dimensions
                     const ftirCanvas = document.getElementById('ftir-canvas');
@@ -1039,9 +1040,9 @@ function setupCollapsibleSections() {
                     
                     // Also trigger a layout recalculation to ensure visibility
                     if (audioCanvas) {
-                        audioCanvas.offsetHeight; // Force reflow
+                        void audioCanvas.offsetHeight; // Force reflow (intentional side effect)
                     }
-                }, 450); // Wait for CSS transition to complete (400ms + 50ms buffer)
+                }, COLLAPSIBLE_TRANSITION_DELAY_MS);
             }
         });
     });
