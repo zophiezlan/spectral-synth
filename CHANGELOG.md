@@ -2,7 +2,65 @@
 
 All notable changes to the Spectral Synthesizer project are documented in this file.
 
-## [Unreleased] - Project Refinement
+## [Unreleased] - New Features & Enhancements
+
+### Added
+
+#### Playback Modes
+- **Six different playback modes** for creative sonification:
+  - Chord: All peaks play simultaneously (traditional mode)
+  - Arpeggio (Up): Play peaks from low to high frequency
+  - Arpeggio (Down): Play peaks from high to low frequency  
+  - Arpeggio (Up-Down): Play peaks ascending then descending
+  - Sequential: Play peaks in order of intensity (strongest first)
+  - Random: Play peaks in random order
+- Playback mode selector in UI with descriptive labels
+- `playArpeggio()` method in AudioEngine for sequenced playback
+- `playChord()` method refactored from original `play()` method
+- Configurable playback modes in `config.js` with frozen definitions
+- Smart timing calculations for arpeggio modes (note duration, overlap)
+- Individual note envelopes with quick attack and release
+
+#### Import & Export Features
+- **CSV Import Module** (`csv-importer.js`): Import custom FTIR spectral data from CSV files
+  - Auto-detects file format (transmittance or absorbance columns)
+  - Validates data and provides helpful error messages
+  - Downsamples large datasets for optimal web performance
+  - Supports multiple delimiter types (comma, semicolon, tab)
+  - Adds imported spectra to library for immediate use
+- **CSV Template Download**: Download example CSV file with correct format
+- **WAV Audio Export**: Export synthesized audio as downloadable WAV files
+  - Renders audio offline using OfflineAudioContext
+  - Preserves all current effect settings (reverb, filter)
+  - Generates 16-bit PCM WAV files
+  - Auto-generates filenames based on substance name and duration
+
+#### Audio Effect Presets
+- **Six curated presets** for different sonic characteristics:
+  - Clean: No effects, pure synthesis
+  - Ambient: Large reverb space (70% reverb, 6000 Hz filter)
+  - Warm: Low-pass filter for warmth (20% reverb, 2000 Hz filter)
+  - Bright: Full spectrum, light reverb (15% reverb, 8000 Hz filter)
+  - Underwater: Heavy filtering and reverb (80% reverb, 800 Hz filter)
+  - Cathedral: Massive reverb space (90% reverb, 5000 Hz filter)
+- Preset selector automatically updates reverb and filter UI controls
+
+#### UI Improvements
+- New "Import & Export" section with intuitive controls
+- File upload button for CSV import with visual feedback
+- Export WAV button that enables when substance is selected
+- Preset dropdown with descriptive labels
+- Consistent styling with existing interface
+
+### Changed
+- **audio-engine.js**: Added `exportWAV()`, `bufferToWave()`, `applyPreset()`, and `getPresets()` methods
+- **config.js**: Added `presets` configuration object with frozen preset definitions
+- **index.html**: Added UI controls for import, export, and presets
+- **style.css**: Added styling for new UI elements (file upload, secondary buttons, preset selector)
+- **app.js**: Added event handlers for CSV import, template download, WAV export, and preset selection
+- **README.md**: Updated with new features documentation and marked completed items in Future Ideas
+
+## [Previous] - Project Refinement
 
 ### Added
 

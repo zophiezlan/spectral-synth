@@ -57,6 +57,74 @@ const CONFIG = {
     library: {
         LIBRARY_FILE: 'ftir-library.json',  // Path to FTIR library JSON file
     },
+    
+    // Effect presets
+    presets: {
+        'clean': {
+            name: 'Clean',
+            description: 'No effects, pure synthesis',
+            reverb: 0,
+            filterFreq: 8000,
+        },
+        'ambient': {
+            name: 'Ambient',
+            description: 'Large reverb space',
+            reverb: 0.7,
+            filterFreq: 6000,
+        },
+        'warm': {
+            name: 'Warm',
+            description: 'Low-pass filter for warmth',
+            reverb: 0.2,
+            filterFreq: 2000,
+        },
+        'bright': {
+            name: 'Bright',
+            description: 'Full spectrum, light reverb',
+            reverb: 0.15,
+            filterFreq: 8000,
+        },
+        'underwater': {
+            name: 'Underwater',
+            description: 'Heavy filtering and reverb',
+            reverb: 0.8,
+            filterFreq: 800,
+        },
+        'cathedral': {
+            name: 'Cathedral',
+            description: 'Massive reverb space',
+            reverb: 0.9,
+            filterFreq: 5000,
+        },
+    },
+    
+    // Playback modes
+    playbackModes: {
+        'chord': {
+            name: 'Chord',
+            description: 'All peaks play simultaneously',
+        },
+        'arpeggio-up': {
+            name: 'Arpeggio (Up)',
+            description: 'Play peaks from low to high frequency',
+        },
+        'arpeggio-down': {
+            name: 'Arpeggio (Down)',
+            description: 'Play peaks from high to low frequency',
+        },
+        'arpeggio-updown': {
+            name: 'Arpeggio (Up-Down)',
+            description: 'Play peaks up then down',
+        },
+        'sequential': {
+            name: 'Sequential',
+            description: 'Play peaks in order of intensity',
+        },
+        'random': {
+            name: 'Random',
+            description: 'Play peaks in random order',
+        },
+    },
 };
 
 // Freeze config to prevent accidental modification
@@ -67,3 +135,7 @@ Object.freeze(CONFIG.audio);
 Object.freeze(CONFIG.visualization);
 Object.freeze(CONFIG.ui);
 Object.freeze(CONFIG.library);
+Object.freeze(CONFIG.presets);
+Object.keys(CONFIG.presets).forEach(key => Object.freeze(CONFIG.presets[key]));
+Object.freeze(CONFIG.playbackModes);
+Object.keys(CONFIG.playbackModes).forEach(key => Object.freeze(CONFIG.playbackModes[key]));
