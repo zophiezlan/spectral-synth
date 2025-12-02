@@ -109,92 +109,118 @@
                 </div>
             </div>
 
-            <div class="audio-effects">
-                <h4 class="effects-title">Audio Effects</h4>
-                <div class="effects-grid">
-                    <div class="slider-control">
-                        <label for="reverb">Reverb: <span id="reverb-value">0</span>%</label>
-                        <input type="range" id="reverb" min="0" max="100" step="1" value="0">
+            <div class="collapsible-section audio-effects">
+                <h4 class="section-header collapsible-header" data-section="audio-effects">
+                    <span class="collapse-icon">▼</span>
+                    Audio Effects
+                </h4>
+                <div class="collapsible-content" id="audio-effects-content">
+                    <div class="effects-grid">
+                        <div class="slider-control">
+                            <label for="reverb">Reverb: <span id="reverb-value">0</span>%</label>
+                            <input type="range" id="reverb" min="0" max="100" step="1" value="0">
+                        </div>
+                        <div class="slider-control">
+                            <label for="filter-freq">Filter: <span id="filter-freq-value">8000</span> Hz</label>
+                            <input type="range" id="filter-freq" min="100" max="8000" step="100" value="8000">
+                        </div>
                     </div>
-                    <div class="slider-control">
-                        <label for="filter-freq">Filter: <span id="filter-freq-value">8000</span> Hz</label>
-                        <input type="range" id="filter-freq" min="100" max="8000" step="100" value="8000">
-                    </div>
-                </div>
-                <div class="preset-controls">
-                    <label for="preset-select">Presets:</label>
-                    <select id="preset-select" aria-label="Select audio effect preset">
-                        <option value="">-- Select Preset --</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="adsr-controls" role="group" aria-label="ADSR envelope controls">
-                <h4 class="section-title">ADSR Envelope</h4>
-                <div class="adsr-grid">
-                    <div class="slider-control">
-                        <label for="attack">Attack: <span id="attack-value">50</span> ms</label>
-                        <input type="range" id="attack" min="1" max="2000" step="1" value="50">
-                    </div>
-                    <div class="slider-control">
-                        <label for="decay">Decay: <span id="decay-value">100</span> ms</label>
-                        <input type="range" id="decay" min="1" max="2000" step="1" value="100">
-                    </div>
-                    <div class="slider-control">
-                        <label for="sustain">Sustain: <span id="sustain-value">70</span>%</label>
-                        <input type="range" id="sustain" min="0" max="100" step="1" value="70">
-                    </div>
-                    <div class="slider-control">
-                        <label for="release">Release: <span id="release-value">100</span> ms</label>
-                        <input type="range" id="release" min="1" max="3000" step="1" value="100">
-                    </div>
-                </div>
-                <div class="adsr-curve-controls">
-                    <label for="adsr-curve-select">Curve Type:</label>
-                    <select id="adsr-curve-select" aria-label="Select ADSR curve type">
-                        <!-- Options populated dynamically from config.js -->
-                    </select>
-                </div>
-            </div>
-
-            <div class="playback-mode-controls" role="group" aria-label="Playback mode controls">
-                <h4 class="section-title">Playback Mode</h4>
-                <div class="playback-mode-selector">
-                    <label for="playback-mode-select">Mode:</label>
-                    <select id="playback-mode-select" aria-label="Select playback mode">
-                        <!-- Options populated dynamically from config.js -->
-                    </select>
-                </div>
-            </div>
-
-            <div class="import-export-controls" role="group" aria-label="Import and export controls">
-                <h4 class="section-title">Import & Export</h4>
-                <div class="import-export-grid">
-                    <div class="import-section">
-                        <label for="csv-import" class="file-label">
-                            📁 Import CSV
-                        </label>
-                        <input type="file" id="csv-import" accept=".csv" style="display: none;" aria-label="Import FTIR data from CSV file">
-                        <button id="download-template" class="secondary-button" aria-label="Download CSV template">
-                            📋 Download Template
-                        </button>
-                    </div>
-                    <div class="export-section">
-                        <button id="export-wav" disabled class="secondary-button" aria-label="Export audio as WAV file">
-                            💾 Export WAV
-                        </button>
+                    <div class="preset-controls">
+                        <label for="preset-select">Presets:</label>
+                        <select id="preset-select" aria-label="Select audio effect preset">
+                            <option value="">-- Select Preset --</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <div class="peak-selection-controls" role="group" aria-label="Peak selection controls">
-                <div class="selection-info" role="status" aria-live="polite">
-                    <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
+            <div class="collapsible-section adsr-controls" role="group" aria-label="ADSR envelope controls">
+                <h4 class="section-header collapsible-header" data-section="adsr">
+                    <span class="collapse-icon">▼</span>
+                    ADSR Envelope
+                </h4>
+                <div class="collapsible-content" id="adsr-content">
+                    <div class="adsr-grid">
+                        <div class="slider-control">
+                            <label for="attack">Attack: <span id="attack-value">50</span> ms</label>
+                            <input type="range" id="attack" min="1" max="2000" step="1" value="50">
+                        </div>
+                        <div class="slider-control">
+                            <label for="decay">Decay: <span id="decay-value">100</span> ms</label>
+                            <input type="range" id="decay" min="1" max="2000" step="1" value="100">
+                        </div>
+                        <div class="slider-control">
+                            <label for="sustain">Sustain: <span id="sustain-value">70</span>%</label>
+                            <input type="range" id="sustain" min="0" max="100" step="1" value="70">
+                        </div>
+                        <div class="slider-control">
+                            <label for="release">Release: <span id="release-value">100</span> ms</label>
+                            <input type="range" id="release" min="1" max="3000" step="1" value="100">
+                        </div>
+                    </div>
+                    <div class="adsr-curve-controls">
+                        <label for="adsr-curve-select">Curve Type:</label>
+                        <select id="adsr-curve-select" aria-label="Select ADSR curve type">
+                            <!-- Options populated dynamically from config.js -->
+                        </select>
+                    </div>
                 </div>
-                <div class="selection-buttons">
-                    <button id="play-selected" disabled aria-label="Play only selected peaks">▶ Play Selected</button>
-                    <button id="select-all" disabled aria-label="Select all peaks">Select All</button>
-                    <button id="clear-selection" disabled aria-label="Clear peak selection">Clear Selection</button>
+            </div>
+
+            <div class="collapsible-section playback-mode-controls" role="group" aria-label="Playback mode controls">
+                <h4 class="section-header collapsible-header" data-section="playback-mode">
+                    <span class="collapse-icon">▼</span>
+                    Playback Mode
+                </h4>
+                <div class="collapsible-content" id="playback-mode-content">
+                    <div class="playback-mode-selector">
+                        <label for="playback-mode-select">Mode:</label>
+                        <select id="playback-mode-select" aria-label="Select playback mode">
+                            <!-- Options populated dynamically from config.js -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapsible-section import-export-controls" role="group" aria-label="Import and export controls">
+                <h4 class="section-header collapsible-header" data-section="import-export">
+                    <span class="collapse-icon">▼</span>
+                    Import & Export
+                </h4>
+                <div class="collapsible-content" id="import-export-content">
+                    <div class="import-export-grid">
+                        <div class="import-section">
+                            <label for="csv-import" class="file-label">
+                                📁 Import CSV
+                            </label>
+                            <input type="file" id="csv-import" accept=".csv" style="display: none;" aria-label="Import FTIR data from CSV file">
+                            <button id="download-template" class="secondary-button" aria-label="Download CSV template">
+                                📋 Download Template
+                            </button>
+                        </div>
+                        <div class="export-section">
+                            <button id="export-wav" disabled class="secondary-button" aria-label="Export audio as WAV file">
+                                💾 Export WAV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="collapsible-section peak-selection-controls" role="group" aria-label="Peak selection controls">
+                <h4 class="section-header collapsible-header" data-section="peak-selection">
+                    <span class="collapse-icon">▼</span>
+                    Peak Selection
+                </h4>
+                <div class="collapsible-content" id="peak-selection-content">
+                    <div class="selection-info" role="status" aria-live="polite">
+                        <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
+                    </div>
+                    <div class="selection-buttons">
+                        <button id="play-selected" disabled aria-label="Play only selected peaks">▶ Play Selected</button>
+                        <button id="select-all" disabled aria-label="Select all peaks">Select All</button>
+                        <button id="clear-selection" disabled aria-label="Clear peak selection">Clear Selection</button>
+                    </div>
                 </div>
             </div>
 
