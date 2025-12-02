@@ -168,8 +168,6 @@ class AudioEngine {
      */
     async playChord(peaks, duration) {
         const currentTime = this.audioContext.currentTime;
-        const fadeIn = this.DEFAULT_FADE_IN;
-        const fadeOut = this.DEFAULT_FADE_OUT;
 
         this.isPlaying = true;
         this.oscillators = [];
@@ -524,25 +522,44 @@ class AudioEngine {
     /**
      * Apply ADSR envelope to a gain node
      * 
-     * @param {GainNode} gainNode - The gain node to apply envelope to
-     * @param {number} startTime - Start time in audio context time
-     * @param {number} duration - Total duration of the note
-     * @param {number} peakGain - Peak gain value (at end of attack)
-     * @param {number} sustainGain - Sustain gain value
+     * The ADSR envelope shapes the amplitude over time:
+     * - Attack: Fade in from 0 to peak gain
+     * - Decay: Drop from peak to sustain level  
+     * - Sustain: Hold at sustain level
+     * - Release: Fade out to 0
+     * 
+     * The envelope automatically scales to fit within the given duration:
+     * - Attack is capped at 30% of duration
+     * - Decay is capped at 30% of duration
+     * - Release is capped at 40% of duration
+     * - Sustain fills remaining time (if any)
+     * 
+     * This ensures ADSR works correctly for both:
+     * - Chord mode: All notes play for full duration with synchronized envelopes
+     * - Arpeggio mode: Short individual notes each get properly shaped envelopes
+     * 
+     * @param {GainNode} gainNode - Web Audio API gain node to apply envelope to
+     * @param {number} startTime - AudioContext time when envelope should start
+     * @param {number} duration - Total duration in seconds (from UI slider or note length)
+     * @param {number} peakGain - Maximum gain value at end of attack phase
+     * @param {number} sustainGain - Gain value during sustain phase (peakGain * sustainLevel)
      * @private
      */
     applyADSREnvelope(gainNode, startTime, duration, peakGain, sustainGain) {
+        // Scale ADSR phases proportionally to duration to prevent overlap
+        // This ensures the envelope always fits within the playback time
         const attack = Math.min(this.attackTime, duration * 0.3);
         const decay = Math.min(this.decayTime, duration * 0.3);
         const release = Math.min(this.releaseTime, duration * 0.4);
         
-        // Calculate time points
+        // Calculate time points for each phase
         const attackEnd = startTime + attack;
         const decayEnd = attackEnd + decay;
         const releaseStart = startTime + duration - release;
         const noteEnd = startTime + duration;
         
-        // Ensure decay doesn't overlap with release
+        // Ensure decay doesn't overlap with release (can happen with very short durations)
+        // If attack+decay+release > duration, sustain phase will be 0
         const sustainDuration = Math.max(0, releaseStart - decayEnd);
         
         // Apply envelope based on curve type

@@ -308,6 +308,93 @@ const MicroInteractions = {
     }
 };
 
+// Utility: Responsive canvas handler for mobile optimization
+const ResponsiveCanvas = {
+    /**
+     * Setup responsive canvas sizing based on viewport
+     * @param {HTMLCanvasElement} canvas - Canvas element to resize
+     * @param {number} aspectRatio - Desired aspect ratio (width/height), default 2:1
+     */
+    setupCanvas(canvas, aspectRatio = 2) {
+        if (!canvas) return;
+
+        let lastDpr = null;
+
+        const resize = () => {
+            const container = canvas.parentElement;
+            if (!container) return;
+
+            // Get container width
+            const containerWidth = container.clientWidth;
+            
+            // Calculate dimensions based on screen size
+            let canvasWidth, canvasHeight;
+            
+            if (window.innerWidth <= 768) {
+                // Mobile: full container width, reduced height
+                canvasWidth = Math.min(containerWidth - 32, 600); // Subtract padding
+                canvasHeight = Math.min(canvasWidth / aspectRatio, 250);
+                
+                // Use device pixel ratio for sharper rendering on high-DPI screens
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                
+                // Only re-scale if DPR changed (performance optimization)
+                if (lastDpr !== dpr) {
+                    canvas.width = canvasWidth * dpr;
+                    canvas.height = canvasHeight * dpr;
+                    
+                    // Scale down the context
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(dpr, dpr);
+                    
+                    lastDpr = dpr;
+                }
+                
+                // Always update CSS size
+                canvas.style.width = canvasWidth + 'px';
+                canvas.style.height = canvasHeight + 'px';
+            } else {
+                // Desktop: standard size
+                canvas.width = 600;
+                canvas.height = 300;
+                canvas.style.width = '100%';
+                canvas.style.height = 'auto';
+                lastDpr = null; // Reset for next mobile resize
+            }
+        };
+
+        // Initial resize
+        resize();
+
+        // Debounce resize events
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(resize, 250);
+        });
+
+        // Also handle orientation change on mobile
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resize, 100);
+        });
+    },
+
+    /**
+     * Setup all canvases in the application
+     */
+    setupAllCanvases() {
+        const ftirCanvas = document.getElementById('ftir-canvas');
+        const audioCanvas = document.getElementById('audio-canvas');
+        const ftirCanvasA = document.getElementById('ftir-canvas-a');
+        const ftirCanvasB = document.getElementById('ftir-canvas-b');
+
+        this.setupCanvas(ftirCanvas, 2);
+        this.setupCanvas(audioCanvas, 2);
+        this.setupCanvas(ftirCanvasA, 2);
+        this.setupCanvas(ftirCanvasB, 2);
+    }
+};
+
 // Utility: Favorites manager using localStorage
 const Favorites = {
     STORAGE_KEY: 'spectral-synth-favorites',
@@ -467,6 +554,9 @@ async function init() {
         }
 
         LoadingOverlay.show('Initializing Spectral Synthesizer...');
+
+        // Setup responsive canvases first (before creating visualizers)
+        ResponsiveCanvas.setupAllCanvases();
 
         // Create instances
         audioEngine = new AudioEngine();
