@@ -490,7 +490,8 @@ section {
     overflow: hidden;
     max-height: 1000px;
     opacity: 1;
-    transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    visibility: visible;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease, visibility 0s linear 0s;
     margin-top: 1rem;
 }
 
@@ -500,6 +501,7 @@ section {
     margin-top: 0;
     pointer-events: none;
     visibility: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease, visibility 0s linear 0.4s;
 }
 
 .import-export-grid {

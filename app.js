@@ -1018,6 +1018,31 @@ function setupCollapsibleSections() {
             // Save state to localStorage
             collapsedSections[sectionName] = !isCurrentlyCollapsed;
             localStorage.setItem('collapsedSections', JSON.stringify(collapsedSections));
+            
+            // Force canvas repaint on touch devices (especially iPad Safari)
+            // after the CSS transition completes
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                setTimeout(() => {
+                    // Trigger a repaint by requesting the canvas dimensions
+                    const ftirCanvas = document.getElementById('ftir-canvas');
+                    const audioCanvas = document.getElementById('audio-canvas');
+                    
+                    if (ftirCanvas && window.visualizer) {
+                        // Force redraw of current spectrum if one is loaded
+                        if (window.visualizer.currentSpectrum) {
+                            window.visualizer.drawFTIRSpectrum(
+                                window.visualizer.currentSpectrum,
+                                window.visualizer.currentPeaks || []
+                            );
+                        }
+                    }
+                    
+                    // Also trigger a layout recalculation to ensure visibility
+                    if (audioCanvas) {
+                        audioCanvas.offsetHeight; // Force reflow
+                    }
+                }, 450); // Wait for CSS transition to complete (400ms + 50ms buffer)
+            }
         });
     });
 }
