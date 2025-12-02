@@ -139,6 +139,175 @@ const BrowserCompatibility = {
     }
 };
 
+// Utility: Waveform thumbnail generator
+const ThumbnailGenerator = {
+    /**
+     * Generate a small canvas thumbnail of a spectrum
+     * @param {Array} spectrum - Spectrum data points
+     * @param {number} width - Canvas width
+     * @param {number} height - Canvas height
+     * @returns {HTMLCanvasElement} Canvas element with the thumbnail
+     */
+    generateSpectrumThumbnail(spectrum, width = 80, height = 40) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.className = 'spectrum-thumbnail';
+
+        const ctx = canvas.getContext('2d');
+
+        // Get theme colors
+        const isDark = document.body.getAttribute('data-theme') !== 'light';
+        const bgColor = isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.5)';
+        const lineColor = isDark ? '#8b5cf6' : '#7c3aed';
+        const fillGradient = ctx.createLinearGradient(0, 0, 0, height);
+        fillGradient.addColorStop(0, isDark ? 'rgba(139, 92, 246, 0.6)' : 'rgba(124, 58, 237, 0.6)');
+        fillGradient.addColorStop(1, isDark ? 'rgba(236, 72, 153, 0.2)' : 'rgba(219, 39, 119, 0.2)');
+
+        // Fill background
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, width, height);
+
+        if (!spectrum || spectrum.length === 0) {
+            return canvas;
+        }
+
+        // Find min/max for scaling
+        const minWavenumber = Math.min(...spectrum.map(p => p.wavenumber));
+        const maxWavenumber = Math.max(...spectrum.map(p => p.wavenumber));
+        const minTrans = Math.min(...spectrum.map(p => p.transmittance));
+        const maxTrans = Math.max(...spectrum.map(p => p.transmittance));
+
+        // Draw spectrum
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+
+        spectrum.forEach((point, i) => {
+            const x = ((point.wavenumber - minWavenumber) / (maxWavenumber - minWavenumber)) * width;
+            const y = height - ((point.transmittance - minTrans) / (maxTrans - minTrans)) * height;
+
+            if (i === 0) {
+                ctx.lineTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+
+        ctx.lineTo(width, height);
+        ctx.closePath();
+
+        // Fill gradient
+        ctx.fillStyle = fillGradient;
+        ctx.fill();
+
+        // Stroke outline
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        return canvas;
+    }
+};
+
+// Utility: Color mapping for frequency visualization
+const ColorMapper = {
+    /**
+     * Map infrared frequency to visible color (like if you could "see" IR)
+     * @param {number} wavenumber - Wavenumber in cm⁻¹
+     * @returns {string} RGB color string
+     */
+    wavenumberToColor(wavenumber) {
+        // Map IR range (400-4000 cm⁻¹) to visible spectrum-like colors
+        // Lower wavenumbers (longer wavelengths) → Red
+        // Higher wavenumbers (shorter wavelengths) → Violet
+
+        const minWave = 400;
+        const maxWave = 4000;
+        const normalized = (wavenumber - minWave) / (maxWave - minWave);
+
+        // Use HSL for smooth color transitions
+        // Hue: 0 (red) to 280 (violet), avoiding full blue to keep it pleasant
+        const hue = Math.floor(280 * (1 - normalized)); // Reverse so high freq = violet
+        const saturation = 85;
+        const lightness = 60;
+
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    },
+
+    /**
+     * Map audio frequency to color
+     * @param {number} audioFreq - Audio frequency in Hz
+     * @returns {string} RGB color string
+     */
+    audioFreqToColor(audioFreq) {
+        // Map audio range (20-8000 Hz) to colors
+        const minFreq = 20;
+        const maxFreq = 8000;
+        const normalized = Math.log(audioFreq / minFreq) / Math.log(maxFreq / minFreq);
+
+        // Similar hue mapping as IR
+        const hue = Math.floor(280 * (1 - normalized));
+        const saturation = 85;
+        const lightness = 60;
+
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+};
+
+// Utility: Enhanced micro-interactions
+const MicroInteractions = {
+    /**
+     * Add pulse animation to element
+     * @param {HTMLElement} element - Element to animate
+     * @param {number} duration - Duration in milliseconds
+     */
+    pulse(element, duration = 2000) {
+        element.classList.add('pulsing');
+        setTimeout(() => {
+            element.classList.remove('pulsing');
+        }, duration);
+    },
+
+    /**
+     * Add success celebration effect
+     * @param {string} message - Success message
+     */
+    celebrate(message) {
+        // Check if this is first time for this action
+        const key = `celebration_${message.replace(/\s/g, '_')}`;
+
+        if (!localStorage.getItem(key)) {
+            Toast.success(`🎉 ${message}`, 4000);
+            localStorage.setItem(key, 'true');
+        } else {
+            Toast.success(message, 3000);
+        }
+    },
+
+    /**
+     * Add ripple effect to button click
+     * @param {MouseEvent} event - Click event
+     */
+    ripple(event) {
+        const button = event.currentTarget;
+        const ripple = document.createElement('span');
+        const rect = button.getBoundingClientRect();
+
+        const size = Math.max(rect.width, rect.height);
+        const x = event.clientX - rect.left - size / 2;
+        const y = event.clientY - rect.top - size / 2;
+
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.classList.add('ripple-effect');
+
+        button.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+    }
+};
+
 // Utility: Favorites manager using localStorage
 const Favorites = {
     STORAGE_KEY: 'spectral-synth-favorites',
@@ -986,6 +1155,9 @@ async function handlePlay() {
         // Disable play button during playback
         playButton.disabled = true;
 
+        // Add pulse effect to play button
+        MicroInteractions.pulse(playButton, duration * 1000);
+
         // Ensure audio context is active (especially for iOS)
         await iOSAudioHelper.ensureAudioContext(audioEngine);
 
@@ -1376,7 +1548,7 @@ async function handleExportWAV() {
         exportButton.disabled = false;
         exportButton.textContent = '💾 Export WAV';
 
-        Toast.success(`Successfully exported: ${filename}`);
+        MicroInteractions.celebrate(`First export! Successfully exported: ${filename}`);
     } catch (error) {
         LoadingOverlay.hide();
         const exportButton = document.getElementById('export-wav');
@@ -1738,14 +1910,26 @@ function showSmartSuggestions(currentSubstance) {
     // Clear previous suggestions
     suggestionsList.innerHTML = '';
 
-    // Add suggestion items
+    // Add suggestion items with thumbnails
     similarities.forEach(({ substance, similarity }) => {
         const item = document.createElement('button');
         item.className = 'suggestion-item';
-        item.innerHTML = `
-            ${substance.name}
+
+        // Generate thumbnail
+        const thumbnail = ThumbnailGenerator.generateSpectrumThumbnail(substance.spectrum, 80, 40);
+
+        // Create container for text
+        const textContainer = document.createElement('div');
+        textContainer.className = 'suggestion-text';
+        textContainer.innerHTML = `
+            <span class="suggestion-name">${substance.name}</span>
             <span class="similarity-score">${(similarity * 100).toFixed(0)}% similar</span>
         `;
+
+        // Append thumbnail and text
+        item.appendChild(thumbnail);
+        item.appendChild(textContainer);
+
         item.addEventListener('click', () => {
             substanceSelect.value = substance.id;
             handleSubstanceChange();
