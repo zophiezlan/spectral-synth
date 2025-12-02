@@ -964,6 +964,62 @@ function setupEventListeners() {
     if (favoriteToggleButton) {
         favoriteToggleButton.addEventListener('click', handleFavoriteToggle);
     }
+
+    // Setup collapsible sections
+    setupCollapsibleSections();
+}
+
+/**
+ * Setup collapsible sections
+ * 
+ * Makes advanced control sections collapsible to improve UX
+ * and prioritize essential features visibility.
+ */
+function setupCollapsibleSections() {
+    // Get all collapsible headers
+    const headers = document.querySelectorAll('.collapsible-header');
+    
+    // Load collapsed states from localStorage
+    const collapsedSections = JSON.parse(localStorage.getItem('collapsedSections') || '{}');
+    
+    // Default collapsed sections (start with advanced features collapsed)
+    const defaultCollapsed = ['adsr', 'playback-mode', 'import-export', 'peak-selection'];
+    
+    headers.forEach(header => {
+        const sectionName = header.getAttribute('data-section');
+        const content = header.nextElementSibling;
+        
+        if (!content || !content.classList.contains('collapsible-content')) {
+            return;
+        }
+        
+        // Determine initial state
+        let isCollapsed;
+        if (collapsedSections.hasOwnProperty(sectionName)) {
+            isCollapsed = collapsedSections[sectionName];
+        } else {
+            isCollapsed = defaultCollapsed.includes(sectionName);
+        }
+        
+        // Set initial state
+        if (isCollapsed) {
+            header.classList.add('collapsed');
+            content.classList.add('collapsed');
+        }
+        
+        // Add click handler
+        header.addEventListener('click', () => {
+            const isCurrentlyCollapsed = header.classList.contains('collapsed');
+            
+            // Toggle state
+            header.classList.toggle('collapsed');
+            content.classList.toggle('collapsed');
+            
+            // Save state to localStorage
+            collapsedSections[sectionName] = !isCurrentlyCollapsed;
+            localStorage.setItem('collapsedSections', JSON.stringify(collapsedSections));
+        });
+    });
 }
 
 /**
