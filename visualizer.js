@@ -327,7 +327,7 @@ class Visualizer {
 
         ctx.stroke();
 
-        // Highlight peaks
+        // Highlight peaks with dynamic color mapping
         if (peaks && peaks.length > 0) {
             peaks.forEach((peak, idx) => {
                 const x = scaleX(peak.wavenumber);
@@ -340,10 +340,21 @@ class Visualizer {
 
                 const isSelected = this.selectedPeakIndices.has(idx);
 
+                // Get color based on wavenumber (if ColorMapper is available)
+                const dynamicColor = (typeof ColorMapper !== 'undefined')
+                    ? ColorMapper.wavenumberToColor(peak.wavenumber)
+                    : CONFIG.visualization.PEAK_COLOR;
+
                 // Draw vertical line to peak
                 ctx.beginPath();
-                // Add transparency to colors: selected is semi-transparent green, unselected is very transparent pink
-                ctx.strokeStyle = isSelected ? (CONFIG.visualization.SELECTED_PEAK_COLOR + '88') : (CONFIG.visualization.PEAK_COLOR + '44');
+                // Use dynamic colors with transparency, or fallback to default
+                if (isSelected) {
+                    ctx.strokeStyle = CONFIG.visualization.SELECTED_PEAK_COLOR + '88';
+                } else {
+                    ctx.strokeStyle = (typeof ColorMapper !== 'undefined')
+                        ? dynamicColor + '66' // Add transparency to dynamic color
+                        : CONFIG.visualization.PEAK_COLOR + '44';
+                }
                 ctx.lineWidth = isSelected ? 2 : 1;
                 ctx.moveTo(x, height - 20);
                 ctx.lineTo(x, y);
@@ -353,7 +364,14 @@ class Visualizer {
                 const markerSize = isSelected ? this.PEAK_MARKER_SIZE * 0.875 : this.PEAK_MARKER_SIZE * 0.625;
                 ctx.beginPath();
                 ctx.arc(x, y, markerSize, 0, Math.PI * 2);
-                ctx.fillStyle = isSelected ? CONFIG.visualization.SELECTED_PEAK_COLOR : CONFIG.visualization.PEAK_COLOR;
+
+                if (isSelected) {
+                    ctx.fillStyle = CONFIG.visualization.SELECTED_PEAK_COLOR;
+                } else {
+                    ctx.fillStyle = (typeof ColorMapper !== 'undefined')
+                        ? dynamicColor
+                        : CONFIG.visualization.PEAK_COLOR;
+                }
                 ctx.fill();
 
                 // Add outline for selected peaks
