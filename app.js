@@ -318,6 +318,8 @@ const ResponsiveCanvas = {
     setupCanvas(canvas, aspectRatio = 2) {
         if (!canvas) return;
 
+        let lastDpr = null;
+
         const resize = () => {
             const container = canvas.parentElement;
             if (!container) return;
@@ -335,14 +337,20 @@ const ResponsiveCanvas = {
                 
                 // Use device pixel ratio for sharper rendering on high-DPI screens
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                canvas.width = canvasWidth * dpr;
-                canvas.height = canvasHeight * dpr;
                 
-                // Scale down the context
-                const ctx = canvas.getContext('2d');
-                ctx.scale(dpr, dpr);
+                // Only re-scale if DPR changed (performance optimization)
+                if (lastDpr !== dpr) {
+                    canvas.width = canvasWidth * dpr;
+                    canvas.height = canvasHeight * dpr;
+                    
+                    // Scale down the context
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(dpr, dpr);
+                    
+                    lastDpr = dpr;
+                }
                 
-                // Set CSS size
+                // Always update CSS size
                 canvas.style.width = canvasWidth + 'px';
                 canvas.style.height = canvasHeight + 'px';
             } else {
@@ -351,6 +359,7 @@ const ResponsiveCanvas = {
                 canvas.height = 300;
                 canvas.style.width = '100%';
                 canvas.style.height = 'auto';
+                lastDpr = null; // Reset for next mobile resize
             }
         };
 

@@ -807,7 +807,7 @@ footer p {
 }
 
 .collapsible-section.expanded .collapsible-content {
-    max-height: 2000px;
+    max-height: 100vh; /* Use viewport height as practical maximum */
     padding: 1rem;
     transition: max-height 0.4s ease-in, padding 0.3s ease-in;
 }
@@ -815,7 +815,8 @@ footer p {
 /* Mobile-specific: Show important sections expanded by default */
 @media (max-width: 768px) {
     .collapsible-section.default-expanded .collapsible-content {
-        max-height: 2000px;
+        max-height: none; /* Allow full height for expanded sections */
+        overflow: visible;
         padding: 1rem;
     }
 
@@ -823,25 +824,25 @@ footer p {
         transform: rotate(180deg);
     }
 
-    /* Hide collapsible UI on desktop */
-    .desktop-only .collapsible-header {
+    /* Always-visible sections (non-collapsible on mobile) */
+    .collapsible-always-visible .collapsible-header {
         cursor: default;
         pointer-events: none;
     }
 
-    .desktop-only .collapsible-toggle {
+    .collapsible-always-visible .collapsible-toggle {
         display: none;
     }
 
-    .desktop-only .collapsible-content {
+    .collapsible-always-visible .collapsible-content {
         max-height: none;
         overflow: visible;
         padding: 1rem 0;
     }
 }
 
-/* Touch improvements */
-@media (hover: none) and (pointer: coarse) {
+/* Touch improvements - Combined with mobile viewport for comprehensive coverage */
+@media (hover: none) and (pointer: coarse), (max-width: 768px) and (pointer: coarse) {
     /* Enhance touch targets */
     button,
     select,
