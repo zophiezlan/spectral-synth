@@ -44,6 +44,15 @@ const reverbSlider = document.getElementById('reverb');
 const reverbValue = document.getElementById('reverb-value');
 const filterFreqSlider = document.getElementById('filter-freq');
 const filterFreqValue = document.getElementById('filter-freq-value');
+const attackSlider = document.getElementById('attack');
+const attackValue = document.getElementById('attack-value');
+const decaySlider = document.getElementById('decay');
+const decayValue = document.getElementById('decay-value');
+const sustainSlider = document.getElementById('sustain');
+const sustainValue = document.getElementById('sustain-value');
+const releaseSlider = document.getElementById('release');
+const releaseValue = document.getElementById('release-value');
+const adsrCurveSelect = document.getElementById('adsr-curve-select');
 const mappingInfo = document.getElementById('mapping-info');
 const ftirCanvas = document.getElementById('ftir-canvas');
 const audioCanvas = document.getElementById('audio-canvas');
@@ -294,6 +303,61 @@ function setupEventListeners() {
         filterFreqValue.textContent = freq;
         audioEngine.setFilterFrequency(freq);
     });
+
+    // ADSR controls
+    attackSlider.addEventListener('input', (e) => {
+        const timeMs = parseInt(e.target.value);
+        const timeSec = timeMs / 1000;
+        attackValue.textContent = timeMs;
+        audioEngine.setAttackTime(timeSec);
+    });
+
+    decaySlider.addEventListener('input', (e) => {
+        const timeMs = parseInt(e.target.value);
+        const timeSec = timeMs / 1000;
+        decayValue.textContent = timeMs;
+        audioEngine.setDecayTime(timeSec);
+    });
+
+    sustainSlider.addEventListener('input', (e) => {
+        const level = parseInt(e.target.value) / 100;
+        sustainValue.textContent = e.target.value;
+        audioEngine.setSustainLevel(level);
+    });
+
+    releaseSlider.addEventListener('input', (e) => {
+        const timeMs = parseInt(e.target.value);
+        const timeSec = timeMs / 1000;
+        releaseValue.textContent = timeMs;
+        audioEngine.setReleaseTime(timeSec);
+    });
+
+    // ADSR curve selector
+    if (adsrCurveSelect) {
+        // Populate ADSR curve options
+        const curves = audioEngine.getADSRCurves();
+        Object.keys(curves).forEach(key => {
+            const curve = curves[key];
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = `${curve.name} - ${curve.description}`;
+            adsrCurveSelect.appendChild(option);
+        });
+        
+        // Set default curve
+        adsrCurveSelect.value = CONFIG.adsr.DEFAULT_CURVE;
+
+        adsrCurveSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                try {
+                    audioEngine.setADSRCurve(e.target.value);
+                } catch (error) {
+                    console.error('Error setting ADSR curve:', error);
+                    alert('Failed to set ADSR curve');
+                }
+            }
+        });
+    }
 
     // Preset selector
     const presetSelect = document.getElementById('preset-select');

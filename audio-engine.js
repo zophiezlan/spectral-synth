@@ -22,10 +22,17 @@ class AudioEngine {
         // Playback mode
         this.playbackMode = 'chord';  // Default to chord mode
         
+        // ADSR envelope parameters
+        this.attackTime = CONFIG.adsr.DEFAULT_ATTACK;
+        this.decayTime = CONFIG.adsr.DEFAULT_DECAY;
+        this.sustainLevel = CONFIG.adsr.DEFAULT_SUSTAIN;
+        this.releaseTime = CONFIG.adsr.DEFAULT_RELEASE;
+        this.adsrCurve = CONFIG.adsr.DEFAULT_CURVE;
+        
         // Load audio constants from global CONFIG object
         this.DEFAULT_VOLUME = CONFIG.audio.DEFAULT_VOLUME;
-        this.DEFAULT_FADE_IN = CONFIG.audio.DEFAULT_FADE_IN;
-        this.DEFAULT_FADE_OUT = CONFIG.audio.DEFAULT_FADE_OUT;
+        this.DEFAULT_FADE_IN = CONFIG.audio.DEFAULT_FADE_IN;  // Deprecated, kept for backwards compatibility
+        this.DEFAULT_FADE_OUT = CONFIG.audio.DEFAULT_FADE_OUT;  // Deprecated, kept for backwards compatibility
         this.REVERB_DURATION = CONFIG.audio.REVERB_DURATION;
         this.FFT_SIZE = CONFIG.audio.FFT_SIZE;
         this.ANALYSER_SMOOTHING = CONFIG.audio.ANALYSER_SMOOTHING;
@@ -191,13 +198,11 @@ class AudioEngine {
             // Higher frequencies are perceived as louder, so we attenuate them
             // freqCorrection ranges from 0.125 (at 8000 Hz) to 1.0 (at ≤1000 Hz)
             const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
-            const finalGain = baseGain * freqCorrection;
+            const peakGain = baseGain * freqCorrection;
+            const sustainGain = peakGain * this.sustainLevel;
 
-            // Envelope: fade in, sustain, fade out
-            gain.gain.setValueAtTime(0, currentTime);
-            gain.gain.linearRampToValueAtTime(finalGain, currentTime + fadeIn);
-            gain.gain.setValueAtTime(finalGain, currentTime + duration - fadeOut);
-            gain.gain.linearRampToValueAtTime(0, currentTime + duration);
+            // Apply ADSR envelope
+            this.applyADSREnvelope(gain, currentTime, duration, peakGain, sustainGain);
 
             // Connect: oscillator -> gain -> masterGain
             osc.connect(gain);
@@ -289,16 +294,11 @@ class AudioEngine {
             // Calculate gain with frequency correction
             const baseGain = peak.absorbance * 0.5; // Higher volume for individual notes
             const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
-            const finalGain = baseGain * freqCorrection;
+            const peakGain = baseGain * freqCorrection;
+            const sustainGain = peakGain * this.sustainLevel;
 
-            // Envelope: quick attack, sustain, quick release
-            const attackTime = 0.01;
-            const releaseTime = 0.05;
-            
-            gain.gain.setValueAtTime(0, startTime);
-            gain.gain.linearRampToValueAtTime(finalGain, startTime + attackTime);
-            gain.gain.setValueAtTime(finalGain, endTime - releaseTime);
-            gain.gain.linearRampToValueAtTime(0, endTime);
+            // Apply ADSR envelope
+            this.applyADSREnvelope(gain, startTime, actualNoteDuration, peakGain, sustainGain);
 
             // Connect
             osc.connect(gain);
@@ -522,6 +522,161 @@ class AudioEngine {
     }
 
     /**
+     * Apply ADSR envelope to a gain node
+     * 
+     * @param {GainNode} gainNode - The gain node to apply envelope to
+     * @param {number} startTime - Start time in audio context time
+     * @param {number} duration - Total duration of the note
+     * @param {number} peakGain - Peak gain value (at end of attack)
+     * @param {number} sustainGain - Sustain gain value
+     * @private
+     */
+    applyADSREnvelope(gainNode, startTime, duration, peakGain, sustainGain) {
+        const attack = Math.min(this.attackTime, duration * 0.3);
+        const decay = Math.min(this.decayTime, duration * 0.3);
+        const release = Math.min(this.releaseTime, duration * 0.4);
+        
+        // Calculate time points
+        const attackEnd = startTime + attack;
+        const decayEnd = attackEnd + decay;
+        const releaseStart = startTime + duration - release;
+        const noteEnd = startTime + duration;
+        
+        // Ensure decay doesn't overlap with release
+        const sustainDuration = Math.max(0, releaseStart - decayEnd);
+        
+        // Apply envelope based on curve type
+        gainNode.gain.cancelScheduledValues(startTime);
+        gainNode.gain.setValueAtTime(0, startTime);
+        
+        if (this.adsrCurve === 'exponential') {
+            // Exponential curves - natural sounding
+            // Attack phase
+            gainNode.gain.setTargetAtTime(peakGain, startTime, attack / 3);
+            // Decay phase
+            gainNode.gain.setTargetAtTime(sustainGain, attackEnd, decay / 3);
+            // Sustain phase - hold at sustain level
+            if (sustainDuration > 0) {
+                gainNode.gain.setValueAtTime(sustainGain, decayEnd);
+                gainNode.gain.setValueAtTime(sustainGain, releaseStart);
+            }
+            // Release phase
+            gainNode.gain.setTargetAtTime(0, releaseStart, release / 5);
+        } else if (this.adsrCurve === 'logarithmic') {
+            // Logarithmic-style curves using exponentialRampToValueAtTime
+            // Creates smooth exponential transitions
+            const minValue = 0.0001; // Minimum value for exponential ramps
+            gainNode.gain.setValueAtTime(minValue, startTime);
+            
+            // Attack phase
+            gainNode.gain.exponentialRampToValueAtTime(Math.max(minValue, peakGain), attackEnd);
+            // Decay phase
+            gainNode.gain.exponentialRampToValueAtTime(Math.max(minValue, sustainGain), decayEnd);
+            // Sustain phase
+            if (sustainDuration > 0) {
+                gainNode.gain.setValueAtTime(Math.max(minValue, sustainGain), releaseStart);
+            }
+            // Release phase
+            gainNode.gain.exponentialRampToValueAtTime(minValue, noteEnd);
+            gainNode.gain.setValueAtTime(0, noteEnd);
+        } else {
+            // Linear curves - straight lines (default)
+            // Attack phase
+            gainNode.gain.linearRampToValueAtTime(peakGain, attackEnd);
+            // Decay phase
+            gainNode.gain.linearRampToValueAtTime(sustainGain, decayEnd);
+            // Sustain phase
+            if (sustainDuration > 0) {
+                gainNode.gain.setValueAtTime(sustainGain, releaseStart);
+            }
+            // Release phase
+            gainNode.gain.linearRampToValueAtTime(0, noteEnd);
+        }
+    }
+
+    /**
+     * Set ADSR attack time
+     * @param {number} time - Attack time in seconds
+     * @throws {Error} If time is invalid
+     */
+    setAttackTime(time) {
+        if (typeof time !== 'number' || isNaN(time) || time < CONFIG.adsr.MIN_ATTACK || time > CONFIG.adsr.MAX_ATTACK) {
+            throw new Error(`Invalid attack time: must be between ${CONFIG.adsr.MIN_ATTACK} and ${CONFIG.adsr.MAX_ATTACK}`);
+        }
+        this.attackTime = time;
+    }
+
+    /**
+     * Set ADSR decay time
+     * @param {number} time - Decay time in seconds
+     * @throws {Error} If time is invalid
+     */
+    setDecayTime(time) {
+        if (typeof time !== 'number' || isNaN(time) || time < CONFIG.adsr.MIN_DECAY || time > CONFIG.adsr.MAX_DECAY) {
+            throw new Error(`Invalid decay time: must be between ${CONFIG.adsr.MIN_DECAY} and ${CONFIG.adsr.MAX_DECAY}`);
+        }
+        this.decayTime = time;
+    }
+
+    /**
+     * Set ADSR sustain level
+     * @param {number} level - Sustain level (0.0 - 1.0)
+     * @throws {Error} If level is invalid
+     */
+    setSustainLevel(level) {
+        if (typeof level !== 'number' || isNaN(level) || level < CONFIG.adsr.MIN_SUSTAIN || level > CONFIG.adsr.MAX_SUSTAIN) {
+            throw new Error(`Invalid sustain level: must be between ${CONFIG.adsr.MIN_SUSTAIN} and ${CONFIG.adsr.MAX_SUSTAIN}`);
+        }
+        this.sustainLevel = level;
+    }
+
+    /**
+     * Set ADSR release time
+     * @param {number} time - Release time in seconds
+     * @throws {Error} If time is invalid
+     */
+    setReleaseTime(time) {
+        if (typeof time !== 'number' || isNaN(time) || time < CONFIG.adsr.MIN_RELEASE || time > CONFIG.adsr.MAX_RELEASE) {
+            throw new Error(`Invalid release time: must be between ${CONFIG.adsr.MIN_RELEASE} and ${CONFIG.adsr.MAX_RELEASE}`);
+        }
+        this.releaseTime = time;
+    }
+
+    /**
+     * Set ADSR curve type
+     * @param {string} curve - Curve type ('linear', 'exponential', 'logarithmic')
+     * @throws {Error} If curve type is invalid
+     */
+    setADSRCurve(curve) {
+        if (!CONFIG.adsrCurves[curve]) {
+            throw new Error(`Invalid ADSR curve: ${curve}`);
+        }
+        this.adsrCurve = curve;
+    }
+
+    /**
+     * Get current ADSR settings
+     * @returns {Object} Current ADSR parameters
+     */
+    getADSRSettings() {
+        return {
+            attack: this.attackTime,
+            decay: this.decayTime,
+            sustain: this.sustainLevel,
+            release: this.releaseTime,
+            curve: this.adsrCurve
+        };
+    }
+
+    /**
+     * Get available ADSR curves
+     * @returns {Object} ADSR curves object from CONFIG
+     */
+    getADSRCurves() {
+        return CONFIG.adsrCurves;
+    }
+
+    /**
      * Export audio as WAV file
      * 
      * Renders the synthesized audio to a buffer and exports it as a downloadable WAV file.
@@ -584,9 +739,6 @@ class AudioEngine {
         wetGain.connect(offlineContext.destination);
 
         // Create oscillators for each peak
-        const fadeIn = this.DEFAULT_FADE_IN;
-        const fadeOut = this.DEFAULT_FADE_OUT;
-
         peaks.forEach((peak, idx) => {
             const osc = offlineContext.createOscillator();
             const gain = offlineContext.createGain();
@@ -599,13 +751,11 @@ class AudioEngine {
 
             const baseGain = (peak.absorbance * 0.8) / peaks.length;
             const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
-            const finalGain = baseGain * freqCorrection;
+            const peakGain = baseGain * freqCorrection;
+            const sustainGain = peakGain * this.sustainLevel;
 
-            // Envelope
-            gain.gain.setValueAtTime(0, 0);
-            gain.gain.linearRampToValueAtTime(finalGain, fadeIn);
-            gain.gain.setValueAtTime(finalGain, duration - fadeOut);
-            gain.gain.linearRampToValueAtTime(0, duration);
+            // Apply ADSR envelope
+            this.applyADSREnvelope(gain, 0, duration, peakGain, sustainGain);
 
             osc.connect(gain);
             gain.connect(masterGain);
