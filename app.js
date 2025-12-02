@@ -808,8 +808,9 @@ const ResponsiveCanvas = {
                 }
             },
             'audio-canvas': () => {
-                // Only redraw if visualizer exists and has been initialized with audio
-                if (typeof visualizer !== 'undefined' && visualizer.audioStaticCached !== undefined) {
+                // Only redraw if visualizer exists and audio engine is initialized
+                // Check for audioEngine property to ensure visualizer is fully initialized
+                if (typeof visualizer !== 'undefined' && visualizer.audioEngine) {
                     // Clear audio canvas static cache and trigger immediate redraw
                     visualizer.audioStaticCached = false;
                     visualizer.stopAudioAnimation(); // Redraws with cleared cache
