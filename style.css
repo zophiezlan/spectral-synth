@@ -728,6 +728,9 @@ canvas {
     width: 100%;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 5px;
+    touch-action: manipulation; /* Prevent default touch gestures like pinch-zoom */
+    -webkit-user-select: none; /* Prevent text selection on touch */
+    user-select: none;
 }
 
 .axis-labels {
