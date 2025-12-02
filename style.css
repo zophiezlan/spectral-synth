@@ -852,18 +852,7 @@ footer p {
     transform: rotate(180deg);
 }
 
-.collapsible-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-    padding: 0 1rem;
-}
 
-.collapsible-section.expanded .collapsible-content {
-    max-height: 100vh; /* Use viewport height as practical maximum */
-    padding: 1rem;
-    transition: max-height 0.4s ease-in, padding 0.3s ease-in;
-}
 
 /* Mobile-specific: Show important sections expanded by default */
 @media (max-width: 768px) {
