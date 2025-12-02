@@ -17,13 +17,13 @@ class Visualizer {
         if (!ftirCanvas || !audioCanvas) {
             throw new Error('Invalid canvases: both ftirCanvas and audioCanvas are required');
         }
-        
+
         this.ftirCanvas = ftirCanvas;
         this.audioCanvas = audioCanvas;
 
         this.ftirCtx = ftirCanvas.getContext('2d');
         this.audioCtx = audioCanvas.getContext('2d');
-        
+
         if (!this.ftirCtx || !this.audioCtx) {
             throw new Error('Failed to get canvas 2D context');
         }
@@ -37,10 +37,14 @@ class Visualizer {
         this.selectedPeakIndices = new Set();
         this.peakPositions = []; // Store peak positions for click detection
         this.onPeakSelectionChange = null; // Callback for selection changes
-        
+
         // Load visualization constants from global CONFIG object
         this.CLICK_RADIUS = CONFIG.visualization.CLICK_RADIUS;
         this.PEAK_MARKER_SIZE = CONFIG.visualization.PEAK_MARKER_SIZE;
+
+        // Cached static elements for performance
+        this.audioStaticCanvas = null;
+        this.audioStaticCached = false;
 
         // Set up click handler
         this.setupClickHandler();
@@ -93,26 +97,42 @@ class Visualizer {
             }
         });
 
-        // Change cursor to pointer when hovering over peaks
+        // Change cursor to pointer and show tooltip when hovering over peaks
         this.ftirCanvas.addEventListener('mousemove', (e) => {
-            if (!this.currentPeaks || this.currentPeaks.length === 0) return;
+            if (!this.currentPeaks || this.currentPeaks.length === 0) {
+                this.hideTooltip();
+                return;
+            }
 
             const rect = this.ftirCanvas.getBoundingClientRect();
             const mouseX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
             const mouseY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
 
-            let overPeak = false;
+            let closestIndex = -1;
+            let closestDistance = Infinity;
 
-            this.peakPositions.forEach((pos) => {
+            this.peakPositions.forEach((pos, idx) => {
                 const distance = Math.sqrt(
                     Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2)
                 );
-                if (distance < this.CLICK_RADIUS) {
-                    overPeak = true;
+                if (distance < this.CLICK_RADIUS && distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = idx;
                 }
             });
 
-            this.ftirCanvas.style.cursor = overPeak ? 'pointer' : 'default';
+            if (closestIndex !== -1) {
+                this.ftirCanvas.style.cursor = 'pointer';
+                this.showTooltip(this.currentPeaks[closestIndex], e.clientX, e.clientY, closestIndex);
+            } else {
+                this.ftirCanvas.style.cursor = 'default';
+                this.hideTooltip();
+            }
+        });
+
+        // Hide tooltip when mouse leaves canvas
+        this.ftirCanvas.addEventListener('mouseleave', () => {
+            this.hideTooltip();
         });
     }
 
@@ -153,6 +173,87 @@ class Visualizer {
         if (this.onPeakSelectionChange) {
             this.onPeakSelectionChange(this.getSelectedPeaks());
         }
+    }
+
+    /**
+     * Show tooltip for a peak
+     * @param {Object} peak - Peak data {wavenumber, absorbance, audioFreq}
+     * @param {number} x - Mouse X position
+     * @param {number} y - Mouse Y position
+     * @param {number} index - Peak index
+     * @private
+     */
+    showTooltip(peak, x, y, index) {
+        const tooltip = document.getElementById('peak-tooltip');
+        if (!tooltip) return;
+
+        const header = tooltip.querySelector('.tooltip-header');
+        const content = tooltip.querySelector('.tooltip-content');
+
+        const isSelected = this.selectedPeakIndices.has(index);
+        const functionalGroup = this.getFunctionalGroup ? this.getFunctionalGroup(peak.wavenumber) : 'Unknown';
+
+        header.textContent = `Peak ${index + 1}${isSelected ? ' ★' : ''}`;
+        content.innerHTML = `
+            <div><strong>Wavenumber:</strong> ${peak.wavenumber.toFixed(1)} cm⁻¹</div>
+            <div><strong>Intensity:</strong> ${(peak.absorbance * 100).toFixed(1)}%</div>
+            <div><strong>Audio Freq:</strong> ${peak.audioFreq.toFixed(1)} Hz</div>
+            <div><strong>Group:</strong> ${functionalGroup}</div>
+            <div style="margin-top: 0.5rem; font-size: 0.85em; color: #a78bfa;">Click to ${isSelected ? 'deselect' : 'select'}</div>
+        `;
+
+        // Position tooltip near cursor, but avoid edges
+        const offset = 15;
+        let tooltipX = x + offset;
+        let tooltipY = y + offset;
+
+        // Show tooltip to measure dimensions
+        tooltip.style.display = 'block';
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        // Adjust if too close to right edge
+        if (tooltipX + tooltipRect.width > window.innerWidth) {
+            tooltipX = x - tooltipRect.width - offset;
+        }
+
+        // Adjust if too close to bottom edge
+        if (tooltipY + tooltipRect.height > window.innerHeight) {
+            tooltipY = y - tooltipRect.height - offset;
+        }
+
+        tooltip.style.left = tooltipX + 'px';
+        tooltip.style.top = tooltipY + 'px';
+    }
+
+    /**
+     * Hide tooltip
+     * @private
+     */
+    hideTooltip() {
+        const tooltip = document.getElementById('peak-tooltip');
+        if (tooltip) {
+            tooltip.style.display = 'none';
+        }
+    }
+
+    /**
+     * Get functional group for a wavenumber
+     * @param {number} wavenumber - IR wavenumber
+     * @returns {string} Functional group description
+     * @private
+     */
+    getFunctionalGroup(wavenumber) {
+        if (wavenumber > 3500 && wavenumber < 3700) return 'O-H stretch';
+        if (wavenumber > 3200 && wavenumber < 3500) return 'N-H stretch';
+        if (wavenumber > 3000 && wavenumber < 3100) return 'C-H aromatic';
+        if (wavenumber > 2850 && wavenumber < 3000) return 'C-H aliphatic';
+        if (wavenumber > 2100 && wavenumber < 2300) return 'C≡N / C≡C';
+        if (wavenumber > 1650 && wavenumber < 1750) return 'C=O carbonyl';
+        if (wavenumber > 1500 && wavenumber < 1650) return 'C=C aromatic';
+        if (wavenumber > 1350 && wavenumber < 1500) return 'C-H bend';
+        if (wavenumber > 1000 && wavenumber < 1300) return 'C-O stretch';
+        if (wavenumber > 650 && wavenumber < 900) return 'C-H aromatic';
+        return 'Fingerprint region';
     }
 
     /**
@@ -269,7 +370,34 @@ class Visualizer {
     }
 
     /**
-     * Draw audio FFT visualization
+     * Cache static audio visualization elements (grid and axes)
+     * @private
+     */
+    cacheAudioStatic() {
+        const width = this.audioCanvas.width;
+        const height = this.audioCanvas.height;
+
+        // Create offscreen canvas for static elements
+        this.audioStaticCanvas = document.createElement('canvas');
+        this.audioStaticCanvas.width = width;
+        this.audioStaticCanvas.height = height;
+        const staticCtx = this.audioStaticCanvas.getContext('2d');
+
+        // Draw background
+        staticCtx.fillStyle = '#0a0a0a';
+        staticCtx.fillRect(0, 0, width, height);
+
+        // Draw grid
+        this.drawGrid(staticCtx, width, height);
+
+        // Draw axes labels
+        this.drawAudioAxes(staticCtx, width, height, 10000);
+
+        this.audioStaticCached = true;
+    }
+
+    /**
+     * Draw audio FFT visualization (optimized with caching)
      */
     drawAudioFFT() {
         const canvas = this.audioCanvas;
@@ -277,18 +405,19 @@ class Visualizer {
         const width = canvas.width;
         const height = canvas.height;
 
-        // Clear canvas
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, width, height);
+        // Cache static elements on first draw
+        if (!this.audioStaticCached) {
+            this.cacheAudioStatic();
+        }
+
+        // Draw cached static elements
+        ctx.drawImage(this.audioStaticCanvas, 0, 0);
 
         if (!this.audioEngine) return;
 
         // Get frequency data
         const frequencyData = this.audioEngine.getFrequencyData();
         if (!frequencyData) return;
-
-        // Draw grid
-        this.drawGrid(ctx, width, height);
 
         const bufferLength = frequencyData.length;
         const sampleRate = this.audioEngine.getSampleRate();
@@ -300,7 +429,7 @@ class Visualizer {
         const barWidth = (width - 40) / maxBin;
         let x = 20;
 
-        // Draw frequency bars
+        // Draw frequency bars only (dynamic content)
         for (let i = 0; i < maxBin; i++) {
             const barHeight = (frequencyData[i] / 255) * (height - 40);
 
@@ -312,9 +441,6 @@ class Visualizer {
 
             x += barWidth;
         }
-
-        // Draw axes labels
-        this.drawAudioAxes(ctx, width, height, maxFreq);
 
         // Continue animation if playing
         if (this.audioEngine.getIsPlaying()) {
@@ -341,16 +467,21 @@ class Visualizer {
             this.animationId = null;
         }
 
-        // Clear canvas
-        const ctx = this.audioCtx;
-        const width = this.audioCanvas.width;
-        const height = this.audioCanvas.height;
+        // Use cached static elements if available
+        if (this.audioStaticCached && this.audioStaticCanvas) {
+            this.audioCtx.drawImage(this.audioStaticCanvas, 0, 0);
+        } else {
+            // Fallback to drawing directly
+            const ctx = this.audioCtx;
+            const width = this.audioCanvas.width;
+            const height = this.audioCanvas.height;
 
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, width, height);
 
-        this.drawGrid(ctx, width, height);
-        this.drawAudioAxes(ctx, width, height, 10000);
+            this.drawGrid(ctx, width, height);
+            this.drawAudioAxes(ctx, width, height, 10000);
+        }
     }
 
     /**

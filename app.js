@@ -5,6 +5,210 @@
  * This is the main entry point that ties together all the modules.
  */
 
+// Utility: Loading overlay
+const LoadingOverlay = {
+    show(message = 'Loading...') {
+        const overlay = document.getElementById('loading-overlay');
+        const text = overlay.querySelector('.loading-text');
+        text.textContent = message;
+        overlay.style.display = 'flex';
+    },
+    hide() {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'none';
+    }
+};
+
+// Utility: Toast notifications (replaces alerts)
+const Toast = {
+    show(message, type = 'info', duration = 3000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+
+    error(message, duration = 5000) {
+        this.show(message, 'error', duration);
+    },
+
+    success(message, duration = 3000) {
+        this.show(message, 'success', duration);
+    },
+
+    warning(message, duration = 4000) {
+        this.show(message, 'warning', duration);
+    },
+
+    info(message, duration = 3000) {
+        this.show(message, 'info', duration);
+    }
+};
+
+// Utility: Screen reader announcements
+const ScreenReader = {
+    announce(message) {
+        const status = document.getElementById('playback-status');
+        if (status) {
+            status.textContent = message;
+            // Clear after 1 second to allow re-announcement
+            setTimeout(() => status.textContent = '', 1000);
+        }
+    }
+};
+
+// Utility: Error handler
+const ErrorHandler = {
+    handle(error, userMessage, options = {}) {
+        console.error('Error:', error);
+
+        const severity = options.severity || 'error';
+        const showToast = options.showToast !== false;
+
+        if (showToast) {
+            Toast[severity](userMessage);
+        }
+
+        // Optionally rethrow
+        if (options.rethrow) {
+            throw error;
+        }
+    }
+};
+
+// Utility: iOS Safari audio context helper
+const iOSAudioHelper = {
+    isIOS() {
+        return /iPhone|iPad|iPod/.test(navigator.userAgent);
+    },
+
+    async ensureAudioContext(audioEngine) {
+        if (!audioEngine || !audioEngine.audioContext) {
+            return;
+        }
+
+        if (audioEngine.audioContext.state === 'suspended') {
+            try {
+                await audioEngine.audioContext.resume();
+                console.log('✓ Audio context resumed');
+            } catch (error) {
+                console.error('Failed to resume audio context:', error);
+                throw error;
+            }
+        }
+    }
+};
+
+// Utility: Browser compatibility checker
+const BrowserCompatibility = {
+    check() {
+        const required = {
+            'Web Audio API': ('AudioContext' in window) || ('webkitAudioContext' in window),
+            'Canvas API': !!document.createElement('canvas').getContext,
+            'Fetch API': 'fetch' in window,
+            'ES6 Classes': typeof (class {}) === 'function',
+            'Async/Await': (async () => {}).constructor.name === 'AsyncFunction',
+        };
+
+        const unsupported = Object.entries(required)
+            .filter(([name, supported]) => !supported)
+            .map(([name]) => name);
+
+        if (unsupported.length > 0) {
+            return {
+                compatible: false,
+                unsupported: unsupported
+            };
+        }
+
+        return { compatible: true, unsupported: [] };
+    },
+
+    showWarning(unsupportedFeatures) {
+        const message = `Your browser is missing required features:\n\n${unsupportedFeatures.join('\n')}\n\nPlease use a modern browser (Chrome 90+, Firefox 88+, Safari 14+, or Edge 90+).`;
+        Toast.error(message, 10000); // Show for 10 seconds
+        console.error('Unsupported features:', unsupportedFeatures);
+    }
+};
+
+// Utility: Favorites manager using localStorage
+const Favorites = {
+    STORAGE_KEY: 'spectral-synth-favorites',
+
+    load() {
+        try {
+            const data = localStorage.getItem(this.STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (error) {
+            console.error('Failed to load favorites:', error);
+            return [];
+        }
+    },
+
+    save(favorites) {
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
+        } catch (error) {
+            console.error('Failed to save favorites:', error);
+            Toast.error('Failed to save favorites');
+        }
+    },
+
+    add(substanceName) {
+        const favorites = this.load();
+        if (!favorites.includes(substanceName)) {
+            favorites.push(substanceName);
+            this.save(favorites);
+            Toast.success(`Added "${substanceName}" to favorites`, 2000);
+        }
+    },
+
+    remove(substanceName) {
+        let favorites = this.load();
+        favorites = favorites.filter(name => name !== substanceName);
+        this.save(favorites);
+        Toast.info(`Removed "${substanceName}" from favorites`, 2000);
+    },
+
+    toggle(substanceName) {
+        const favorites = this.load();
+        if (favorites.includes(substanceName)) {
+            this.remove(substanceName);
+            return false;
+        } else {
+            this.add(substanceName);
+            return true;
+        }
+    },
+
+    isFavorite(substanceName) {
+        return this.load().includes(substanceName);
+    },
+
+    getAll() {
+        return this.load();
+    }
+};
+
+// Utility: Format time with dynamic units
+const TimeFormatter = {
+    format(ms) {
+        if (ms < 1000) {
+            return `${Math.round(ms)} ms`;
+        } else {
+            return `${(ms / 1000).toFixed(2)} s`;
+        }
+    }
+};
+
 // Global instances
 let audioEngine;
 let visualizer;
@@ -86,6 +290,15 @@ let searchDebounceTimer = null;
  */
 async function init() {
     try {
+        // Check browser compatibility first
+        const compatibility = BrowserCompatibility.check();
+        if (!compatibility.compatible) {
+            BrowserCompatibility.showWarning(compatibility.unsupported);
+            // Continue anyway but user has been warned
+        }
+
+        LoadingOverlay.show('Initializing Spectral Synthesizer...');
+
         // Create instances
         audioEngine = new AudioEngine();
         frequencyMapper = new FrequencyMapper();
@@ -106,11 +319,16 @@ async function init() {
         // Set up event listeners
         setupEventListeners();
 
+        LoadingOverlay.hide();
+        Toast.success('Spectral Synthesizer ready! 🎵');
         console.log('🎵 Spectral Synthesizer initialized');
     } catch (error) {
-        console.error('Failed to initialize application:', error);
-        alert('Failed to initialize the application. Please refresh the page and try again.');
-        throw error;
+        LoadingOverlay.hide();
+        ErrorHandler.handle(
+            error,
+            'Failed to initialize the application. Please refresh the page and try again.',
+            { rethrow: true }
+        );
     }
 }
 
@@ -123,8 +341,15 @@ async function init() {
  */
 async function loadLibrary() {
     try {
+        LoadingOverlay.show('Loading FTIR library (381 spectra)...');
         console.log('Loading FTIR library...');
+
         const response = await fetch(CONFIG.library.LIBRARY_FILE);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         libraryData = await response.json();
 
         console.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
@@ -133,8 +358,11 @@ async function loadLibrary() {
         populateSubstanceSelector();
         populateComparisonSelectors();
     } catch (error) {
-        console.error('Error loading library:', error);
-        alert('Failed to load FTIR library. Please refresh the page.');
+        ErrorHandler.handle(
+            error,
+            'Failed to load FTIR library. Please check your connection and refresh the page.'
+        );
+        throw error; // Re-throw to stop initialization
     }
 }
 
@@ -352,8 +580,7 @@ function setupEventListeners() {
                 try {
                     audioEngine.setADSRCurve(e.target.value);
                 } catch (error) {
-                    console.error('Error setting ADSR curve:', error);
-                    alert('Failed to set ADSR curve');
+                    ErrorHandler.handle(error, 'Failed to set ADSR curve');
                 }
             }
         });
@@ -382,8 +609,7 @@ function setupEventListeners() {
                     filterFreqSlider.value = audioEngine.getFilterFrequency();
                     filterFreqValue.textContent = filterFreqSlider.value;
                 } catch (error) {
-                    console.error('Error applying preset:', error);
-                    alert('Failed to apply preset');
+                    ErrorHandler.handle(error, 'Failed to apply preset');
                 }
             }
         });
@@ -427,8 +653,7 @@ function setupEventListeners() {
                 audioEngine.setPlaybackMode(e.target.value);
                 console.log(`Playback mode changed to: ${e.target.value}`);
             } catch (error) {
-                console.error('Error setting playback mode:', error);
-                alert('Failed to set playback mode');
+                ErrorHandler.handle(error, 'Failed to set playback mode');
             }
         });
     }
@@ -694,14 +919,18 @@ function updateMappingInfo(data, peaks) {
 async function handlePlay() {
     if (!currentPeaks || currentPeaks.length === 0) {
         console.warn('No peaks to play');
+        Toast.warning('No peaks detected for this substance');
         return;
     }
 
     const duration = parseFloat(durationSlider.value);
-    
+
     if (isNaN(duration) || duration <= 0) {
         console.error('Invalid duration:', duration);
-        alert('Invalid duration value. Please refresh the page.');
+        ErrorHandler.handle(
+            new Error('Invalid duration'),
+            'Invalid duration value. Please refresh the page.'
+        );
         return;
     }
 
@@ -709,11 +938,20 @@ async function handlePlay() {
         // Disable play button during playback
         playButton.disabled = true;
 
+        // Ensure audio context is active (especially for iOS)
+        await iOSAudioHelper.ensureAudioContext(audioEngine);
+
         // Start audio
         await audioEngine.play(currentPeaks, duration);
 
         // Start visualization animation
         visualizer.startAudioAnimation();
+
+        // Announce to screen reader
+        const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
+        ScreenReader.announce(
+            `Playing ${substanceName}, ${currentPeaks.length} peaks, duration ${duration} seconds`
+        );
 
         console.log(`Playing ${currentPeaks.length} frequencies for ${duration}s`);
 
@@ -721,16 +959,17 @@ async function handlePlay() {
         setTimeout(() => {
             playButton.disabled = false;
             visualizer.stopAudioAnimation();
+            ScreenReader.announce('Playback finished');
         }, duration * 1000 + 100);
 
     } catch (error) {
-        console.error('Playback error:', error);
         playButton.disabled = false;
         visualizer.stopAudioAnimation();
-        
-        // Provide user-friendly error message
-        const errorMessage = error.message || 'Unknown error occurred';
-        alert(`Error playing audio: ${errorMessage}\n\nPlease try again or refresh the page.`);
+
+        ErrorHandler.handle(
+            error,
+            `Error playing audio: ${error.message || 'Unknown error'}. Please try again or refresh the page.`
+        );
     }
 }
 
@@ -743,6 +982,7 @@ function handleStop() {
     playButton.disabled = false;
     playSelectedButton.disabled = visualizer.getSelectedPeaks().length === 0;
 
+    ScreenReader.announce('Playback stopped');
     console.log('Playback stopped');
 }
 
@@ -796,9 +1036,8 @@ async function handlePlaySelected() {
         }, duration * 1000 + 100);
 
     } catch (error) {
-        console.error('Playback error:', error);
         playSelectedButton.disabled = false;
-        alert('Error playing audio. Please try again.');
+        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
     }
 }
 
@@ -940,9 +1179,8 @@ async function handleComparisonPlay(side) {
         }, duration * 1000 + 100);
 
     } catch (error) {
-        console.error('Playback error:', error);
         button.disabled = false;
-        alert('Error playing audio. Please try again.');
+        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
     }
 }
 
@@ -979,10 +1217,9 @@ async function handleComparisonPlaySequential() {
         }, duration * 1000 + 100);
 
     } catch (error) {
-        console.error('Playback error:', error);
         playBothSeqButton.disabled = false;
         playBothSimButton.disabled = false;
-        alert('Error playing audio. Please try again.');
+        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
     }
 }
 
@@ -1014,10 +1251,9 @@ async function handleComparisonPlaySimultaneous() {
         }, duration * 1000 + 100);
 
     } catch (error) {
-        console.error('Playback error:', error);
         playBothSeqButton.disabled = false;
         playBothSimButton.disabled = false;
-        alert('Error playing audio. Please try again.');
+        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
     }
 }
 
@@ -1030,6 +1266,8 @@ async function handleCSVImport(e) {
     if (!file) return;
 
     try {
+        LoadingOverlay.show(`Importing ${file.name}...`);
+
         const data = await CSVImporter.parseCSV(file);
         CSVImporter.validate(data);
 
@@ -1050,10 +1288,14 @@ async function handleCSVImport(e) {
             exportWAV.disabled = false;
         }
 
-        alert(`Successfully imported: ${data.name}\n${data.metadata.finalPoints} data points`);
+        LoadingOverlay.hide();
+        Toast.success(`Successfully imported: ${data.name} (${data.metadata.finalPoints} data points)`);
     } catch (error) {
-        console.error('CSV import error:', error);
-        alert(`Failed to import CSV: ${error.message}\n\nPlease ensure your CSV has two columns:\nwavenumber,transmittance\n\nDownload the template for an example.`);
+        LoadingOverlay.hide();
+        ErrorHandler.handle(
+            error,
+            `Failed to import CSV: ${error.message}\n\nPlease ensure your CSV has two columns:\nwavenumber,transmittance\n\nDownload the template for an example.`
+        );
     }
 
     // Clear the file input so the same file can be imported again
@@ -1065,7 +1307,7 @@ async function handleCSVImport(e) {
  */
 async function handleExportWAV() {
     if (!currentPeaks || currentPeaks.length === 0) {
-        alert('Please select a substance first');
+        Toast.warning('Please select a substance first');
         return;
     }
 
@@ -1078,19 +1320,22 @@ async function handleExportWAV() {
         exportButton.disabled = true;
         exportButton.textContent = '⏳ Exporting...';
 
+        LoadingOverlay.show(`Rendering audio: ${filename}`);
+
         await audioEngine.exportWAV(currentPeaks, duration, filename);
 
+        LoadingOverlay.hide();
         exportButton.disabled = false;
         exportButton.textContent = '💾 Export WAV';
-        
-        // Show success message
-        alert(`Successfully exported: ${filename}`);
+
+        Toast.success(`Successfully exported: ${filename}`);
     } catch (error) {
-        console.error('Export error:', error);
+        LoadingOverlay.hide();
         const exportButton = document.getElementById('export-wav');
         exportButton.disabled = false;
         exportButton.textContent = '💾 Export WAV';
-        alert(`Failed to export audio: ${error.message}`);
+
+        ErrorHandler.handle(error, `Failed to export audio: ${error.message}`);
     }
 }
 
