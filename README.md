@@ -237,12 +237,37 @@ Tested on:
 - Firefox 88+
 - Safari 14+
 
+## New Features
+
+### Import & Export
+- **CSV Import**: Import your own FTIR spectral data from CSV files
+  - Auto-detects file format (transmittance or absorbance)
+  - Validates and downsamples data for optimal performance
+  - Download template CSV for correct formatting
+- **WAV Export**: Export synthesized audio as high-quality WAV files
+  - Preserves all current effect settings
+  - Automatic filename generation
+
+### Audio Effect Presets
+Six curated presets for different sonic characteristics:
+- **Clean** - No effects, pure synthesis
+- **Ambient** - Large reverb space
+- **Warm** - Low-pass filtered warmth
+- **Bright** - Full spectrum with light reverb
+- **Underwater** - Heavy filtering and reverb
+- **Cathedral** - Massive reverb space
+
+Use the preset dropdown to quickly apply professional effect combinations!
+
 ## Future Ideas
 
 Potential enhancements:
-- [ ] Import custom FTIR data (CSV/JCAMP-DX)
+- [x] Import custom FTIR data (CSV) ✅
+- [x] Export audio files (WAV) ✅
+- [x] Audio effect presets ✅
 - [ ] Mix multiple substances (spectral blending)
-- [ ] Export audio files (WAV/MP3)
+- [ ] JCAMP-DX file import
+- [ ] MP3 audio export
 - [ ] MIDI output for external synths
 - [ ] 3D visualization (spectrogram waterfall)
 - [ ] Mobile-optimized touch interface
