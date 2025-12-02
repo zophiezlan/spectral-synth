@@ -247,9 +247,9 @@ class AudioEngine {
                 orderedPeaks.sort((a, b) => b.audioFreq - a.audioFreq);
                 break;
             case 'arpeggio-updown':
-                // Sort by frequency then add reverse
+                // Sort by frequency then add reverse (skip last to avoid duplicate)
                 orderedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
-                orderedPeaks = [...orderedPeaks, ...orderedPeaks.slice().reverse()];
+                orderedPeaks = [...orderedPeaks, ...orderedPeaks.slice(0, -1).reverse()];
                 break;
             case 'sequential':
                 // Sort by intensity (strongest first)
@@ -281,9 +281,9 @@ class AudioEngine {
             // Set frequency
             osc.frequency.value = peak.audioFreq;
 
-            // Waveform selection
+            // Waveform selection - cycle through sine, triangle, square
             const waveforms = ['sine', 'triangle', 'square'];
-            const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
+            const waveformIndex = idx % 3;
             osc.type = waveforms[waveformIndex];
 
             // Calculate gain with frequency correction

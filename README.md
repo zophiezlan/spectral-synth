@@ -259,12 +259,24 @@ Six curated presets for different sonic characteristics:
 
 Use the preset dropdown to quickly apply professional effect combinations!
 
+### Playback Modes
+Six different ways to experience molecular fingerprints:
+- **Chord** - All peaks play simultaneously (traditional mode)
+- **Arpeggio (Up)** - Play peaks from low to high frequency
+- **Arpeggio (Down)** - Play peaks from high to low frequency
+- **Arpeggio (Up-Down)** - Play peaks up then back down
+- **Sequential** - Play peaks in order of intensity (strongest first)
+- **Random** - Play peaks in random order for unexpected patterns
+
+Arpeggiation creates melodic sequences from spectral data, offering a completely different musical perspective on molecular structure!
+
 ## Future Ideas
 
 Potential enhancements:
 - [x] Import custom FTIR data (CSV) ✅
 - [x] Export audio files (WAV) ✅
 - [x] Audio effect presets ✅
+- [x] Arpeggiation and playback modes ✅
 - [ ] Mix multiple substances (spectral blending)
 - [ ] JCAMP-DX file import
 - [ ] MP3 audio export
