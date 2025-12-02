@@ -756,6 +756,132 @@ footer p {
     color: #a0a0a0;
 }
 
+/* Collapsible sections for mobile */
+.collapsible-section {
+    margin-bottom: 1rem;
+}
+
+.collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.collapsible-header:hover,
+.collapsible-header:active {
+    background: rgba(139, 92, 246, 0.25);
+}
+
+.collapsible-header h4 {
+    margin: 0;
+    color: var(--accent-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.collapsible-toggle {
+    font-size: 1.25rem;
+    color: var(--accent-primary);
+    transition: transform 0.3s;
+    line-height: 1;
+}
+
+.collapsible-section.expanded .collapsible-toggle {
+    transform: rotate(180deg);
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    padding: 0 1rem;
+}
+
+.collapsible-section.expanded .collapsible-content {
+    max-height: 2000px;
+    padding: 1rem;
+    transition: max-height 0.4s ease-in, padding 0.3s ease-in;
+}
+
+/* Mobile-specific: Show important sections expanded by default */
+@media (max-width: 768px) {
+    .collapsible-section.default-expanded .collapsible-content {
+        max-height: 2000px;
+        padding: 1rem;
+    }
+
+    .collapsible-section.default-expanded .collapsible-toggle {
+        transform: rotate(180deg);
+    }
+
+    /* Hide collapsible UI on desktop */
+    .desktop-only .collapsible-header {
+        cursor: default;
+        pointer-events: none;
+    }
+
+    .desktop-only .collapsible-toggle {
+        display: none;
+    }
+
+    .desktop-only .collapsible-content {
+        max-height: none;
+        overflow: visible;
+        padding: 1rem 0;
+    }
+}
+
+/* Touch improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Enhance touch targets */
+    button,
+    select,
+    input[type="range"],
+    .file-label,
+    .mode-button,
+    .suggestion-item,
+    .collapsible-header {
+        min-height: 48px;
+    }
+
+    /* Larger slider thumbs for touch */
+    input[type="range"]::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Remove hover effects, replace with active states */
+    button:hover:not(:disabled) {
+        transform: none;
+    }
+
+    button:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .suggestion-item:hover {
+        transform: none;
+    }
+
+    .suggestion-item:active {
+        transform: scale(0.98);
+    }
+}
+
 @media (max-width: 1200px) {
     .visualization {
         grid-template-columns: 1fr;
@@ -1308,51 +1434,413 @@ input[type="range"]:hover::-moz-range-thumb {
     }
 }
 
+/* Mobile Optimizations - Comprehensive */
 @media (max-width: 768px) {
-    h1 {
-        font-size: 1.8rem;
+    /* Header optimizations */
+    header {
+        padding: 1rem;
     }
 
+    .header-content {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .header-title {
+        text-align: left;
+        flex: 1;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
+    }
+
+    .tagline {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    .theme-toggle {
+        position: static;
+        transform: none;
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .theme-toggle:hover {
+        transform: scale(1.05);
+    }
+
+    /* Main content */
+    main {
+        padding: 1rem;
+    }
+
+    section {
+        margin-bottom: 1.5rem;
+    }
+
+    /* Info panels */
+    .info-panel {
+        padding: 1rem;
+    }
+
+    .info-panel h2 {
+        font-size: 1.25rem;
+    }
+
+    .info-panel h3 {
+        font-size: 1.1rem;
+    }
+
+    .info-panel p {
+        font-size: 0.95rem;
+    }
+
+    /* Mode selector */
     .mode-selector {
         flex-direction: column;
+        gap: 0.75rem;
     }
 
-    .filter-controls,
-    .effects-grid {
+    .mode-button {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    /* Controls */
+    .controls {
+        padding: 1rem;
+    }
+
+    .filter-controls {
         grid-template-columns: 1fr;
+        gap: 0.75rem;
     }
 
     .results-count {
         justify-content: center;
+        padding: 0.625rem 0.875rem;
     }
 
+    /* Favorites filter */
+    .favorites-filter {
+        margin-bottom: 1rem;
+    }
+
+    /* Substance selector */
+    .substance-selector {
+        margin-bottom: 1rem;
+    }
+
+    .substance-selector select {
+        padding: 0.875rem;
+        font-size: 1rem;
+    }
+
+    /* Playback controls */
     .playback-controls {
         flex-direction: column;
         align-items: stretch;
+        gap: 0.75rem;
     }
 
     button {
         width: 100%;
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+        min-height: 44px; /* Touch-friendly */
     }
 
+    /* Sliders */
+    .slider-control {
+        margin-bottom: 0.75rem;
+    }
+
+    .slider-control label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    input[type="range"] {
+        height: 44px; /* Touch-friendly */
+        padding: 1rem 0;
+    }
+
+    /* Audio effects */
+    .effects-grid,
+    .adsr-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .section-title {
+        font-size: 1rem;
+    }
+
+    /* Import/Export */
+    .import-export-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .file-label,
+    .secondary-button {
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+        min-height: 44px;
+    }
+
+    /* Peak selection */
+    .selection-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .selection-buttons button {
+        width: 100%;
+    }
+
+    /* Visualizations */
+    .visualization {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .viz-panel {
+        padding: 1rem;
+    }
+
+    .viz-panel h3 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .viz-panel canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 250px;
+    }
+
+    .axis-labels {
+        font-size: 0.8rem;
+    }
+
+    /* Keyboard shortcuts */
+    .shortcut-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .shortcut-item {
+        padding: 0.75rem;
+    }
+
+    /* Science section */
+    .science-explanation {
+        font-size: 0.95rem;
+    }
+
+    .science-explanation ol {
+        padding-left: 1.25rem;
+    }
+
+    /* Comparison mode */
+    .comparison-grid,
+    .comparison-viz-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .comparison-side {
+        padding: 1rem;
+    }
+
+    .comparison-combined {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .comparison-combined button {
+        width: 100%;
+    }
+
+    /* Toast notifications */
     .toast {
         bottom: 1rem;
         right: 1rem;
         left: 1rem;
         max-width: none;
+        font-size: 0.9rem;
+        padding: 0.875rem 1rem;
     }
 
+    /* Modals */
     .modal-content {
-        margin: 1rem;
-        max-width: calc(100% - 2rem);
-        padding: 1.5rem;
+        margin: 0.75rem;
+        max-width: calc(100% - 1.5rem);
+        padding: 1.25rem;
+        max-height: calc(100vh - 1.5rem);
+        overflow-y: auto;
+    }
+
+    .modal-close {
+        width: 36px;
+        height: 36px;
+        font-size: 1.5rem;
+    }
+
+    /* Onboarding modal */
+    .onboarding-modal h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .onboarding-section {
+        margin-bottom: 1.25rem;
+    }
+
+    .onboarding-tagline {
+        font-size: 1rem;
+    }
+
+    .onboarding-description {
+        font-size: 0.9rem;
+    }
+
+    .onboarding-highlight {
+        padding: 0.875rem;
+        font-size: 0.9rem;
+    }
+
+    .onboarding-illustration svg {
+        width: 100%;
+        max-width: 280px;
+        height: auto;
+    }
+
+    .suggestion-pills {
+        flex-wrap: wrap;
+        gap: 0.625rem;
+    }
+
+    .suggestion-pill {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+        min-height: 44px;
     }
 
     .onboarding-actions {
         flex-direction: column;
+        gap: 0.75rem;
     }
 
     .onboarding-actions button {
         max-width: none;
+        width: 100%;
+        padding: 0.875rem;
+    }
+
+    /* Smart suggestions */
+    .suggestions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+    }
+
+    .suggestion-item {
+        padding: 0.875rem;
+    }
+
+    /* Peak tooltip - make it mobile friendly */
+    .peak-tooltip {
+        max-width: calc(100vw - 2rem);
+        font-size: 0.85rem;
+        padding: 0.75rem;
+    }
+
+    /* Ensure touch targets are adequate */
+    a, button, input, select, [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Better spacing for readability */
+    p {
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Footer */
+    footer {
+        padding: 1.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 375px) {
+    h1 {
+        font-size: 1.35rem;
+    }
+
+    .tagline {
+        font-size: 0.8rem;
+    }
+
+    main {
+        padding: 0.75rem;
+    }
+
+    .controls,
+    .info-panel {
+        padding: 0.875rem;
+    }
+
+    button {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .viz-panel canvas {
+        max-height: 200px;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 896px) and (max-height: 414px) and (orientation: landscape) {
+    header {
+        padding: 0.75rem 1rem;
+    }
+
+    h1 {
+        font-size: 1.25rem;
+    }
+
+    .tagline {
+        font-size: 0.8rem;
+    }
+
+    main {
+        padding: 1rem;
+    }
+
+    .info-panel {
+        padding: 0.875rem;
+    }
+
+    .viz-panel canvas {
+        max-height: 180px;
+    }
+
+    .modal-content {
+        max-height: calc(100vh - 1rem);
     }
 }
