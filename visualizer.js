@@ -12,6 +12,124 @@ class Visualizer {
 
         this.animationId = null;
         this.audioEngine = null;
+
+        // Peak selection state
+        this.currentSpectrum = null;
+        this.currentPeaks = null;
+        this.selectedPeakIndices = new Set();
+        this.peakPositions = []; // Store peak positions for click detection
+        this.onPeakSelectionChange = null; // Callback for selection changes
+
+        // Set up click handler
+        this.setupClickHandler();
+    }
+
+    /**
+     * Set up click handler for peak selection
+     */
+    setupClickHandler() {
+        this.ftirCanvas.addEventListener('click', (e) => {
+            if (!this.currentPeaks || this.currentPeaks.length === 0) return;
+
+            const rect = this.ftirCanvas.getBoundingClientRect();
+            const clickX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
+            const clickY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
+
+            // Find closest peak
+            let closestIndex = -1;
+            let closestDistance = Infinity;
+            const clickRadius = 20; // Pixels
+
+            this.peakPositions.forEach((pos, idx) => {
+                const distance = Math.sqrt(
+                    Math.pow(clickX - pos.x, 2) + Math.pow(clickY - pos.y, 2)
+                );
+
+                if (distance < clickRadius && distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = idx;
+                }
+            });
+
+            // Toggle peak selection
+            if (closestIndex !== -1) {
+                if (this.selectedPeakIndices.has(closestIndex)) {
+                    this.selectedPeakIndices.delete(closestIndex);
+                } else {
+                    this.selectedPeakIndices.add(closestIndex);
+                }
+
+                // Redraw with updated selection
+                this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks);
+
+                // Notify callback
+                if (this.onPeakSelectionChange) {
+                    this.onPeakSelectionChange(this.getSelectedPeaks());
+                }
+            }
+        });
+
+        // Change cursor to pointer when hovering over peaks
+        this.ftirCanvas.addEventListener('mousemove', (e) => {
+            if (!this.currentPeaks || this.currentPeaks.length === 0) return;
+
+            const rect = this.ftirCanvas.getBoundingClientRect();
+            const mouseX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
+            const mouseY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
+
+            const clickRadius = 20;
+            let overPeak = false;
+
+            this.peakPositions.forEach((pos) => {
+                const distance = Math.sqrt(
+                    Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2)
+                );
+                if (distance < clickRadius) {
+                    overPeak = true;
+                }
+            });
+
+            this.ftirCanvas.style.cursor = overPeak ? 'pointer' : 'default';
+        });
+    }
+
+    /**
+     * Get currently selected peaks
+     * @returns {Array} Selected peaks
+     */
+    getSelectedPeaks() {
+        if (!this.currentPeaks) return [];
+        return Array.from(this.selectedPeakIndices)
+            .map(idx => this.currentPeaks[idx])
+            .filter(p => p !== undefined);
+    }
+
+    /**
+     * Clear peak selection
+     */
+    clearSelection() {
+        this.selectedPeakIndices.clear();
+        if (this.currentSpectrum && this.currentPeaks) {
+            this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks);
+        }
+        if (this.onPeakSelectionChange) {
+            this.onPeakSelectionChange([]);
+        }
+    }
+
+    /**
+     * Select all peaks
+     */
+    selectAllPeaks() {
+        if (!this.currentPeaks) return;
+        this.selectedPeakIndices.clear();
+        this.currentPeaks.forEach((_, idx) => {
+            this.selectedPeakIndices.add(idx);
+        });
+        this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks);
+        if (this.onPeakSelectionChange) {
+            this.onPeakSelectionChange(this.getSelectedPeaks());
+        }
     }
 
     /**
@@ -32,6 +150,11 @@ class Visualizer {
         const ctx = this.ftirCtx;
         const width = canvas.width;
         const height = canvas.height;
+
+        // Store current spectrum and peaks for selection
+        this.currentSpectrum = spectrum;
+        this.currentPeaks = peaks;
+        this.peakPositions = [];
 
         // Clear canvas
         ctx.fillStyle = '#0a0a0a';
@@ -79,23 +202,35 @@ class Visualizer {
 
         // Highlight peaks
         if (peaks && peaks.length > 0) {
-            peaks.forEach(peak => {
+            peaks.forEach((peak, idx) => {
                 const x = scaleX(peak.wavenumber);
                 const y = scaleY((1 - peak.absorbance) * 100);
 
-                // Draw peak marker
-                ctx.beginPath();
-                ctx.arc(x, y, 5, 0, Math.PI * 2);
-                ctx.fillStyle = '#ec4899';
-                ctx.fill();
+                // Store position for click detection
+                this.peakPositions.push({ x, y });
+
+                const isSelected = this.selectedPeakIndices.has(idx);
 
                 // Draw vertical line to peak
                 ctx.beginPath();
-                ctx.strokeStyle = '#ec489944';
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = isSelected ? '#10b98188' : '#ec489944';
+                ctx.lineWidth = isSelected ? 2 : 1;
                 ctx.moveTo(x, height - 20);
                 ctx.lineTo(x, y);
                 ctx.stroke();
+
+                // Draw peak marker
+                ctx.beginPath();
+                ctx.arc(x, y, isSelected ? 7 : 5, 0, Math.PI * 2);
+                ctx.fillStyle = isSelected ? '#10b981' : '#ec4899';
+                ctx.fill();
+
+                // Add outline for selected peaks
+                if (isSelected) {
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
             });
         }
 

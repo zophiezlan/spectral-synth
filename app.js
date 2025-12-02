@@ -7,15 +7,34 @@
 // Global instances
 let audioEngine;
 let visualizer;
+let visualizerA;
+let visualizerB;
 let frequencyMapper;
 let currentSpectrum = null;
 let currentPeaks = null;
 let libraryData = null;
 
-// DOM elements
+// Comparison mode state
+let comparisonMode = false;
+let substanceA = { spectrum: null, peaks: null, data: null };
+let substanceB = { spectrum: null, peaks: null, data: null };
+
+// DOM elements - Mode selector
+const singleModeButton = document.getElementById('single-mode');
+const comparisonModeButton = document.getElementById('comparison-mode');
+
+// DOM elements - Single mode
+const singleControls = document.getElementById('single-controls');
 const substanceSelect = document.getElementById('substance');
+const searchInput = document.getElementById('search');
+const categorySelect = document.getElementById('category');
+const resultsCount = document.getElementById('results-count');
 const playButton = document.getElementById('play');
 const stopButton = document.getElementById('stop');
+const playSelectedButton = document.getElementById('play-selected');
+const selectAllButton = document.getElementById('select-all');
+const clearSelectionButton = document.getElementById('clear-selection');
+const selectionCount = document.getElementById('selection-count');
 const durationSlider = document.getElementById('duration');
 const durationValue = document.getElementById('duration-value');
 const volumeSlider = document.getElementById('volume');
@@ -24,15 +43,41 @@ const mappingInfo = document.getElementById('mapping-info');
 const ftirCanvas = document.getElementById('ftir-canvas');
 const audioCanvas = document.getElementById('audio-canvas');
 
+// DOM elements - Comparison mode
+const comparisonControls = document.getElementById('comparison-controls');
+const comparisonVisualization = document.getElementById('comparison-visualization');
+const substanceSelectA = document.getElementById('substance-a');
+const substanceSelectB = document.getElementById('substance-b');
+const playAButton = document.getElementById('play-a');
+const playBButton = document.getElementById('play-b');
+const playBothSeqButton = document.getElementById('play-both-sequential');
+const playBothSimButton = document.getElementById('play-both-simultaneous');
+const comparisonDurationSlider = document.getElementById('comparison-duration');
+const comparisonDurationValue = document.getElementById('comparison-duration-value');
+const ftirCanvasA = document.getElementById('ftir-canvas-a');
+const ftirCanvasB = document.getElementById('ftir-canvas-b');
+
+// Filter state
+let currentSearchTerm = '';
+let currentCategory = 'all';
+
 /**
  * Initialize application
  */
 async function init() {
     // Create instances
     audioEngine = new AudioEngine();
+    frequencyMapper = new FrequencyMapper();
+
+    // Create visualizers for single mode
     visualizer = new Visualizer(ftirCanvas, audioCanvas);
     visualizer.setAudioEngine(audioEngine);
-    frequencyMapper = new FrequencyMapper();
+    visualizer.onPeakSelectionChange = handlePeakSelectionChange;
+
+    // Create visualizers for comparison mode
+    // Note: audio canvas not used in comparison mode
+    visualizerA = new Visualizer(ftirCanvasA, document.createElement('canvas'));
+    visualizerB = new Visualizer(ftirCanvasB, document.createElement('canvas'));
 
     // Load FTIR library
     await loadLibrary();
@@ -54,8 +99,9 @@ async function loadLibrary() {
 
         console.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
 
-        // Populate substance selector
+        // Populate substance selectors
         populateSubstanceSelector();
+        populateComparisonSelectors();
     } catch (error) {
         console.error('Error loading library:', error);
         alert('Failed to load FTIR library. Please refresh the page.');
@@ -63,18 +109,122 @@ async function loadLibrary() {
 }
 
 /**
+ * Categorize substance based on name and chemical properties
+ * @param {Object} item - Substance data object
+ * @returns {string} Category name
+ */
+function categorizeSubstance(item) {
+    const name = item.name.toLowerCase();
+    const formula = (item.formula || '').toLowerCase();
+
+    // Opioids
+    const opioidKeywords = ['morphine', 'heroin', 'codeine', 'fentanyl', 'oxycodone',
+                            'hydrocodone', 'buprenorphine', 'methadone', 'tramadol',
+                            'diacetylmorphine', 'acetylmorphine', 'alfentanil', 'sufentanil',
+                            'remifentanil', 'carfentanil', 'acetylfentanyl', 'furanylfentanyl',
+                            'acrylfentanyl', 'butyrfentanyl', 'valerylfentanyl'];
+    if (opioidKeywords.some(keyword => name.includes(keyword))) {
+        return 'opioids';
+    }
+
+    // Stimulants
+    const stimulantKeywords = ['cocaine', 'amphetamine', 'methamphetamine', 'mdma',
+                               'mephedrone', 'caffeine', 'methylphenidate', 'cathinone',
+                               'methcathinone', 'ecstasy', 'speed', 'crystal',
+                               'ethylone', 'methylone', 'butylone', 'pentedrone',
+                               'ephidrine', 'pseudoephedrine', 'benzoylecgonine'];
+    if (stimulantKeywords.some(keyword => name.includes(keyword))) {
+        return 'stimulants';
+    }
+
+    // Benzodiazepines
+    const benzoKeywords = ['diazepam', 'alprazolam', 'clonazepam', 'lorazepam',
+                          'temazepam', 'oxazepam', 'nitrazepam', 'flunitrazepam',
+                          'bromazepam', 'lormetazepam', 'etizolam', 'flubromazolam'];
+    if (benzoKeywords.some(keyword => name.includes(keyword))) {
+        return 'benzodiazepines';
+    }
+
+    // Psychedelics
+    const psychedelicKeywords = ['lsd', 'lysergic', 'psilocybin', 'dmt', 'mescaline',
+                                 '2c-b', '2c-i', '2c-e', 'nbome', 'dom', 'doi'];
+    if (psychedelicKeywords.some(keyword => name.includes(keyword))) {
+        return 'psychedelics';
+    }
+
+    // Cannabinoids
+    const cannabinoidKeywords = ['thc', 'cbd', 'cannabinol', 'cannabidiol', 'cannabis',
+                                 'jwh', 'am-2201', 'cp-47', 'hu-210'];
+    if (cannabinoidKeywords.some(keyword => name.includes(keyword))) {
+        return 'cannabinoids';
+    }
+
+    // Steroids
+    const steroidKeywords = ['testosterone', 'stanozolol', 'nandrolone', 'methandienone',
+                            'boldenone', 'trenbolone', 'oxandrolone', 'methenolone',
+                            'drostanolone', 'mesterolone'];
+    if (steroidKeywords.some(keyword => name.includes(keyword))) {
+        return 'steroids';
+    }
+
+    return 'other';
+}
+
+/**
+ * Get filtered library based on search term and category
+ * @returns {Array} Filtered library data
+ */
+function getFilteredLibrary() {
+    return libraryData.filter(item => {
+        // Category filter
+        const itemCategory = categorizeSubstance(item);
+        const categoryMatch = currentCategory === 'all' || itemCategory === currentCategory;
+
+        // Search filter
+        const searchLower = currentSearchTerm.toLowerCase();
+        const nameMatch = item.name.toLowerCase().includes(searchLower);
+        const formulaMatch = (item.formula || '').toLowerCase().includes(searchLower);
+        const searchMatch = !currentSearchTerm || nameMatch || formulaMatch;
+
+        return categoryMatch && searchMatch;
+    });
+}
+
+/**
  * Populate substance selector dropdown
  */
 function populateSubstanceSelector() {
+    const filteredData = getFilteredLibrary();
+
     // Clear existing options except the first one
     substanceSelect.innerHTML = '<option value="">-- Select a Substance --</option>';
 
-    // Add library substances
-    libraryData.forEach(item => {
+    // Add filtered substances
+    filteredData.forEach(item => {
         const option = document.createElement('option');
         option.value = item.id;
         option.textContent = item.name;
         substanceSelect.appendChild(option);
+    });
+
+    // Update results count
+    resultsCount.textContent = `${filteredData.length} substance${filteredData.length !== 1 ? 's' : ''}`;
+}
+
+/**
+ * Populate comparison substance selectors
+ */
+function populateComparisonSelectors() {
+    // Populate both A and B selectors with all substances
+    [substanceSelectA, substanceSelectB].forEach(select => {
+        select.innerHTML = '<option value="">-- Select --</option>';
+
+        libraryData.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.name;
+            select.appendChild(option);
+        });
     });
 }
 
@@ -82,14 +232,25 @@ function populateSubstanceSelector() {
  * Set up event listeners
  */
 function setupEventListeners() {
-    // Substance selection
+    // Mode switching
+    singleModeButton.addEventListener('click', () => switchMode(false));
+    comparisonModeButton.addEventListener('click', () => switchMode(true));
+
+    // Single mode - Substance selection
     substanceSelect.addEventListener('change', handleSubstanceChange);
 
-    // Playback controls
+    // Single mode - Search and filter
+    searchInput.addEventListener('input', handleSearch);
+    categorySelect.addEventListener('change', handleCategoryChange);
+
+    // Single mode - Playback controls
     playButton.addEventListener('click', handlePlay);
     stopButton.addEventListener('click', handleStop);
+    playSelectedButton.addEventListener('click', handlePlaySelected);
+    selectAllButton.addEventListener('click', handleSelectAll);
+    clearSelectionButton.addEventListener('click', handleClearSelection);
 
-    // Sliders
+    // Single mode - Sliders
     durationSlider.addEventListener('input', (e) => {
         durationValue.textContent = parseFloat(e.target.value).toFixed(1);
     });
@@ -99,6 +260,57 @@ function setupEventListeners() {
         volumeValue.textContent = e.target.value;
         audioEngine.setVolume(volume);
     });
+
+    // Comparison mode - Substance selection
+    substanceSelectA.addEventListener('change', () => handleComparisonSubstanceChange('A'));
+    substanceSelectB.addEventListener('change', () => handleComparisonSubstanceChange('B'));
+
+    // Comparison mode - Playback controls
+    playAButton.addEventListener('click', () => handleComparisonPlay('A'));
+    playBButton.addEventListener('click', () => handleComparisonPlay('B'));
+    playBothSeqButton.addEventListener('click', handleComparisonPlaySequential);
+    playBothSimButton.addEventListener('click', handleComparisonPlaySimultaneous);
+
+    // Comparison mode - Duration slider
+    comparisonDurationSlider.addEventListener('input', (e) => {
+        comparisonDurationValue.textContent = parseFloat(e.target.value).toFixed(1);
+    });
+}
+
+/**
+ * Handle search input
+ */
+function handleSearch() {
+    currentSearchTerm = searchInput.value.trim();
+    populateSubstanceSelector();
+
+    // Clear current selection if it's no longer in filtered results
+    if (substanceSelect.value) {
+        const filteredData = getFilteredLibrary();
+        const stillExists = filteredData.some(item => item.id === substanceSelect.value);
+        if (!stillExists) {
+            substanceSelect.value = '';
+            handleSubstanceChange();
+        }
+    }
+}
+
+/**
+ * Handle category filter change
+ */
+function handleCategoryChange() {
+    currentCategory = categorySelect.value;
+    populateSubstanceSelector();
+
+    // Clear current selection if it's no longer in filtered results
+    if (substanceSelect.value) {
+        const filteredData = getFilteredLibrary();
+        const stillExists = filteredData.some(item => item.id === substanceSelect.value);
+        if (!stillExists) {
+            substanceSelect.value = '';
+            handleSubstanceChange();
+        }
+    }
 }
 
 /**
@@ -112,8 +324,13 @@ function handleSubstanceChange() {
         currentSpectrum = null;
         currentPeaks = null;
         visualizer.clear();
+        visualizer.clearSelection();
         playButton.disabled = true;
         stopButton.disabled = true;
+        selectAllButton.disabled = true;
+        clearSelectionButton.disabled = true;
+        playSelectedButton.disabled = true;
+        selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
         mappingInfo.innerHTML = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
         return;
     }
@@ -132,15 +349,20 @@ function handleSubstanceChange() {
 
     console.log(`Loaded ${data.name}:`, currentPeaks.length, 'peaks detected');
 
+    // Clear any previous selection
+    visualizer.clearSelection();
+
     // Update visualizations
     visualizer.drawFTIRSpectrum(currentSpectrum, currentPeaks);
 
     // Update mapping info with annotations
     updateMappingInfo(data, currentPeaks);
 
-    // Enable playback
+    // Enable playback and selection controls
     playButton.disabled = false;
     stopButton.disabled = false;
+    selectAllButton.disabled = false;
+    clearSelectionButton.disabled = false;
 }
 
 /**
@@ -234,8 +456,275 @@ function handleStop() {
     audioEngine.stop();
     visualizer.stopAudioAnimation();
     playButton.disabled = false;
+    playSelectedButton.disabled = visualizer.getSelectedPeaks().length === 0;
 
     console.log('Playback stopped');
+}
+
+/**
+ * Handle peak selection change
+ * @param {Array} selectedPeaks - Currently selected peaks
+ */
+function handlePeakSelectionChange(selectedPeaks) {
+    const count = selectedPeaks.length;
+
+    if (count === 0) {
+        selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
+        playSelectedButton.disabled = true;
+    } else {
+        selectionCount.textContent = `${count} peak${count !== 1 ? 's' : ''} selected`;
+        playSelectedButton.disabled = false;
+    }
+
+    console.log(`Peak selection changed: ${count} peaks selected`);
+}
+
+/**
+ * Handle play selected peaks button
+ */
+async function handlePlaySelected() {
+    const selectedPeaks = visualizer.getSelectedPeaks();
+
+    if (!selectedPeaks || selectedPeaks.length === 0) {
+        console.warn('No peaks selected');
+        return;
+    }
+
+    const duration = parseFloat(durationSlider.value);
+
+    try {
+        // Disable button during playback
+        playSelectedButton.disabled = true;
+
+        // Start audio with selected peaks only
+        await audioEngine.play(selectedPeaks, duration);
+
+        // Start visualization animation
+        visualizer.startAudioAnimation();
+
+        console.log(`Playing ${selectedPeaks.length} selected frequencies for ${duration}s`);
+
+        // Re-enable button after duration
+        setTimeout(() => {
+            playSelectedButton.disabled = false;
+            visualizer.stopAudioAnimation();
+        }, duration * 1000 + 100);
+
+    } catch (error) {
+        console.error('Playback error:', error);
+        playSelectedButton.disabled = false;
+        alert('Error playing audio. Please try again.');
+    }
+}
+
+/**
+ * Handle select all peaks button
+ */
+function handleSelectAll() {
+    visualizer.selectAllPeaks();
+}
+
+/**
+ * Handle clear selection button
+ */
+function handleClearSelection() {
+    visualizer.clearSelection();
+}
+
+/**
+ * Switch between single and comparison mode
+ * @param {boolean} isComparison - True for comparison mode, false for single mode
+ */
+function switchMode(isComparison) {
+    comparisonMode = isComparison;
+
+    if (isComparison) {
+        // Switch to comparison mode
+        singleModeButton.classList.remove('active');
+        comparisonModeButton.classList.add('active');
+
+        singleControls.style.display = 'none';
+        document.querySelector('.single-visualization').style.display = 'none';
+
+        comparisonControls.style.display = 'block';
+        comparisonVisualization.style.display = 'block';
+
+        console.log('Switched to comparison mode');
+    } else {
+        // Switch to single mode
+        comparisonModeButton.classList.remove('active');
+        singleModeButton.classList.add('active');
+
+        comparisonControls.style.display = 'none';
+        comparisonVisualization.style.display = 'none';
+
+        singleControls.style.display = 'block';
+        document.querySelector('.single-visualization').style.display = 'grid';
+
+        console.log('Switched to single mode');
+    }
+}
+
+/**
+ * Handle comparison mode substance selection
+ * @param {string} side - 'A' or 'B'
+ */
+function handleComparisonSubstanceChange(side) {
+    const select = side === 'A' ? substanceSelectA : substanceSelectB;
+    const substanceId = select.value;
+    const substance = side === 'A' ? substanceA : substanceB;
+    const visualizer = side === 'A' ? visualizerA : visualizerB;
+    const playButton = side === 'A' ? playAButton : playBButton;
+
+    if (!substanceId) {
+        substance.spectrum = null;
+        substance.peaks = null;
+        substance.data = null;
+        visualizer.clear();
+        playButton.disabled = true;
+        updateComparisonButtons();
+        return;
+    }
+
+    // Find spectrum in library
+    const data = libraryData.find(item => item.id === substanceId);
+    if (!data) {
+        console.error('Spectrum not found:', substanceId);
+        return;
+    }
+
+    // Store data
+    substance.spectrum = data.spectrum;
+    substance.peaks = frequencyMapper.extractPeaks(data.spectrum);
+    substance.data = data;
+
+    // Update visualization
+    visualizer.drawFTIRSpectrum(substance.spectrum, substance.peaks);
+
+    // Enable play button
+    playButton.disabled = false;
+
+    // Update combined play buttons
+    updateComparisonButtons();
+
+    console.log(`Loaded substance ${side}: ${data.name}`);
+}
+
+/**
+ * Update comparison combined play buttons
+ */
+function updateComparisonButtons() {
+    const bothLoaded = substanceA.peaks && substanceB.peaks;
+    playBothSeqButton.disabled = !bothLoaded;
+    playBothSimButton.disabled = !bothLoaded;
+}
+
+/**
+ * Handle comparison mode play individual substance
+ * @param {string} side - 'A' or 'B'
+ */
+async function handleComparisonPlay(side) {
+    const substance = side === 'A' ? substanceA : substanceB;
+    const button = side === 'A' ? playAButton : playBButton;
+
+    if (!substance.peaks || substance.peaks.length === 0) {
+        console.warn(`No peaks to play for substance ${side}`);
+        return;
+    }
+
+    const duration = parseFloat(comparisonDurationSlider.value);
+
+    try {
+        button.disabled = true;
+
+        await audioEngine.play(substance.peaks, duration);
+
+        console.log(`Playing substance ${side}: ${substance.data.name}`);
+
+        setTimeout(() => {
+            button.disabled = false;
+        }, duration * 1000 + 100);
+
+    } catch (error) {
+        console.error('Playback error:', error);
+        button.disabled = false;
+        alert('Error playing audio. Please try again.');
+    }
+}
+
+/**
+ * Handle comparison play both substances sequentially
+ */
+async function handleComparisonPlaySequential() {
+    if (!substanceA.peaks || !substanceB.peaks) {
+        console.warn('Both substances must be loaded');
+        return;
+    }
+
+    const duration = parseFloat(comparisonDurationSlider.value);
+
+    try {
+        playBothSeqButton.disabled = true;
+        playBothSimButton.disabled = true;
+
+        // Play A
+        await audioEngine.play(substanceA.peaks, duration);
+        console.log(`Playing A: ${substanceA.data.name}`);
+
+        // Wait for A to finish
+        await new Promise(resolve => setTimeout(resolve, duration * 1000));
+
+        // Play B
+        await audioEngine.play(substanceB.peaks, duration);
+        console.log(`Playing B: ${substanceB.data.name}`);
+
+        // Wait for B to finish
+        setTimeout(() => {
+            playBothSeqButton.disabled = false;
+            playBothSimButton.disabled = false;
+        }, duration * 1000 + 100);
+
+    } catch (error) {
+        console.error('Playback error:', error);
+        playBothSeqButton.disabled = false;
+        playBothSimButton.disabled = false;
+        alert('Error playing audio. Please try again.');
+    }
+}
+
+/**
+ * Handle comparison play both substances simultaneously
+ */
+async function handleComparisonPlaySimultaneous() {
+    if (!substanceA.peaks || !substanceB.peaks) {
+        console.warn('Both substances must be loaded');
+        return;
+    }
+
+    const duration = parseFloat(comparisonDurationSlider.value);
+
+    try {
+        playBothSeqButton.disabled = true;
+        playBothSimButton.disabled = true;
+
+        // Combine peaks from both substances
+        const combinedPeaks = [...substanceA.peaks, ...substanceB.peaks];
+
+        await audioEngine.play(combinedPeaks, duration);
+
+        console.log(`Playing A + B simultaneously: ${substanceA.data.name} + ${substanceB.data.name}`);
+
+        setTimeout(() => {
+            playBothSeqButton.disabled = false;
+            playBothSimButton.disabled = false;
+        }, duration * 1000 + 100);
+
+    } catch (error) {
+        console.error('Playback error:', error);
+        playBothSeqButton.disabled = false;
+        playBothSimButton.disabled = false;
+        alert('Error playing audio. Please try again.');
+    }
 }
 
 // Initialize when DOM is ready
@@ -249,7 +738,12 @@ if (document.readyState === 'loading') {
 window.spectralSynth = {
     audioEngine,
     visualizer,
+    visualizerA,
+    visualizerB,
     frequencyMapper,
     getCurrentPeaks: () => currentPeaks,
-    getCurrentSpectrum: () => currentSpectrum
+    getCurrentSpectrum: () => currentSpectrum,
+    getComparisonMode: () => comparisonMode,
+    getSubstanceA: () => substanceA,
+    getSubstanceB: () => substanceB
 };

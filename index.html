@@ -27,9 +27,39 @@
             </p>
         </section>
 
-        <section class="controls">
+        <section class="mode-selector">
+            <button id="single-mode" class="mode-button active">Single View</button>
+            <button id="comparison-mode" class="mode-button">Comparison Mode</button>
+        </section>
+
+        <section class="controls" id="single-controls">
+            <div class="filter-controls">
+                <div class="search-box">
+                    <label for="search">Search substances:</label>
+                    <input type="text" id="search" placeholder="Type to search..." />
+                </div>
+
+                <div class="category-filter">
+                    <label for="category">Filter by category:</label>
+                    <select id="category">
+                        <option value="all">All Categories</option>
+                        <option value="opioids">Opioids</option>
+                        <option value="stimulants">Stimulants</option>
+                        <option value="benzodiazepines">Benzodiazepines</option>
+                        <option value="psychedelics">Psychedelics</option>
+                        <option value="cannabinoids">Cannabinoids</option>
+                        <option value="steroids">Steroids</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="results-count">
+                    <span id="results-count">381 substances</span>
+                </div>
+            </div>
+
             <div class="substance-selector">
-                <label for="substance">Choose a substance (381 real FTIR spectra from ENFSI):</label>
+                <label for="substance">Select a substance:</label>
                 <select id="substance">
                     <option value="">-- Loading library... --</option>
                 </select>
@@ -47,9 +77,60 @@
                     <input type="range" id="volume" min="0" max="100" step="1" value="50">
                 </div>
             </div>
+
+            <div class="peak-selection-controls">
+                <div class="selection-info">
+                    <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
+                </div>
+                <div class="selection-buttons">
+                    <button id="play-selected" disabled>▶ Play Selected</button>
+                    <button id="select-all" disabled>Select All</button>
+                    <button id="clear-selection" disabled>Clear Selection</button>
+                </div>
+            </div>
         </section>
 
-        <section class="visualization">
+        <section class="controls comparison-controls" id="comparison-controls" style="display: none;">
+            <div class="comparison-grid">
+                <div class="comparison-side">
+                    <h3 class="comparison-title">Substance A</h3>
+                    <div class="substance-selector">
+                        <label for="substance-a">Select substance:</label>
+                        <select id="substance-a">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
+                    <div class="comparison-playback">
+                        <button id="play-a" disabled>▶ Play A</button>
+                    </div>
+                </div>
+
+                <div class="comparison-side">
+                    <h3 class="comparison-title">Substance B</h3>
+                    <div class="substance-selector">
+                        <label for="substance-b">Select substance:</label>
+                        <select id="substance-b">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
+                    <div class="comparison-playback">
+                        <button id="play-b" disabled>▶ Play B</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-combined">
+                <button id="play-both-sequential" disabled>▶ Play A → B (Sequential)</button>
+                <button id="play-both-simultaneous" disabled>▶ Play A + B (Simultaneous)</button>
+            </div>
+
+            <div class="slider-control">
+                <label for="comparison-duration">Duration: <span id="comparison-duration-value">2.0</span>s</label>
+                <input type="range" id="comparison-duration" min="0.5" max="5" step="0.1" value="2">
+            </div>
+        </section>
+
+        <section class="visualization single-visualization">
             <div class="viz-panel">
                 <h3>FTIR Spectrum (Infrared)</h3>
                 <canvas id="ftir-canvas" width="600" height="300"></canvas>
@@ -65,6 +146,28 @@
                 <div class="axis-labels">
                     <span class="axis-label-x">Frequency (Hz)</span>
                     <span class="axis-label-y">Amplitude</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="visualization comparison-visualization" id="comparison-visualization" style="display: none;">
+            <div class="comparison-viz-grid">
+                <div class="viz-panel">
+                    <h3>Substance A - FTIR Spectrum</h3>
+                    <canvas id="ftir-canvas-a" width="600" height="300"></canvas>
+                    <div class="axis-labels">
+                        <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
+                        <span class="axis-label-y">Transmittance (%)</span>
+                    </div>
+                </div>
+
+                <div class="viz-panel">
+                    <h3>Substance B - FTIR Spectrum</h3>
+                    <canvas id="ftir-canvas-b" width="600" height="300"></canvas>
+                    <div class="axis-labels">
+                        <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
+                        <span class="axis-label-y">Transmittance (%)</span>
+                    </div>
                 </div>
             </div>
         </section>
