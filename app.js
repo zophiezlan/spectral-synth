@@ -800,7 +800,33 @@ const ResponsiveCanvas = {
     setupCanvas(canvas, aspectRatio = 2) {
         if (!canvas) return;
 
-        let lastDpr = null;
+        // Define redraw handlers once to avoid repeated object creation
+        const redrawHandlers = {
+            'ftir-canvas': () => {
+                if (typeof visualizer !== 'undefined' && visualizer.currentSpectrum) {
+                    visualizer.drawFTIRSpectrum(visualizer.currentSpectrum, visualizer.currentPeaks || []);
+                }
+            },
+            'audio-canvas': () => {
+                // Only redraw if visualizer exists and audio engine is initialized
+                // Check for audioEngine property to ensure visualizer is fully initialized
+                if (typeof visualizer !== 'undefined' && visualizer.audioEngine) {
+                    // Clear audio canvas static cache and trigger immediate redraw
+                    visualizer.audioStaticCached = false;
+                    visualizer.stopAudioAnimation(); // Redraws with cleared cache
+                }
+            },
+            'ftir-canvas-a': () => {
+                if (typeof visualizerA !== 'undefined' && visualizerA.currentSpectrum) {
+                    visualizerA.drawFTIRSpectrum(visualizerA.currentSpectrum, visualizerA.currentPeaks || []);
+                }
+            },
+            'ftir-canvas-b': () => {
+                if (typeof visualizerB !== 'undefined' && visualizerB.currentSpectrum) {
+                    visualizerB.drawFTIRSpectrum(visualizerB.currentSpectrum, visualizerB.currentPeaks || []);
+                }
+            }
+        };
 
         const resize = () => {
             const container = canvas.parentElement;
@@ -817,22 +843,12 @@ const ResponsiveCanvas = {
                 canvasWidth = Math.min(containerWidth - 32, 600); // Subtract padding
                 canvasHeight = Math.min(canvasWidth / aspectRatio, 250);
                 
-                // Use device pixel ratio for sharper rendering on high-DPI screens
-                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                // Set canvas internal dimensions to match logical pixels
+                // This ensures drawing code coordinates match the display size
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
                 
-                // Only re-scale if DPR changed (performance optimization)
-                if (lastDpr !== dpr) {
-                    canvas.width = canvasWidth * dpr;
-                    canvas.height = canvasHeight * dpr;
-                    
-                    // Scale down the context
-                    const ctx = canvas.getContext('2d');
-                    ctx.scale(dpr, dpr);
-                    
-                    lastDpr = dpr;
-                }
-                
-                // Always update CSS size
+                // Set CSS size to match (no scaling needed)
                 canvas.style.width = canvasWidth + 'px';
                 canvas.style.height = canvasHeight + 'px';
             } else {
@@ -841,7 +857,12 @@ const ResponsiveCanvas = {
                 canvas.height = 300;
                 canvas.style.width = '100%';
                 canvas.style.height = 'auto';
-                lastDpr = null; // Reset for next mobile resize
+            }
+            
+            // Trigger redraw of current visualization after resize
+            const handler = redrawHandlers[canvas.id];
+            if (handler) {
+                handler();
             }
         };
 
