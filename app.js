@@ -800,8 +800,6 @@ const ResponsiveCanvas = {
     setupCanvas(canvas, aspectRatio = 2) {
         if (!canvas) return;
 
-        let lastDpr = null;
-
         const resize = () => {
             const container = canvas.parentElement;
             if (!container) return;
@@ -817,22 +815,12 @@ const ResponsiveCanvas = {
                 canvasWidth = Math.min(containerWidth - 32, 600); // Subtract padding
                 canvasHeight = Math.min(canvasWidth / aspectRatio, 250);
                 
-                // Use device pixel ratio for sharper rendering on high-DPI screens
-                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                // Set canvas internal dimensions to match logical pixels
+                // This ensures drawing code coordinates match the display size
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
                 
-                // Only re-scale if DPR changed (performance optimization)
-                if (lastDpr !== dpr) {
-                    canvas.width = canvasWidth * dpr;
-                    canvas.height = canvasHeight * dpr;
-                    
-                    // Scale down the context
-                    const ctx = canvas.getContext('2d');
-                    ctx.scale(dpr, dpr);
-                    
-                    lastDpr = dpr;
-                }
-                
-                // Always update CSS size
+                // Set CSS size to match (no scaling needed)
                 canvas.style.width = canvasWidth + 'px';
                 canvas.style.height = canvasHeight + 'px';
             } else {
@@ -841,7 +829,34 @@ const ResponsiveCanvas = {
                 canvas.height = 300;
                 canvas.style.width = '100%';
                 canvas.style.height = 'auto';
-                lastDpr = null; // Reset for next mobile resize
+            }
+            
+            // Trigger redraw of current visualization after resize
+            // This ensures the canvas is redrawn with the new dimensions
+            if (typeof visualizer !== 'undefined' && canvas.id === 'ftir-canvas') {
+                if (visualizer.currentSpectrum) {
+                    visualizer.drawFTIRSpectrum(
+                        visualizer.currentSpectrum,
+                        visualizer.currentPeaks || []
+                    );
+                }
+            } else if (typeof visualizer !== 'undefined' && canvas.id === 'audio-canvas') {
+                // Clear audio canvas static cache to force redraw with new dimensions
+                visualizer.audioStaticCached = false;
+            } else if (typeof visualizerA !== 'undefined' && canvas.id === 'ftir-canvas-a') {
+                if (visualizerA.currentSpectrum) {
+                    visualizerA.drawFTIRSpectrum(
+                        visualizerA.currentSpectrum,
+                        visualizerA.currentPeaks || []
+                    );
+                }
+            } else if (typeof visualizerB !== 'undefined' && canvas.id === 'ftir-canvas-b') {
+                if (visualizerB.currentSpectrum) {
+                    visualizerB.drawFTIRSpectrum(
+                        visualizerB.currentSpectrum,
+                        visualizerB.currentPeaks || []
+                    );
+                }
             }
         };
 
