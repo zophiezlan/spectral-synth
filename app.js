@@ -833,30 +833,34 @@ const ResponsiveCanvas = {
             
             // Trigger redraw of current visualization after resize
             // This ensures the canvas is redrawn with the new dimensions
-            if (typeof visualizer !== 'undefined' && canvas.id === 'ftir-canvas') {
-                if (visualizer.currentSpectrum) {
-                    visualizer.drawFTIRSpectrum(
-                        visualizer.currentSpectrum,
-                        visualizer.currentPeaks || []
-                    );
+            const redrawHandlers = {
+                'ftir-canvas': () => {
+                    if (typeof visualizer !== 'undefined' && visualizer.currentSpectrum) {
+                        visualizer.drawFTIRSpectrum(visualizer.currentSpectrum, visualizer.currentPeaks || []);
+                    }
+                },
+                'audio-canvas': () => {
+                    if (typeof visualizer !== 'undefined') {
+                        // Clear audio canvas static cache and trigger immediate redraw
+                        visualizer.audioStaticCached = false;
+                        visualizer.stopAudioAnimation(); // Redraws with cleared cache
+                    }
+                },
+                'ftir-canvas-a': () => {
+                    if (typeof visualizerA !== 'undefined' && visualizerA.currentSpectrum) {
+                        visualizerA.drawFTIRSpectrum(visualizerA.currentSpectrum, visualizerA.currentPeaks || []);
+                    }
+                },
+                'ftir-canvas-b': () => {
+                    if (typeof visualizerB !== 'undefined' && visualizerB.currentSpectrum) {
+                        visualizerB.drawFTIRSpectrum(visualizerB.currentSpectrum, visualizerB.currentPeaks || []);
+                    }
                 }
-            } else if (typeof visualizer !== 'undefined' && canvas.id === 'audio-canvas') {
-                // Clear audio canvas static cache to force redraw with new dimensions
-                visualizer.audioStaticCached = false;
-            } else if (typeof visualizerA !== 'undefined' && canvas.id === 'ftir-canvas-a') {
-                if (visualizerA.currentSpectrum) {
-                    visualizerA.drawFTIRSpectrum(
-                        visualizerA.currentSpectrum,
-                        visualizerA.currentPeaks || []
-                    );
-                }
-            } else if (typeof visualizerB !== 'undefined' && canvas.id === 'ftir-canvas-b') {
-                if (visualizerB.currentSpectrum) {
-                    visualizerB.drawFTIRSpectrum(
-                        visualizerB.currentSpectrum,
-                        visualizerB.currentPeaks || []
-                    );
-                }
+            };
+            
+            const handler = redrawHandlers[canvas.id];
+            if (handler) {
+                handler();
             }
         };
 
