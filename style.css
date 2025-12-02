@@ -287,6 +287,34 @@ section {
     cursor: pointer;
 }
 
+.playback-mode-controls {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.playback-mode-selector {
+    margin-top: 0.5rem;
+}
+
+.playback-mode-selector label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #a78bfa;
+}
+
+.playback-mode-selector select {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.95rem;
+    background: rgba(0, 0, 0, 0.4);
+    color: #e0e0e0;
+    border: 2px solid #8b5cf6;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
 .import-export-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;

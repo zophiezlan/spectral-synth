@@ -345,6 +345,30 @@ function setupEventListeners() {
         exportWAV.addEventListener('click', handleExportWAV);
     }
 
+    // Playback mode selector
+    const playbackModeSelect = document.getElementById('playback-mode-select');
+    if (playbackModeSelect) {
+        // Populate playback mode options
+        const modes = audioEngine.getPlaybackModes();
+        Object.keys(modes).forEach(key => {
+            const mode = modes[key];
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = `${mode.name} - ${mode.description}`;
+            playbackModeSelect.appendChild(option);
+        });
+
+        playbackModeSelect.addEventListener('change', (e) => {
+            try {
+                audioEngine.setPlaybackMode(e.target.value);
+                console.log(`Playback mode changed to: ${e.target.value}`);
+            } catch (error) {
+                console.error('Error setting playback mode:', error);
+                alert('Failed to set playback mode');
+            }
+        });
+    }
+
     // Comparison mode - Substance selection
     substanceSelectA.addEventListener('change', () => handleComparisonSubstanceChange('A'));
     substanceSelectB.addEventListener('change', () => handleComparisonSubstanceChange('B'));

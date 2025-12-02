@@ -19,6 +19,9 @@ class AudioEngine {
         this.reverbMix = 0;     // 0-1
         this.filterFrequency = CONFIG.frequency.AUDIO_MAX;  // Hz
         
+        // Playback mode
+        this.playbackMode = 'chord';  // Default to chord mode
+        
         // Load audio constants from global CONFIG object
         this.DEFAULT_VOLUME = CONFIG.audio.DEFAULT_VOLUME;
         this.DEFAULT_FADE_IN = CONFIG.audio.DEFAULT_FADE_IN;
@@ -141,6 +144,22 @@ class AudioEngine {
 
         await this.init();
 
+        // Use appropriate playback method based on mode
+        if (this.playbackMode === 'chord') {
+            await this.playChord(peaks, duration);
+        } else {
+            await this.playArpeggio(peaks, duration);
+        }
+    }
+
+    /**
+     * Play all peaks simultaneously as a chord
+     * 
+     * @param {Array} peaks - Array of peak objects
+     * @param {number} duration - Duration in seconds
+     * @private
+     */
+    async playChord(peaks, duration) {
         const currentTime = this.audioContext.currentTime;
         const fadeIn = this.DEFAULT_FADE_IN;
         const fadeOut = this.DEFAULT_FADE_OUT;
@@ -191,6 +210,107 @@ class AudioEngine {
             this.oscillators.push({osc, gain});
 
             // Clean up when finished
+            osc.onended = () => {
+                osc.disconnect();
+                gain.disconnect();
+            };
+        });
+
+        // Set flag to false after duration
+        setTimeout(() => {
+            this.isPlaying = false;
+        }, duration * 1000);
+    }
+
+    /**
+     * Play peaks in sequence (arpeggio mode)
+     * 
+     * @param {Array} peaks - Array of peak objects
+     * @param {number} duration - Total duration in seconds
+     * @private
+     */
+    async playArpeggio(peaks, duration) {
+        const currentTime = this.audioContext.currentTime;
+        this.isPlaying = true;
+        this.oscillators = [];
+
+        // Sort and arrange peaks based on playback mode
+        let orderedPeaks = [...peaks];
+        
+        switch (this.playbackMode) {
+            case 'arpeggio-up':
+                // Sort by frequency (low to high)
+                orderedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
+                break;
+            case 'arpeggio-down':
+                // Sort by frequency (high to low)
+                orderedPeaks.sort((a, b) => b.audioFreq - a.audioFreq);
+                break;
+            case 'arpeggio-updown':
+                // Sort by frequency then add reverse
+                orderedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
+                orderedPeaks = [...orderedPeaks, ...orderedPeaks.slice().reverse()];
+                break;
+            case 'sequential':
+                // Sort by intensity (strongest first)
+                orderedPeaks.sort((a, b) => b.absorbance - a.absorbance);
+                break;
+            case 'random':
+                // Shuffle array
+                for (let i = orderedPeaks.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [orderedPeaks[i], orderedPeaks[j]] = [orderedPeaks[j], orderedPeaks[i]];
+                }
+                break;
+        }
+
+        // Calculate timing for each note
+        const noteCount = orderedPeaks.length;
+        const noteDuration = duration / noteCount;
+        const noteOverlap = 0.1; // Small overlap for smoother transitions
+        const actualNoteDuration = Math.min(noteDuration + noteOverlap, 0.5); // Cap at 0.5s
+
+        // Create oscillators for each note in sequence
+        orderedPeaks.forEach((peak, idx) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            const startTime = currentTime + (idx * noteDuration);
+            const endTime = startTime + actualNoteDuration;
+
+            // Set frequency
+            osc.frequency.value = peak.audioFreq;
+
+            // Waveform selection
+            const waveforms = ['sine', 'triangle', 'square'];
+            const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
+            osc.type = waveforms[waveformIndex];
+
+            // Calculate gain with frequency correction
+            const baseGain = peak.absorbance * 0.5; // Higher volume for individual notes
+            const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
+            const finalGain = baseGain * freqCorrection;
+
+            // Envelope: quick attack, sustain, quick release
+            const attackTime = 0.01;
+            const releaseTime = 0.05;
+            
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(finalGain, startTime + attackTime);
+            gain.gain.setValueAtTime(finalGain, endTime - releaseTime);
+            gain.gain.linearRampToValueAtTime(0, endTime);
+
+            // Connect
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            // Schedule
+            osc.start(startTime);
+            osc.stop(endTime);
+
+            this.oscillators.push({osc, gain});
+
+            // Clean up
             osc.onended = () => {
                 osc.disconnect();
                 gain.disconnect();
@@ -370,6 +490,35 @@ class AudioEngine {
      */
     getPresets() {
         return CONFIG.presets;
+    }
+
+    /**
+     * Set playback mode
+     * 
+     * @param {string} mode - Playback mode from CONFIG.playbackModes
+     * @throws {Error} If mode is invalid
+     */
+    setPlaybackMode(mode) {
+        if (!CONFIG.playbackModes[mode]) {
+            throw new Error(`Invalid playback mode: ${mode}`);
+        }
+        this.playbackMode = mode;
+    }
+
+    /**
+     * Get current playback mode
+     * @returns {string} Current playback mode
+     */
+    getPlaybackMode() {
+        return this.playbackMode;
+    }
+
+    /**
+     * Get available playback modes
+     * @returns {Object} Playback modes object from CONFIG
+     */
+    getPlaybackModes() {
+        return CONFIG.playbackModes;
     }
 
     /**
