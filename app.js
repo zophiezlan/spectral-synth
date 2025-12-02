@@ -39,6 +39,10 @@ const durationSlider = document.getElementById('duration');
 const durationValue = document.getElementById('duration-value');
 const volumeSlider = document.getElementById('volume');
 const volumeValue = document.getElementById('volume-value');
+const reverbSlider = document.getElementById('reverb');
+const reverbValue = document.getElementById('reverb-value');
+const filterFreqSlider = document.getElementById('filter-freq');
+const filterFreqValue = document.getElementById('filter-freq-value');
 const mappingInfo = document.getElementById('mapping-info');
 const ftirCanvas = document.getElementById('ftir-canvas');
 const audioCanvas = document.getElementById('audio-canvas');
@@ -261,6 +265,19 @@ function setupEventListeners() {
         audioEngine.setVolume(volume);
     });
 
+    // Audio effects
+    reverbSlider.addEventListener('input', (e) => {
+        const reverb = parseInt(e.target.value) / 100;
+        reverbValue.textContent = e.target.value;
+        audioEngine.setReverb(reverb);
+    });
+
+    filterFreqSlider.addEventListener('input', (e) => {
+        const freq = parseInt(e.target.value);
+        filterFreqValue.textContent = freq;
+        audioEngine.setFilterFrequency(freq);
+    });
+
     // Comparison mode - Substance selection
     substanceSelectA.addEventListener('change', () => handleComparisonSubstanceChange('A'));
     substanceSelectB.addEventListener('change', () => handleComparisonSubstanceChange('B'));
@@ -275,6 +292,86 @@ function setupEventListeners() {
     comparisonDurationSlider.addEventListener('input', (e) => {
         comparisonDurationValue.textContent = parseFloat(e.target.value).toFixed(1);
     });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcut);
+}
+
+/**
+ * Handle keyboard shortcuts
+ * @param {KeyboardEvent} e - Keyboard event
+ */
+function handleKeyboardShortcut(e) {
+    // Don't trigger shortcuts when typing in input fields
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    // Prevent default for shortcuts we handle
+    const handledKeys = [' ', 'ArrowUp', 'ArrowDown', 'Escape', 'a', 'c'];
+    if (handledKeys.includes(e.key)) {
+        e.preventDefault();
+    }
+
+    // Single mode shortcuts
+    if (!comparisonMode) {
+        switch (e.key) {
+            case ' ': // Spacebar - Play/Stop
+                if (!playButton.disabled) {
+                    if (audioEngine.getIsPlaying()) {
+                        handleStop();
+                    } else {
+                        handlePlay();
+                    }
+                }
+                break;
+
+            case 'ArrowUp': // Navigate to previous substance
+                navigateSubstance(-1);
+                break;
+
+            case 'ArrowDown': // Navigate to next substance
+                navigateSubstance(1);
+                break;
+
+            case 'a': // Select all peaks
+                if (!selectAllButton.disabled) {
+                    handleSelectAll();
+                }
+                break;
+
+            case 'c': // Clear selection
+                if (!clearSelectionButton.disabled) {
+                    handleClearSelection();
+                }
+                break;
+
+            case 'Escape': // Clear search/filters
+                searchInput.value = '';
+                categorySelect.value = 'all';
+                handleSearch();
+                break;
+        }
+    }
+}
+
+/**
+ * Navigate to next/previous substance
+ * @param {number} direction - -1 for previous, 1 for next
+ */
+function navigateSubstance(direction) {
+    const options = Array.from(substanceSelect.options);
+    const currentIndex = options.findIndex(opt => opt.value === substanceSelect.value);
+
+    // Find next valid option (skip the first placeholder option)
+    let newIndex = currentIndex + direction;
+    if (newIndex < 1) newIndex = options.length - 1;
+    if (newIndex >= options.length) newIndex = 1;
+
+    if (newIndex >= 1 && newIndex < options.length) {
+        substanceSelect.value = options[newIndex].value;
+        handleSubstanceChange();
+    }
 }
 
 /**

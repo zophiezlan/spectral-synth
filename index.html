@@ -78,6 +78,20 @@
                 </div>
             </div>
 
+            <div class="audio-effects">
+                <h4 class="effects-title">Audio Effects</h4>
+                <div class="effects-grid">
+                    <div class="slider-control">
+                        <label for="reverb">Reverb: <span id="reverb-value">0</span>%</label>
+                        <input type="range" id="reverb" min="0" max="100" step="1" value="0">
+                    </div>
+                    <div class="slider-control">
+                        <label for="filter-freq">Filter: <span id="filter-freq-value">8000</span> Hz</label>
+                        <input type="range" id="filter-freq" min="100" max="8000" step="100" value="8000">
+                    </div>
+                </div>
+            </div>
+
             <div class="peak-selection-controls">
                 <div class="selection-info">
                     <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
@@ -167,6 +181,34 @@
                     <div class="axis-labels">
                         <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
                         <span class="axis-label-y">Transmittance (%)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-panel">
+            <h2>Keyboard Shortcuts</h2>
+            <div class="keyboard-shortcuts">
+                <div class="shortcut-grid">
+                    <div class="shortcut-item">
+                        <kbd>Space</kbd>
+                        <span>Play / Stop</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>↑</kbd> / <kbd>↓</kbd>
+                        <span>Navigate substances</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>A</kbd>
+                        <span>Select all peaks</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>C</kbd>
+                        <span>Clear peak selection</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Esc</kbd>
+                        <span>Clear search/filters</span>
                     </div>
                 </div>
             </div>

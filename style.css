@@ -247,6 +247,24 @@ section {
     margin-bottom: 1.5rem;
 }
 
+.audio-effects {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.effects-title {
+    color: #a78bfa;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.effects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
 .peak-selection-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
@@ -381,6 +399,42 @@ canvas {
     font-family: 'Courier New', monospace;
 }
 
+.keyboard-shortcuts {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: 5px;
+}
+
+.shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.shortcut-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.shortcut-item kbd {
+    background: rgba(139, 92, 246, 0.2);
+    border: 2px solid #8b5cf6;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #a78bfa;
+    min-width: 50px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.shortcut-item span {
+    color: #e0e0e0;
+    font-size: 0.9rem;
+}
+
 .science-explanation ol {
     margin-left: 2rem;
     margin-top: 0.5rem;
@@ -428,7 +482,8 @@ footer p {
         flex-direction: column;
     }
 
-    .filter-controls {
+    .filter-controls,
+    .effects-grid {
         grid-template-columns: 1fr;
     }
 

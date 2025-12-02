@@ -12,6 +12,12 @@ class AudioEngine {
         this.analyser = null;
         this.oscillators = [];
         this.isPlaying = false;
+
+        // Audio effects
+        this.convolver = null;  // Reverb
+        this.filter = null;     // Low-pass filter
+        this.reverbMix = 0;     // 0-1
+        this.filterFrequency = 8000;  // Hz
     }
 
     /**
@@ -25,13 +31,41 @@ class AudioEngine {
             this.masterGain = this.audioContext.createGain();
             this.masterGain.gain.value = 0.3; // Default volume
 
+            // Create filter (low-pass)
+            this.filter = this.audioContext.createBiquadFilter();
+            this.filter.type = 'lowpass';
+            this.filter.frequency.value = this.filterFrequency;
+            this.filter.Q.value = 1;
+
+            // Create convolver for reverb
+            this.convolver = this.audioContext.createConvolver();
+            await this.createReverbImpulse();
+
+            // Create dry/wet mixing for reverb
+            this.dryGain = this.audioContext.createGain();
+            this.wetGain = this.audioContext.createGain();
+            this.dryGain.gain.value = 1;
+            this.wetGain.gain.value = 0;
+
             // Create analyser node for FFT visualization
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = 2048;
             this.analyser.smoothingTimeConstant = 0.8;
 
-            // Connect: oscillators -> masterGain -> analyser -> destination
-            this.masterGain.connect(this.analyser);
+            // Connect audio graph:
+            // oscillators -> masterGain -> filter -> [dry path, wet path] -> analyser -> destination
+            this.masterGain.connect(this.filter);
+
+            // Dry path (no reverb)
+            this.filter.connect(this.dryGain);
+            this.dryGain.connect(this.analyser);
+
+            // Wet path (with reverb)
+            this.filter.connect(this.convolver);
+            this.convolver.connect(this.wetGain);
+            this.wetGain.connect(this.analyser);
+
+            // Output
             this.analyser.connect(this.audioContext.destination);
         }
 
@@ -39,6 +73,26 @@ class AudioEngine {
         if (this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
         }
+    }
+
+    /**
+     * Create impulse response for reverb
+     */
+    async createReverbImpulse() {
+        const sampleRate = this.audioContext.sampleRate;
+        const duration = 2; // 2 second reverb
+        const length = sampleRate * duration;
+        const impulse = this.audioContext.createBuffer(2, length, sampleRate);
+
+        for (let channel = 0; channel < 2; channel++) {
+            const channelData = impulse.getChannelData(channel);
+            for (let i = 0; i < length; i++) {
+                // Exponentially decaying noise
+                channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
+            }
+        }
+
+        this.convolver.buffer = impulse;
     }
 
     /**
@@ -195,5 +249,44 @@ class AudioEngine {
      */
     getSampleRate() {
         return this.audioContext ? this.audioContext.sampleRate : 44100;
+    }
+
+    /**
+     * Set reverb amount
+     * @param {number} amount - Reverb mix 0-1 (0 = dry, 1 = wet)
+     */
+    setReverb(amount) {
+        if (this.dryGain && this.wetGain) {
+            this.reverbMix = Math.max(0, Math.min(1, amount));
+            this.dryGain.gain.value = 1 - this.reverbMix;
+            this.wetGain.gain.value = this.reverbMix;
+        }
+    }
+
+    /**
+     * Set filter frequency
+     * @param {number} frequency - Cutoff frequency in Hz
+     */
+    setFilterFrequency(frequency) {
+        if (this.filter) {
+            this.filterFrequency = frequency;
+            this.filter.frequency.value = frequency;
+        }
+    }
+
+    /**
+     * Get current reverb amount
+     * @returns {number} Reverb mix 0-1
+     */
+    getReverb() {
+        return this.reverbMix;
+    }
+
+    /**
+     * Get current filter frequency
+     * @returns {number} Filter frequency in Hz
+     */
+    getFilterFrequency() {
+        return this.filterFrequency;
     }
 }
