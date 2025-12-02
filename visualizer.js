@@ -97,26 +97,42 @@ class Visualizer {
             }
         });
 
-        // Change cursor to pointer when hovering over peaks
+        // Change cursor to pointer and show tooltip when hovering over peaks
         this.ftirCanvas.addEventListener('mousemove', (e) => {
-            if (!this.currentPeaks || this.currentPeaks.length === 0) return;
+            if (!this.currentPeaks || this.currentPeaks.length === 0) {
+                this.hideTooltip();
+                return;
+            }
 
             const rect = this.ftirCanvas.getBoundingClientRect();
             const mouseX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
             const mouseY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
 
-            let overPeak = false;
+            let closestIndex = -1;
+            let closestDistance = Infinity;
 
-            this.peakPositions.forEach((pos) => {
+            this.peakPositions.forEach((pos, idx) => {
                 const distance = Math.sqrt(
                     Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2)
                 );
-                if (distance < this.CLICK_RADIUS) {
-                    overPeak = true;
+                if (distance < this.CLICK_RADIUS && distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = idx;
                 }
             });
 
-            this.ftirCanvas.style.cursor = overPeak ? 'pointer' : 'default';
+            if (closestIndex !== -1) {
+                this.ftirCanvas.style.cursor = 'pointer';
+                this.showTooltip(this.currentPeaks[closestIndex], e.clientX, e.clientY, closestIndex);
+            } else {
+                this.ftirCanvas.style.cursor = 'default';
+                this.hideTooltip();
+            }
+        });
+
+        // Hide tooltip when mouse leaves canvas
+        this.ftirCanvas.addEventListener('mouseleave', () => {
+            this.hideTooltip();
         });
     }
 
@@ -157,6 +173,87 @@ class Visualizer {
         if (this.onPeakSelectionChange) {
             this.onPeakSelectionChange(this.getSelectedPeaks());
         }
+    }
+
+    /**
+     * Show tooltip for a peak
+     * @param {Object} peak - Peak data {wavenumber, absorbance, audioFreq}
+     * @param {number} x - Mouse X position
+     * @param {number} y - Mouse Y position
+     * @param {number} index - Peak index
+     * @private
+     */
+    showTooltip(peak, x, y, index) {
+        const tooltip = document.getElementById('peak-tooltip');
+        if (!tooltip) return;
+
+        const header = tooltip.querySelector('.tooltip-header');
+        const content = tooltip.querySelector('.tooltip-content');
+
+        const isSelected = this.selectedPeakIndices.has(index);
+        const functionalGroup = this.getFunctionalGroup ? this.getFunctionalGroup(peak.wavenumber) : 'Unknown';
+
+        header.textContent = `Peak ${index + 1}${isSelected ? ' ★' : ''}`;
+        content.innerHTML = `
+            <div><strong>Wavenumber:</strong> ${peak.wavenumber.toFixed(1)} cm⁻¹</div>
+            <div><strong>Intensity:</strong> ${(peak.absorbance * 100).toFixed(1)}%</div>
+            <div><strong>Audio Freq:</strong> ${peak.audioFreq.toFixed(1)} Hz</div>
+            <div><strong>Group:</strong> ${functionalGroup}</div>
+            <div style="margin-top: 0.5rem; font-size: 0.85em; color: #a78bfa;">Click to ${isSelected ? 'deselect' : 'select'}</div>
+        `;
+
+        // Position tooltip near cursor, but avoid edges
+        const offset = 15;
+        let tooltipX = x + offset;
+        let tooltipY = y + offset;
+
+        // Show tooltip to measure dimensions
+        tooltip.style.display = 'block';
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        // Adjust if too close to right edge
+        if (tooltipX + tooltipRect.width > window.innerWidth) {
+            tooltipX = x - tooltipRect.width - offset;
+        }
+
+        // Adjust if too close to bottom edge
+        if (tooltipY + tooltipRect.height > window.innerHeight) {
+            tooltipY = y - tooltipRect.height - offset;
+        }
+
+        tooltip.style.left = tooltipX + 'px';
+        tooltip.style.top = tooltipY + 'px';
+    }
+
+    /**
+     * Hide tooltip
+     * @private
+     */
+    hideTooltip() {
+        const tooltip = document.getElementById('peak-tooltip');
+        if (tooltip) {
+            tooltip.style.display = 'none';
+        }
+    }
+
+    /**
+     * Get functional group for a wavenumber
+     * @param {number} wavenumber - IR wavenumber
+     * @returns {string} Functional group description
+     * @private
+     */
+    getFunctionalGroup(wavenumber) {
+        if (wavenumber > 3500 && wavenumber < 3700) return 'O-H stretch';
+        if (wavenumber > 3200 && wavenumber < 3500) return 'N-H stretch';
+        if (wavenumber > 3000 && wavenumber < 3100) return 'C-H aromatic';
+        if (wavenumber > 2850 && wavenumber < 3000) return 'C-H aliphatic';
+        if (wavenumber > 2100 && wavenumber < 2300) return 'C≡N / C≡C';
+        if (wavenumber > 1650 && wavenumber < 1750) return 'C=O carbonyl';
+        if (wavenumber > 1500 && wavenumber < 1650) return 'C=C aromatic';
+        if (wavenumber > 1350 && wavenumber < 1500) return 'C-H bend';
+        if (wavenumber > 1000 && wavenumber < 1300) return 'C-O stretch';
+        if (wavenumber > 650 && wavenumber < 900) return 'C-H aromatic';
+        return 'Fingerprint region';
     }
 
     /**

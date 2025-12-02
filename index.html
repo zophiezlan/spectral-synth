@@ -72,8 +72,18 @@
                 </div>
             </div>
 
+            <div class="favorites-filter">
+                <label for="show-favorites">
+                    <input type="checkbox" id="show-favorites">
+                    ⭐ Show Favorites Only
+                </label>
+            </div>
+
             <div class="substance-selector">
-                <label for="substance">Select a substance:</label>
+                <label for="substance">
+                    Select a substance:
+                    <button id="favorite-toggle" class="favorite-button" type="button" aria-label="Toggle favorite" style="display: none;">☆</button>
+                </label>
                 <select id="substance">
                     <option value="">-- Loading library... --</option>
                 </select>
@@ -343,6 +353,12 @@
     <!-- Screen reader announcements -->
     <div role="status" aria-live="polite" aria-atomic="true" class="sr-only">
         <span id="playback-status"></span>
+    </div>
+
+    <!-- Peak tooltip -->
+    <div id="peak-tooltip" class="peak-tooltip" role="tooltip" style="display: none;">
+        <div class="tooltip-header"></div>
+        <div class="tooltip-content"></div>
     </div>
 
     <!-- Configuration must be loaded first -->
