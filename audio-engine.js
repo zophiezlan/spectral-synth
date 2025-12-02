@@ -522,16 +522,6 @@ class AudioEngine {
     /**
      * Apply ADSR envelope to a gain node
      * 
-     * @param {GainNode} gainNode - The gain node to apply envelope to
-     * @param {number} startTime - Start time in audio context time
-     * @param {number} duration - Total duration of the note
-     * @param {number} peakGain - Peak gain value (at end of attack)
-     * @param {number} sustainGain - Sustain gain value
-     * @private
-     */
-    /**
-     * Apply ADSR envelope to a gain node
-     * 
      * The ADSR envelope shapes the amplitude over time:
      * - Attack: Fade in from 0 to peak gain
      * - Decay: Drop from peak to sustain level  
