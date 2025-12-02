@@ -1910,26 +1910,14 @@ function showSmartSuggestions(currentSubstance) {
     // Clear previous suggestions
     suggestionsList.innerHTML = '';
 
-    // Add suggestion items with thumbnails
+    // Add suggestion items
     similarities.forEach(({ substance, similarity }) => {
         const item = document.createElement('button');
         item.className = 'suggestion-item';
-
-        // Generate thumbnail
-        const thumbnail = ThumbnailGenerator.generateSpectrumThumbnail(substance.spectrum, 80, 40);
-
-        // Create container for text
-        const textContainer = document.createElement('div');
-        textContainer.className = 'suggestion-text';
-        textContainer.innerHTML = `
+        item.innerHTML = `
             <span class="suggestion-name">${substance.name}</span>
             <span class="similarity-score">${(similarity * 100).toFixed(0)}% similar</span>
         `;
-
-        // Append thumbnail and text
-        item.appendChild(thumbnail);
-        item.appendChild(textContainer);
-
         item.addEventListener('click', () => {
             substanceSelect.value = substance.id;
             handleSubstanceChange();

@@ -87,7 +87,6 @@ Core features:
 - ✅ Keyboard shortcuts help overlay (press "?")
 - ✅ Light/dark theme toggle
 - ✅ Smart substance suggestions (spectral similarity)
-- ✅ Waveform preview thumbnails
 - ✅ Dynamic color mapping (frequency → visible spectrum)
 - ✅ Enhanced micro-interactions (pulse, celebrate, ripple)
 
@@ -145,14 +144,7 @@ Core features:
 
 #### What Was Implemented:
 
-1. **Waveform Preview Thumbnails** ✅
-   - `ThumbnailGenerator` utility creates mini spectrum canvases (80x40px)
-   - Integrated into smart suggestions UI
-   - Visual pattern recognition at a glance
-   - Theme-aware color schemes
-   - **Result**: Users can quickly identify substance patterns visually
-
-2. **Enhanced Micro-interactions** ✅
+1. **Enhanced Micro-interactions** ✅
    - `MicroInteractions` utility with three effects:
      - **Pulse animation**: Play button pulses during playback
      - **Celebration effect**: First-time export gets special 🎉 message
@@ -160,7 +152,7 @@ Core features:
    - CSS @keyframes animations (pulse, ripple)
    - **Result**: Application feels polished and delightful
 
-3. **Dynamic Color Mapping (Frequency→Color)** ✅
+2. **Dynamic Color Mapping (Frequency→Color)** ✅
    - `ColorMapper` utility maps IR wavenumbers to HSL colors
    - Peak markers colored by frequency:
      - High freq (short wavelength) → Violet (280° hue)
@@ -169,10 +161,10 @@ Core features:
    - Selected peaks maintain highlight color for clarity
    - **Result**: Unique visual signature, reinforces spectroscopy concepts
 
-**Time Invested**: ~18 hours (estimated 20-30 hours for full Phase 2)
+**Time Invested**: ~16 hours (estimated 20-30 hours for full Phase 2)
 **Impact**: Very High ⭐⭐⭐⭐⭐
 
-**Note**: Particle system visualization and radial spectrum view deferred to future phases due to complexity vs. impact analysis.
+**Note**: Waveform preview thumbnails were initially implemented but removed as they were too small (80x40px) to provide meaningful visual information. Particle system visualization and radial spectrum view deferred to future phases due to complexity vs. impact analysis.
 
 ---
 
@@ -205,7 +197,7 @@ Core features:
 2. **Visual Feedback Is Powerful**
    - Pulsing play button clearly indicates active playback
    - Color-coded peaks make frequency relationships intuitive
-   - Thumbnails aid pattern recognition
+   - Size matters: 80x40px thumbnails too small for pattern recognition
 
 3. **Progressive Disclosure Works**
    - Keyboard shortcuts hidden until user presses "?"
@@ -239,15 +231,15 @@ Core features:
 ---
 
 #### ✅ **Phase 2: Visual Enhancement** (COMPLETED - Dec 2025)
-- ✅ Waveform preview thumbnails
 - ✅ Enhanced micro-interactions and animations
 - ✅ Dynamic color mapping (frequency→color)
+- ❌ Waveform preview thumbnails (removed - too small to be useful)
 - ⏭️ Particle system visualization (deferred)
 - ⏭️ Radial spectrum view (deferred)
 
 **Status**: Core visual enhancements completed
 **Outcome**: Application has unique visual identity, more engaging
-**Deferred**: Advanced visualizations (particle system, radial view) moved to Phase 5
+**Deferred**: Advanced visualizations (particle system, radial view) moved to Phase 5. Thumbnails attempted but removed due to insufficient size for meaningful visual information.
 
 ---
 
@@ -820,23 +812,23 @@ The roadmap is clear, priorities are defined, and the technical foundation is so
 
 | Feature | Description | Impact | Files Modified |
 |---------|-------------|--------|----------------|
-| Waveform Thumbnails | Mini spectrum previews (80x40px) | High | app.js, style.css |
-| ThumbnailGenerator Utility | Canvas-based thumbnail rendering | High | app.js |
 | ColorMapper Utility | Frequency → visible color mapping | Very High | app.js, visualizer.js |
 | MicroInteractions Utility | Pulse, celebrate, ripple effects | High | app.js, style.css |
 | Dynamic Peak Colors | Frequency-based peak coloring in FTIR | Very High | visualizer.js |
 | Pulse Animation | Play button pulses during playback | Medium | app.js, style.css |
 | Celebration Toast | First-time export celebration | Medium | app.js |
 
+**Note**: ThumbnailGenerator utility and waveform thumbnails were initially implemented but removed from suggestions display as 80x40px was too small for meaningful pattern recognition. The utility code remains in app.js for potential future use.
+
 ### 📊 Code Quality Metrics
 
-- **Lines of Code Added**: ~400 lines (JavaScript + CSS)
-- **New Utilities**: 3 (ThumbnailGenerator, ColorMapper, MicroInteractions)
+- **Lines of Code Added**: ~380 lines (JavaScript + CSS, net after thumbnail removal)
+- **New Utilities**: 3 (ThumbnailGenerator [unused], ColorMapper, MicroInteractions)
 - **Files Modified**: 3 (app.js, visualizer.js, style.css)
 - **Bugs Introduced**: 0
 - **Accessibility Impact**: Neutral (maintained WCAG AA)
-- **Performance Impact**: Negligible (thumbnail generation is fast)
-- **Bundle Size Impact**: +~15KB (unminified JavaScript)
+- **Performance Impact**: Negligible
+- **Bundle Size Impact**: +~14KB (unminified JavaScript)
 
 ---
 
