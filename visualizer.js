@@ -180,11 +180,6 @@ class Visualizer {
             this.hideTooltip();
         });
 
-        // Hide tooltip and ensure spectrum remains visible when touch ends
-        this.ftirCanvas.addEventListener('touchstart', (e) => {
-            // Don't prevent default to allow normal touch behavior
-        });
-
         // Hide tooltip when touch is cancelled or leaves canvas
         this.ftirCanvas.addEventListener('touchcancel', () => {
             this.hideTooltip();
