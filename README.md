@@ -8,6 +8,8 @@ Spectral Synthesizer explores the fascinating connection between audio and spect
 
 Each molecule has a unique "fingerprint" based on how its chemical bonds absorb infrared light. This tool maps those infrared absorption patterns down to audible frequencies, letting you **hear what molecules sound like**.
 
+**✨ Now with real data!** Includes **381 authentic FTIR spectra** from the [ENFSI DWG IR Library](https://enfsi.eu/) (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints from forensic laboratories.
+
 ## The Core Concept
 
 Both FTIR spectroscopy and audio visualization use **Fourier transforms** to decompose complex signals into frequency components:
@@ -39,7 +41,7 @@ open index.html  # or just double-click the file
 ## How It Works
 
 ### 1. Data Input
-FTIR spectra stored as JSON arrays of `{wavenumber, transmittance}` pairs. Lower transmittance = higher absorption = stronger peak.
+Real FTIR spectra from the ENFSI library, parsed from JCAMP-DX format and converted to JSON arrays of `{wavenumber, transmittance}` pairs. Lower transmittance = higher absorption = stronger peak.
 
 ### 2. Frequency Mapping
 ```
@@ -71,11 +73,12 @@ Both visualizations use the same mathematical transformation, just on different 
 ```
 index.html           - Main UI structure
 style.css            - Styling and layout
-spectral-data.js     - FTIR spectrum database
+ftir-library.json    - Real FTIR spectra (381 substances, 9.5MB)
 frequency-mapper.js  - IR → audio conversion algorithms
 audio-engine.js      - Web Audio API synthesis
 visualizer.js        - Canvas-based visualization
 app.js              - Main application coordinator
+build-library.js     - JCAMP-DX parser & library builder (Node.js)
 ```
 
 ### Key Algorithms
@@ -102,27 +105,18 @@ audioFreq = exp(log(AUDIO_MIN) + normalized * (log(AUDIO_MAX) - log(AUDIO_MIN)))
 - **Vanilla JavaScript**: No dependencies, no build step
 - **Pure CSS**: Responsive design with gradient aesthetics
 
-## Substances Included
+## Data Source
 
-Current database includes FTIR spectra for:
+The library includes **381 curated FTIR spectra** from the ENFSI DWG IR Library, covering:
 
-1. **MDMA** (3,4-Methylenedioxymethamphetamine)
-   - Distinctive methylenedioxy bridge peaks
-   - Aromatic and amine signatures
+- **Controlled substances**: MDMA, Cocaine, Heroin, LSD, Ketamine, Mephedrone
+- **Pharmaceuticals**: Codeine, Morphine, Buprenorphine, Methadone, Diazepam
+- **Stimulants**: Amphetamines, Methamphetamine, Caffeine, various analogs
+- **Synthetic opioids**: Fentanyl and dozens of analogs
+- **Steroids**: Testosterone and derivatives
+- **And many more**: Including precursors, metabolites, and designer drugs
 
-2. **Ketamine**
-   - Strong carbonyl peak at ~1720 cm⁻¹
-   - Aromatic rings and C-Cl stretch
-
-3. **Caffeine**
-   - Multiple carbonyl peaks (purines)
-   - Complex aromatic system
-
-4. **Aspirin** (Acetylsalicylic Acid)
-   - Dual carbonyls (ester + acid)
-   - Broad O-H stretch
-
-Each produces a distinctly different sound based on its molecular structure!
+Each spectrum is from actual forensic laboratory measurements, providing authentic molecular fingerprints. The substances produce distinctly different sounds based on their unique molecular structures!
 
 ## Educational Use
 
@@ -142,21 +136,26 @@ Perfect for:
 
 ## Extending the Project
 
-### Adding New Substances
+### Rebuilding the Library
 
-Edit `spectral-data.js` and add to `SPECTRAL_DATABASE`:
+The library is built from JCAMP-DX files using Node.js:
 
-```javascript
-mysubstance: {
-    name: 'Display Name',
-    description: 'Key spectroscopic features',
-    spectrum: [
-        {wavenumber: 3400, transmittance: 85},
-        {wavenumber: 1700, transmittance: 45},
-        // ... more points
-    ]
-}
+```bash
+# Download ENFSI library (or use your own JCAMP-DX files)
+curl -L -o enfsi_library.zip "https://enfsi.eu/download/ENFSI_DWG_IR_Library_JCAMP-DX_20250429.zip"
+unzip enfsi_library.zip -d enfsi_data
+
+# Run the library builder
+node build-library.js
 ```
+
+The builder:
+1. Parses JCAMP-DX format (.JDX files)
+2. Converts absorbance → transmittance
+3. Downsamples to ~400 points per spectrum
+4. Outputs `ftir-library.json`
+
+Edit `build-library.js` to customize which substances are included.
 
 ### Customizing the Mapping
 
@@ -186,12 +185,13 @@ Edit `audio-engine.js` play method:
 
 ## Scientific Accuracy
 
-The project uses **scientifically grounded principles**:
-- ✅ Real FTIR peak locations and patterns
-- ✅ Accurate functional group assignments
-- ✅ Proper Fourier transform mathematics
-- ⚠️ Simplified spectra for performance
-- ⚠️ Artistic liberties in sonification choices
+The project uses **real scientific data**:
+- ✅ Authentic FTIR spectra from ENFSI forensic laboratories
+- ✅ Accurate peak locations and intensities
+- ✅ Proper functional group assignments
+- ✅ Correct Fourier transform mathematics
+- ⚠️ Downsampled to ~400 points for web performance (from typically 1800+ points)
+- ⚠️ Artistic liberties in sonification (waveforms, amplitude scaling)
 
 ## Browser Compatibility
 

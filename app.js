@@ -10,6 +10,7 @@ let visualizer;
 let frequencyMapper;
 let currentSpectrum = null;
 let currentPeaks = null;
+let libraryData = null;
 
 // DOM elements
 const substanceSelect = document.getElementById('substance');
@@ -26,17 +27,55 @@ const audioCanvas = document.getElementById('audio-canvas');
 /**
  * Initialize application
  */
-function init() {
+async function init() {
     // Create instances
     audioEngine = new AudioEngine();
     visualizer = new Visualizer(ftirCanvas, audioCanvas);
     visualizer.setAudioEngine(audioEngine);
     frequencyMapper = new FrequencyMapper();
 
+    // Load FTIR library
+    await loadLibrary();
+
     // Set up event listeners
     setupEventListeners();
 
     console.log('🎵 Spectral Synthesizer initialized');
+}
+
+/**
+ * Load FTIR library from JSON
+ */
+async function loadLibrary() {
+    try {
+        console.log('Loading FTIR library...');
+        const response = await fetch('ftir-library.json');
+        libraryData = await response.json();
+
+        console.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
+
+        // Populate substance selector
+        populateSubstanceSelector();
+    } catch (error) {
+        console.error('Error loading library:', error);
+        alert('Failed to load FTIR library. Please refresh the page.');
+    }
+}
+
+/**
+ * Populate substance selector dropdown
+ */
+function populateSubstanceSelector() {
+    // Clear existing options except the first one
+    substanceSelect.innerHTML = '<option value="">-- Select a Substance --</option>';
+
+    // Add library substances
+    libraryData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name;
+        substanceSelect.appendChild(option);
+    });
 }
 
 /**
@@ -79,8 +118,8 @@ function handleSubstanceChange() {
         return;
     }
 
-    // Load spectrum data
-    const data = getSpectrum(substanceId);
+    // Find spectrum in library
+    const data = libraryData.find(item => item.id === substanceId);
     if (!data) {
         console.error('Spectrum not found:', substanceId);
         return;

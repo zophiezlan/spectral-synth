@@ -20,17 +20,18 @@
                 into frequency components. This tool maps infrared absorption spectra (molecular vibrations)
                 down to audible frequencies, revealing what molecules "sound like".
             </p>
+            <p style="margin-top: 1rem; padding: 0.75rem; background: rgba(139, 92, 246, 0.15); border-left: 3px solid #8b5cf6; border-radius: 4px;">
+                <strong>Now using real data!</strong> This version includes 381 authentic FTIR spectra from the
+                <a href="https://enfsi.eu/" target="_blank" style="color: #a78bfa;">ENFSI DWG IR Library</a>
+                (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints.
+            </p>
         </section>
 
         <section class="controls">
             <div class="substance-selector">
-                <label for="substance">Choose a substance:</label>
+                <label for="substance">Choose a substance (381 real FTIR spectra from ENFSI):</label>
                 <select id="substance">
-                    <option value="">-- Select --</option>
-                    <option value="mdma">MDMA (3,4-Methylenedioxymethamphetamine)</option>
-                    <option value="ketamine">Ketamine</option>
-                    <option value="caffeine">Caffeine</option>
-                    <option value="aspirin">Aspirin (Acetylsalicylic Acid)</option>
+                    <option value="">-- Loading library... --</option>
                 </select>
             </div>
 
@@ -110,7 +111,6 @@
         </p>
     </footer>
 
-    <script src="spectral-data.js"></script>
     <script src="frequency-mapper.js"></script>
     <script src="audio-engine.js"></script>
     <script src="visualizer.js"></script>
