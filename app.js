@@ -484,8 +484,13 @@ const TutorialManager = {
         const target = document.querySelector(step.target);
         
         if (!target) {
-            // Skip to next step if target not found
+            // Skip to next step if target not found, but prevent infinite loop
             this.currentStep++;
+            if (this.currentStep >= steps.length) {
+                // If we've skipped all remaining steps, just complete the tutorial
+                this.complete();
+                return;
+            }
             setTimeout(() => this.showStep(), 100);
             return;
         }
@@ -623,6 +628,10 @@ const TutorialManager = {
             document.head.appendChild(style);
         }
         
+        // Use viewport dimensions instead of magic 9999px for better performance
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        
         style.textContent = `
             .tutorial-overlay {
                 position: fixed;
@@ -635,9 +644,9 @@ const TutorialManager = {
                 pointer-events: none;
                 box-shadow: 
                     0 0 0 ${rect.top - padding}px rgba(0, 0, 0, 0.7),
-                    ${rect.right + padding}px 0 0 9999px rgba(0, 0, 0, 0.7),
-                    0 ${rect.bottom + padding}px 0 9999px rgba(0, 0, 0, 0.7),
-                    -9999px 0 0 ${window.innerWidth - rect.left + padding}px rgba(0, 0, 0, 0.7);
+                    ${rect.right + padding}px 0 0 ${vw}px rgba(0, 0, 0, 0.7),
+                    0 ${rect.bottom + padding}px 0 ${vh}px rgba(0, 0, 0, 0.7),
+                    ${-(vw)}px 0 0 ${window.innerWidth - rect.left + padding}px rgba(0, 0, 0, 0.7);
             }
             
             .tutorial-spotlight-target {
@@ -685,6 +694,14 @@ const TutorialManager = {
             </div>
         `;
         
+        // Make tooltip visible but off-screen to get accurate dimensions
+        this.tooltip.style.display = 'block';
+        this.tooltip.style.visibility = 'hidden';
+        this.tooltip.style.left = '-9999px';
+        
+        // Force layout reflow to ensure dimensions are calculated
+        void this.tooltip.offsetHeight;
+        
         // Position tooltip
         const rect = target.getBoundingClientRect();
         const tooltipRect = this.tooltip.getBoundingClientRect();
@@ -717,9 +734,10 @@ const TutorialManager = {
         top = Math.max(10, Math.min(top, window.innerHeight - tooltipRect.height - 10));
         left = Math.max(10, Math.min(left, window.innerWidth - tooltipRect.width - 10));
         
+        // Position and make visible
         this.tooltip.style.top = top + 'px';
         this.tooltip.style.left = left + 'px';
-        this.tooltip.style.display = 'block';
+        this.tooltip.style.visibility = 'visible';
         
         // Add event listeners
         this.tooltip.querySelector('.tutorial-close')?.addEventListener('click', () => this.skip());
