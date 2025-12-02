@@ -1,0 +1,69 @@
+/**
+ * Configuration - Centralized application settings
+ * 
+ * This file contains all configurable parameters for the Spectral Synthesizer.
+ * Adjust these values to customize the application behavior.
+ */
+
+const CONFIG = {
+    // Frequency mapping parameters
+    frequency: {
+        // FTIR wavenumber range (cm⁻¹)
+        IR_MIN: 400,
+        IR_MAX: 4000,
+        
+        // Audio frequency range (Hz)
+        AUDIO_MIN: 100,  // Start at 100Hz for better musicality
+        AUDIO_MAX: 8000, // Cap at 8kHz for pleasant sounds
+    },
+    
+    // Peak detection parameters
+    peakDetection: {
+        DEFAULT_THRESHOLD: 0.15,  // Minimum absorption intensity (0-1)
+        DEFAULT_MAX_PEAKS: 20,    // Maximum number of peaks to extract
+    },
+    
+    // Audio synthesis parameters
+    audio: {
+        DEFAULT_VOLUME: 0.3,         // Default master volume (0-1)
+        DEFAULT_FADE_IN: 0.05,       // Fade in duration in seconds
+        DEFAULT_FADE_OUT: 0.1,       // Fade out duration in seconds
+        REVERB_DURATION: 2,          // Reverb impulse duration in seconds
+        FFT_SIZE: 2048,              // FFT size for analyser
+        ANALYSER_SMOOTHING: 0.8,     // Analyser smoothing time constant
+        FILTER_Q_VALUE: 1,           // Filter Q value (resonance)
+        DEFAULT_DURATION: 2.0,       // Default playback duration in seconds
+        MIN_DURATION: 0.5,           // Minimum playback duration
+        MAX_DURATION: 5.0,           // Maximum playback duration
+    },
+    
+    // Visualization parameters
+    visualization: {
+        CLICK_RADIUS: 20,         // Pixels - radius for peak click detection
+        PEAK_MARKER_SIZE: 8,      // Pixels - size of peak marker circles
+        GRID_COLOR: '#333',       // Color for grid lines
+        SPECTRUM_COLOR: '#8b5cf6', // Color for FTIR spectrum line
+        PEAK_COLOR: '#ec4899',    // Color for peak markers
+        SELECTED_PEAK_COLOR: '#10b981', // Color for selected peaks
+    },
+    
+    // UI parameters
+    ui: {
+        DEBOUNCE_DELAY: 300,      // ms - delay for search input debouncing
+        ANIMATION_BUFFER: 100,    // ms - extra time after audio stops for cleanup
+    },
+    
+    // Library parameters
+    library: {
+        LIBRARY_FILE: 'ftir-library.json',  // Path to FTIR library JSON file
+    },
+};
+
+// Freeze config to prevent accidental modification
+Object.freeze(CONFIG);
+Object.freeze(CONFIG.frequency);
+Object.freeze(CONFIG.peakDetection);
+Object.freeze(CONFIG.audio);
+Object.freeze(CONFIG.visualization);
+Object.freeze(CONFIG.ui);
+Object.freeze(CONFIG.library);

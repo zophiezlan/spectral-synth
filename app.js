@@ -1,7 +1,8 @@
 /**
  * Main Application - Spectral Synthesizer
  *
- * Coordinates between UI, data, audio engine, and visualization
+ * Coordinates between UI, data, audio engine, and visualization.
+ * This is the main entry point that ties together all the modules.
  */
 
 // Global instances
@@ -64,41 +65,57 @@ const ftirCanvasB = document.getElementById('ftir-canvas-b');
 // Filter state
 let currentSearchTerm = '';
 let currentCategory = 'all';
+let searchDebounceTimer = null;
 
 /**
  * Initialize application
+ * 
+ * Creates all necessary instances, loads data, and sets up event listeners.
+ * This is the main initialization function called when the page loads.
+ * 
+ * @throws {Error} If critical initialization fails
  */
 async function init() {
-    // Create instances
-    audioEngine = new AudioEngine();
-    frequencyMapper = new FrequencyMapper();
+    try {
+        // Create instances
+        audioEngine = new AudioEngine();
+        frequencyMapper = new FrequencyMapper();
 
-    // Create visualizers for single mode
-    visualizer = new Visualizer(ftirCanvas, audioCanvas);
-    visualizer.setAudioEngine(audioEngine);
-    visualizer.onPeakSelectionChange = handlePeakSelectionChange;
+        // Create visualizers for single mode
+        visualizer = new Visualizer(ftirCanvas, audioCanvas);
+        visualizer.setAudioEngine(audioEngine);
+        visualizer.onPeakSelectionChange = handlePeakSelectionChange;
 
-    // Create visualizers for comparison mode
-    // Note: audio canvas not used in comparison mode
-    visualizerA = new Visualizer(ftirCanvasA, document.createElement('canvas'));
-    visualizerB = new Visualizer(ftirCanvasB, document.createElement('canvas'));
+        // Create visualizers for comparison mode
+        // Note: audio canvas not used in comparison mode
+        visualizerA = new Visualizer(ftirCanvasA, document.createElement('canvas'));
+        visualizerB = new Visualizer(ftirCanvasB, document.createElement('canvas'));
 
-    // Load FTIR library
-    await loadLibrary();
+        // Load FTIR library
+        await loadLibrary();
 
-    // Set up event listeners
-    setupEventListeners();
+        // Set up event listeners
+        setupEventListeners();
 
-    console.log('🎵 Spectral Synthesizer initialized');
+        console.log('🎵 Spectral Synthesizer initialized');
+    } catch (error) {
+        console.error('Failed to initialize application:', error);
+        alert('Failed to initialize the application. Please refresh the page and try again.');
+        throw error;
+    }
 }
 
 /**
  * Load FTIR library from JSON
+ * 
+ * Fetches the FTIR spectral database and populates the substance selectors.
+ * 
+ * @throws {Error} If library fails to load
  */
 async function loadLibrary() {
     try {
         console.log('Loading FTIR library...');
-        const response = await fetch('ftir-library.json');
+        const response = await fetch(CONFIG.library.LIBRARY_FILE);
         libraryData = await response.json();
 
         console.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
@@ -375,21 +392,31 @@ function navigateSubstance(direction) {
 }
 
 /**
- * Handle search input
+ * Handle search input with debouncing
+ * 
+ * Debounces search to avoid excessive filtering during typing.
  */
 function handleSearch() {
-    currentSearchTerm = searchInput.value.trim();
-    populateSubstanceSelector();
-
-    // Clear current selection if it's no longer in filtered results
-    if (substanceSelect.value) {
-        const filteredData = getFilteredLibrary();
-        const stillExists = filteredData.some(item => item.id === substanceSelect.value);
-        if (!stillExists) {
-            substanceSelect.value = '';
-            handleSubstanceChange();
-        }
+    // Clear existing timer
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
     }
+    
+    // Set new timer
+    searchDebounceTimer = setTimeout(() => {
+        currentSearchTerm = searchInput.value.trim();
+        populateSubstanceSelector();
+
+        // Clear current selection if it's no longer in filtered results
+        if (substanceSelect.value) {
+            const filteredData = getFilteredLibrary();
+            const stillExists = filteredData.some(item => item.id === substanceSelect.value);
+            if (!stillExists) {
+                substanceSelect.value = '';
+                handleSubstanceChange();
+            }
+        }
+    }, CONFIG.ui.DEBOUNCE_DELAY);
 }
 
 /**
@@ -512,6 +539,9 @@ function updateMappingInfo(data, peaks) {
 
 /**
  * Handle play button click
+ * 
+ * Plays audio synthesized from the current FTIR spectrum peaks.
+ * Disables controls during playback to prevent concurrent play operations.
  */
 async function handlePlay() {
     if (!currentPeaks || currentPeaks.length === 0) {
@@ -520,6 +550,12 @@ async function handlePlay() {
     }
 
     const duration = parseFloat(durationSlider.value);
+    
+    if (isNaN(duration) || duration <= 0) {
+        console.error('Invalid duration:', duration);
+        alert('Invalid duration value. Please refresh the page.');
+        return;
+    }
 
     try {
         // Disable play button during playback
@@ -542,7 +578,11 @@ async function handlePlay() {
     } catch (error) {
         console.error('Playback error:', error);
         playButton.disabled = false;
-        alert('Error playing audio. Please try again.');
+        visualizer.stopAudioAnimation();
+        
+        // Provide user-friendly error message
+        const errorMessage = error.message || 'Unknown error occurred';
+        alert(`Error playing audio: ${errorMessage}\n\nPlease try again or refresh the page.`);
     }
 }
 

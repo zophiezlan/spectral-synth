@@ -1,14 +1,32 @@
 /**
  * Visualizer - Canvas-based visualization for FTIR and audio FFT
+ * 
+ * Handles rendering of FTIR spectra and real-time audio FFT visualization.
+ * Supports interactive peak selection for custom sonification.
  */
 
 class Visualizer {
+    /**
+     * Create a new Visualizer instance
+     * 
+     * @param {HTMLCanvasElement} ftirCanvas - Canvas for FTIR spectrum display
+     * @param {HTMLCanvasElement} audioCanvas - Canvas for audio FFT display
+     * @throws {Error} If canvases are invalid
+     */
     constructor(ftirCanvas, audioCanvas) {
+        if (!ftirCanvas || !audioCanvas) {
+            throw new Error('Invalid canvases: both ftirCanvas and audioCanvas are required');
+        }
+        
         this.ftirCanvas = ftirCanvas;
         this.audioCanvas = audioCanvas;
 
         this.ftirCtx = ftirCanvas.getContext('2d');
         this.audioCtx = audioCanvas.getContext('2d');
+        
+        if (!this.ftirCtx || !this.audioCtx) {
+            throw new Error('Failed to get canvas 2D context');
+        }
 
         this.animationId = null;
         this.audioEngine = null;
@@ -19,6 +37,10 @@ class Visualizer {
         this.selectedPeakIndices = new Set();
         this.peakPositions = []; // Store peak positions for click detection
         this.onPeakSelectionChange = null; // Callback for selection changes
+        
+        // Load visualization constants from global CONFIG object
+        this.CLICK_RADIUS = CONFIG.visualization.CLICK_RADIUS;
+        this.PEAK_MARKER_SIZE = CONFIG.visualization.PEAK_MARKER_SIZE;
 
         // Set up click handler
         this.setupClickHandler();
@@ -26,6 +48,9 @@ class Visualizer {
 
     /**
      * Set up click handler for peak selection
+     * 
+     * Enables interactive peak selection by clicking on the FTIR spectrum.
+     * Also changes cursor to pointer when hovering over peaks.
      */
     setupClickHandler() {
         this.ftirCanvas.addEventListener('click', (e) => {
@@ -38,14 +63,13 @@ class Visualizer {
             // Find closest peak
             let closestIndex = -1;
             let closestDistance = Infinity;
-            const clickRadius = 20; // Pixels
 
             this.peakPositions.forEach((pos, idx) => {
                 const distance = Math.sqrt(
                     Math.pow(clickX - pos.x, 2) + Math.pow(clickY - pos.y, 2)
                 );
 
-                if (distance < clickRadius && distance < closestDistance) {
+                if (distance < this.CLICK_RADIUS && distance < closestDistance) {
                     closestDistance = distance;
                     closestIndex = idx;
                 }
@@ -77,14 +101,13 @@ class Visualizer {
             const mouseX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
             const mouseY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
 
-            const clickRadius = 20;
             let overPeak = false;
 
             this.peakPositions.forEach((pos) => {
                 const distance = Math.sqrt(
                     Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2)
                 );
-                if (distance < clickRadius) {
+                if (distance < this.CLICK_RADIUS) {
                     overPeak = true;
                 }
             });

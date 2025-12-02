@@ -17,25 +17,45 @@ class AudioEngine {
         this.convolver = null;  // Reverb
         this.filter = null;     // Low-pass filter
         this.reverbMix = 0;     // 0-1
-        this.filterFrequency = 8000;  // Hz
+        this.filterFrequency = CONFIG.frequency.AUDIO_MAX;  // Hz
+        
+        // Load audio constants from global CONFIG object
+        this.DEFAULT_VOLUME = CONFIG.audio.DEFAULT_VOLUME;
+        this.DEFAULT_FADE_IN = CONFIG.audio.DEFAULT_FADE_IN;
+        this.DEFAULT_FADE_OUT = CONFIG.audio.DEFAULT_FADE_OUT;
+        this.REVERB_DURATION = CONFIG.audio.REVERB_DURATION;
+        this.FFT_SIZE = CONFIG.audio.FFT_SIZE;
+        this.ANALYSER_SMOOTHING = CONFIG.audio.ANALYSER_SMOOTHING;
+        this.FILTER_Q_VALUE = CONFIG.audio.FILTER_Q_VALUE;
     }
 
     /**
      * Initialize Web Audio API context
+     * 
+     * Sets up the audio graph with master gain, filter, reverb, and analyser nodes.
+     * Safe to call multiple times - will only initialize once.
+     * 
+     * @throws {Error} If Web Audio API is not supported
      */
     async init() {
         if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            // Check for Web Audio API support
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) {
+                throw new Error('Web Audio API is not supported in this browser');
+            }
+            
+            this.audioContext = new AudioContext();
 
             // Create master gain node for volume control
             this.masterGain = this.audioContext.createGain();
-            this.masterGain.gain.value = 0.3; // Default volume
+            this.masterGain.gain.value = this.DEFAULT_VOLUME;
 
             // Create filter (low-pass)
             this.filter = this.audioContext.createBiquadFilter();
             this.filter.type = 'lowpass';
             this.filter.frequency.value = this.filterFrequency;
-            this.filter.Q.value = 1;
+            this.filter.Q.value = this.FILTER_Q_VALUE;
 
             // Create convolver for reverb
             this.convolver = this.audioContext.createConvolver();
@@ -49,8 +69,8 @@ class AudioEngine {
 
             // Create analyser node for FFT visualization
             this.analyser = this.audioContext.createAnalyser();
-            this.analyser.fftSize = 2048;
-            this.analyser.smoothingTimeConstant = 0.8;
+            this.analyser.fftSize = this.FFT_SIZE;
+            this.analyser.smoothingTimeConstant = this.ANALYSER_SMOOTHING;
 
             // Connect audio graph:
             // oscillators -> masterGain -> filter -> [dry path, wet path] -> analyser -> destination
@@ -77,10 +97,12 @@ class AudioEngine {
 
     /**
      * Create impulse response for reverb
+     * 
+     * Generates an exponentially decaying noise impulse for natural-sounding reverb.
      */
     async createReverbImpulse() {
         const sampleRate = this.audioContext.sampleRate;
-        const duration = 2; // 2 second reverb
+        const duration = this.REVERB_DURATION;
         const length = sampleRate * duration;
         const impulse = this.audioContext.createBuffer(2, length, sampleRate);
 
@@ -97,10 +119,22 @@ class AudioEngine {
 
     /**
      * Synthesize sound from FTIR peaks
+     * 
+     * Creates one oscillator per peak using additive synthesis. Each oscillator's
+     * frequency and amplitude are derived from the peak's IR wavenumber and intensity.
+     * 
      * @param {Array} peaks - Array of {wavenumber, absorbance, audioFreq} objects
-     * @param {number} duration - Duration in seconds
+     * @param {number} [duration=2.0] - Duration in seconds
+     * @throws {Error} If peaks array is invalid or duration is not positive
      */
     async play(peaks, duration = 2.0) {
+        if (!Array.isArray(peaks) || peaks.length === 0) {
+            throw new Error('Invalid peaks: must be a non-empty array');
+        }
+        
+        if (typeof duration !== 'number' || duration <= 0) {
+            throw new Error('Invalid duration: must be a positive number');
+        }
         if (this.isPlaying) {
             this.stop();
         }
@@ -108,8 +142,8 @@ class AudioEngine {
         await this.init();
 
         const currentTime = this.audioContext.currentTime;
-        const fadeIn = 0.05;  // 50ms fade in
-        const fadeOut = 0.1;  // 100ms fade out
+        const fadeIn = this.DEFAULT_FADE_IN;
+        const fadeOut = this.DEFAULT_FADE_OUT;
 
         this.isPlaying = true;
         this.oscillators = [];
@@ -191,11 +225,20 @@ class AudioEngine {
 
     /**
      * Set master volume
+     * 
      * @param {number} volume - Volume from 0 to 1
+     * @throws {Error} If volume is not a number or out of range
      */
     setVolume(volume) {
+        if (typeof volume !== 'number' || isNaN(volume)) {
+            throw new Error('Invalid volume: must be a number');
+        }
+        
+        // Clamp volume to valid range
+        const clampedVolume = Math.max(0, Math.min(1, volume));
+        
         if (this.masterGain) {
-            this.masterGain.gain.value = volume;
+            this.masterGain.gain.value = clampedVolume;
         }
     }
 
@@ -253,9 +296,15 @@ class AudioEngine {
 
     /**
      * Set reverb amount
+     * 
      * @param {number} amount - Reverb mix 0-1 (0 = dry, 1 = wet)
+     * @throws {Error} If amount is not a number
      */
     setReverb(amount) {
+        if (typeof amount !== 'number' || isNaN(amount)) {
+            throw new Error('Invalid reverb amount: must be a number');
+        }
+        
         if (this.dryGain && this.wetGain) {
             this.reverbMix = Math.max(0, Math.min(1, amount));
             this.dryGain.gain.value = 1 - this.reverbMix;
@@ -265,9 +314,15 @@ class AudioEngine {
 
     /**
      * Set filter frequency
+     * 
      * @param {number} frequency - Cutoff frequency in Hz
+     * @throws {Error} If frequency is not a positive number
      */
     setFilterFrequency(frequency) {
+        if (typeof frequency !== 'number' || isNaN(frequency) || frequency <= 0) {
+            throw new Error('Invalid filter frequency: must be a positive number');
+        }
+        
         if (this.filter) {
             this.filterFrequency = frequency;
             this.filter.frequency.value = frequency;
