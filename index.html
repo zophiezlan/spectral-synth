@@ -503,6 +503,38 @@
         </div>
     </div>
 
+    <!-- Tutorial path selection modal -->
+    <div id="tutorial-path-modal" class="modal-overlay" style="display: none;" role="dialog" aria-labelledby="tutorial-path-title" aria-modal="true">
+        <div class="modal-content tutorial-path-modal">
+            <button class="modal-close" id="tutorial-path-close" aria-label="Close tutorial selection">&times;</button>
+            <h2 id="tutorial-path-title">Choose Your Learning Path 🎓</h2>
+            
+            <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
+                Select the perspective that interests you most:
+            </p>
+            
+            <div class="tutorial-paths">
+                <button class="tutorial-path-card" data-path="chemistry">
+                    <div class="path-icon">🔬</div>
+                    <h3>Chemistry Mode</h3>
+                    <p>Learn about FTIR spectroscopy, molecular vibrations, and how infrared absorption creates unique fingerprints for each substance.</p>
+                    <span class="path-duration">~3-4 minutes</span>
+                </button>
+                
+                <button class="tutorial-path-card" data-path="music">
+                    <div class="path-icon">🎵</div>
+                    <h3>Music Mode</h3>
+                    <p>Explore additive synthesis, frequency analysis, audio effects, and how to create unique sounds from molecular data.</p>
+                    <span class="path-duration">~3-4 minutes</span>
+                </button>
+            </div>
+            
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                You can restart the tutorial anytime from the help menu (press <kbd>?</kbd>)
+            </p>
+        </div>
+    </div>
+
     <!-- Configuration must be loaded first -->
     <script src="config.js"></script>
     
