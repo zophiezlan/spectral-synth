@@ -108,7 +108,29 @@
                     <input type="range" id="volume" min="0" max="100" step="1" value="50">
                 </div>
             </div>
+        </section>
 
+        <section class="visualization single-visualization" aria-label="Visualization">
+            <div class="viz-panel">
+                <h3>FTIR Spectrum (Infrared)</h3>
+                <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualization"></canvas>
+                <div class="axis-labels">
+                    <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
+                    <span class="axis-label-y">Transmittance (%)</span>
+                </div>
+            </div>
+
+            <div class="viz-panel">
+                <h3>Audio FFT (Audible)</h3>
+                <canvas id="audio-canvas" width="600" height="300" role="img" aria-label="Audio FFT visualization"></canvas>
+                <div class="axis-labels">
+                    <span class="axis-label-x">Frequency (Hz)</span>
+                    <span class="axis-label-y">Amplitude</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="controls" id="single-controls-advanced" aria-label="Advanced controls">
             <div class="collapsible-section audio-effects">
                 <h4 class="section-header collapsible-header" data-section="audio-effects">
                     <span class="collapse-icon">▼</span>
@@ -268,26 +290,6 @@
             <div class="slider-control">
                 <label for="comparison-duration">Duration: <span id="comparison-duration-value">2.0</span>s</label>
                 <input type="range" id="comparison-duration" min="0.5" max="5" step="0.1" value="2">
-            </div>
-        </section>
-
-        <section class="visualization single-visualization" aria-label="Visualization">
-            <div class="viz-panel">
-                <h3>FTIR Spectrum (Infrared)</h3>
-                <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualization"></canvas>
-                <div class="axis-labels">
-                    <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
-                    <span class="axis-label-y">Transmittance (%)</span>
-                </div>
-            </div>
-
-            <div class="viz-panel">
-                <h3>Audio FFT (Audible)</h3>
-                <canvas id="audio-canvas" width="600" height="300" role="img" aria-label="Audio FFT visualization"></canvas>
-                <div class="axis-labels">
-                    <span class="axis-label-x">Frequency (Hz)</span>
-                    <span class="axis-label-y">Amplitude</span>
-                </div>
             </div>
         </section>
 
