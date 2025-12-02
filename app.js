@@ -295,6 +295,56 @@ function setupEventListeners() {
         audioEngine.setFilterFrequency(freq);
     });
 
+    // Preset selector
+    const presetSelect = document.getElementById('preset-select');
+    if (presetSelect) {
+        // Populate preset options
+        const presets = audioEngine.getPresets();
+        Object.keys(presets).forEach(key => {
+            const preset = presets[key];
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = `${preset.name} - ${preset.description}`;
+            presetSelect.appendChild(option);
+        });
+
+        presetSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                try {
+                    audioEngine.applyPreset(e.target.value);
+                    // Update UI to reflect preset values
+                    reverbSlider.value = Math.round(audioEngine.getReverb() * 100);
+                    reverbValue.textContent = reverbSlider.value;
+                    filterFreqSlider.value = audioEngine.getFilterFrequency();
+                    filterFreqValue.textContent = filterFreqSlider.value;
+                } catch (error) {
+                    console.error('Error applying preset:', error);
+                    alert('Failed to apply preset');
+                }
+            }
+        });
+    }
+
+    // CSV Import
+    const csvImport = document.getElementById('csv-import');
+    if (csvImport) {
+        csvImport.addEventListener('change', handleCSVImport);
+    }
+
+    // Download Template
+    const downloadTemplate = document.getElementById('download-template');
+    if (downloadTemplate) {
+        downloadTemplate.addEventListener('click', () => {
+            CSVImporter.downloadTemplate();
+        });
+    }
+
+    // Export WAV
+    const exportWAV = document.getElementById('export-wav');
+    if (exportWAV) {
+        exportWAV.addEventListener('click', handleExportWAV);
+    }
+
     // Comparison mode - Substance selection
     substanceSelectA.addEventListener('change', () => handleComparisonSubstanceChange('A'));
     substanceSelectB.addEventListener('change', () => handleComparisonSubstanceChange('B'));
@@ -454,6 +504,10 @@ function handleSubstanceChange() {
         selectAllButton.disabled = true;
         clearSelectionButton.disabled = true;
         playSelectedButton.disabled = true;
+        const exportWAV = document.getElementById('export-wav');
+        if (exportWAV) {
+            exportWAV.disabled = true;
+        }
         selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
         mappingInfo.innerHTML = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
         return;
@@ -487,6 +541,12 @@ function handleSubstanceChange() {
     stopButton.disabled = false;
     selectAllButton.disabled = false;
     clearSelectionButton.disabled = false;
+    
+    // Enable export button
+    const exportWAV = document.getElementById('export-wav');
+    if (exportWAV) {
+        exportWAV.disabled = false;
+    }
 }
 
 /**
@@ -870,6 +930,79 @@ async function handleComparisonPlaySimultaneous() {
         playBothSeqButton.disabled = false;
         playBothSimButton.disabled = false;
         alert('Error playing audio. Please try again.');
+    }
+}
+
+/**
+ * Handle CSV import
+ * @param {Event} e - File input change event
+ */
+async function handleCSVImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        const data = await CSVImporter.parseCSV(file);
+        CSVImporter.validate(data);
+
+        // Add to library
+        libraryData.push(data);
+
+        // Repopulate selectors
+        populateSubstanceSelector();
+        populateComparisonSelectors();
+
+        // Auto-select the imported substance
+        substanceSelect.value = libraryData.length - 1;
+        handleSubstanceChange();
+
+        // Enable export button
+        const exportWAV = document.getElementById('export-wav');
+        if (exportWAV) {
+            exportWAV.disabled = false;
+        }
+
+        alert(`Successfully imported: ${data.name}\n${data.metadata.finalPoints} data points`);
+    } catch (error) {
+        console.error('CSV import error:', error);
+        alert(`Failed to import CSV: ${error.message}\n\nPlease ensure your CSV has two columns:\nwavenumber,transmittance\n\nDownload the template for an example.`);
+    }
+
+    // Clear the file input so the same file can be imported again
+    e.target.value = '';
+}
+
+/**
+ * Handle WAV export
+ */
+async function handleExportWAV() {
+    if (!currentPeaks || currentPeaks.length === 0) {
+        alert('Please select a substance first');
+        return;
+    }
+
+    const duration = parseFloat(durationSlider.value);
+    const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
+    const filename = `${substanceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${duration}s.wav`;
+
+    try {
+        const exportButton = document.getElementById('export-wav');
+        exportButton.disabled = true;
+        exportButton.textContent = '⏳ Exporting...';
+
+        await audioEngine.exportWAV(currentPeaks, duration, filename);
+
+        exportButton.disabled = false;
+        exportButton.textContent = '💾 Export WAV';
+        
+        // Show success message
+        alert(`Successfully exported: ${filename}`);
+    } catch (error) {
+        console.error('Export error:', error);
+        const exportButton = document.getElementById('export-wav');
+        exportButton.disabled = false;
+        exportButton.textContent = '💾 Export WAV';
+        alert(`Failed to export audio: ${error.message}`);
     }
 }
 

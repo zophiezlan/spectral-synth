@@ -90,6 +90,32 @@
                         <input type="range" id="filter-freq" min="100" max="8000" step="100" value="8000">
                     </div>
                 </div>
+                <div class="preset-controls">
+                    <label for="preset-select">Presets:</label>
+                    <select id="preset-select" aria-label="Select audio effect preset">
+                        <option value="">-- Select Preset --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="import-export-controls" role="group" aria-label="Import and export controls">
+                <h4 class="section-title">Import & Export</h4>
+                <div class="import-export-grid">
+                    <div class="import-section">
+                        <label for="csv-import" class="file-label">
+                            📁 Import CSV
+                        </label>
+                        <input type="file" id="csv-import" accept=".csv" style="display: none;" aria-label="Import FTIR data from CSV file">
+                        <button id="download-template" class="secondary-button" aria-label="Download CSV template">
+                            📋 Download Template
+                        </button>
+                    </div>
+                    <div class="export-section">
+                        <button id="export-wav" disabled class="secondary-button" aria-label="Export audio as WAV file">
+                            💾 Export WAV
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="peak-selection-controls" role="group" aria-label="Peak selection controls">
@@ -263,6 +289,7 @@
     <script src="frequency-mapper.js"></script>
     <script src="audio-engine.js"></script>
     <script src="visualizer.js"></script>
+    <script src="csv-importer.js"></script>
     
     <!-- Main application -->
     <script src="app.js"></script>
