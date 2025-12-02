@@ -210,7 +210,7 @@ class Visualizer {
 
         // Draw spectrum line
         ctx.beginPath();
-        ctx.strokeStyle = '#8b5cf6';
+        ctx.strokeStyle = CONFIG.visualization.SPECTRUM_COLOR;
         ctx.lineWidth = 2;
 
         sortedSpectrum.forEach((point, idx) => {
@@ -241,16 +241,18 @@ class Visualizer {
 
                 // Draw vertical line to peak
                 ctx.beginPath();
-                ctx.strokeStyle = isSelected ? '#10b98188' : '#ec489944';
+                // Add transparency to colors: selected is semi-transparent green, unselected is very transparent pink
+                ctx.strokeStyle = isSelected ? (CONFIG.visualization.SELECTED_PEAK_COLOR + '88') : (CONFIG.visualization.PEAK_COLOR + '44');
                 ctx.lineWidth = isSelected ? 2 : 1;
                 ctx.moveTo(x, height - 20);
                 ctx.lineTo(x, y);
                 ctx.stroke();
 
-                // Draw peak marker
+                // Draw peak marker (slightly larger when selected)
+                const markerSize = isSelected ? this.PEAK_MARKER_SIZE * 0.875 : this.PEAK_MARKER_SIZE * 0.625;
                 ctx.beginPath();
-                ctx.arc(x, y, isSelected ? 7 : 5, 0, Math.PI * 2);
-                ctx.fillStyle = isSelected ? '#10b981' : '#ec4899';
+                ctx.arc(x, y, markerSize, 0, Math.PI * 2);
+                ctx.fillStyle = isSelected ? CONFIG.visualization.SELECTED_PEAK_COLOR : CONFIG.visualization.PEAK_COLOR;
                 ctx.fill();
 
                 // Add outline for selected peaks
