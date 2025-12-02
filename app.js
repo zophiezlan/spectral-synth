@@ -670,6 +670,7 @@ function handleClearSelection() {
 
 /**
  * Switch between single and comparison mode
+ * 
  * @param {boolean} isComparison - True for comparison mode, false for single mode
  */
 function switchMode(isComparison) {
@@ -679,6 +680,10 @@ function switchMode(isComparison) {
         // Switch to comparison mode
         singleModeButton.classList.remove('active');
         comparisonModeButton.classList.add('active');
+        
+        // Update ARIA attributes for accessibility
+        singleModeButton.setAttribute('aria-pressed', 'false');
+        comparisonModeButton.setAttribute('aria-pressed', 'true');
 
         singleControls.style.display = 'none';
         document.querySelector('.single-visualization').style.display = 'none';
@@ -691,6 +696,10 @@ function switchMode(isComparison) {
         // Switch to single mode
         comparisonModeButton.classList.remove('active');
         singleModeButton.classList.add('active');
+        
+        // Update ARIA attributes for accessibility
+        comparisonModeButton.setAttribute('aria-pressed', 'false');
+        singleModeButton.setAttribute('aria-pressed', 'true');
 
         comparisonControls.style.display = 'none';
         comparisonVisualization.style.display = 'none';

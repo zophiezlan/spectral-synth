@@ -196,11 +196,14 @@ class Visualizer {
         const minWavenumber = Math.min(...wavenumbers);
         const maxWavenumber = Math.max(...wavenumbers);
 
-        // Scale functions
+        // Scale functions for mapping data coordinates to canvas pixels
+        // X: Map wavenumber range to canvas width (with 20px margins)
         const scaleX = (wavenumber) => {
             return ((wavenumber - minWavenumber) / (maxWavenumber - minWavenumber)) * (width - 40) + 20;
         };
 
+        // Y: Map transmittance percentage to canvas height (inverted, with margins)
+        // High transmittance (100%) = top, low transmittance (0%) = bottom
         const scaleY = (transmittance) => {
             return height - 20 - ((transmittance / 100) * (height - 40));
         };
@@ -227,6 +230,8 @@ class Visualizer {
         if (peaks && peaks.length > 0) {
             peaks.forEach((peak, idx) => {
                 const x = scaleX(peak.wavenumber);
+                // Convert absorbance back to transmittance for Y coordinate
+                // Absorbance = 1 - (Transmittance / 100), so Transmittance = (1 - Absorbance) * 100
                 const y = scaleY((1 - peak.absorbance) * 100);
 
                 // Store position for click detection

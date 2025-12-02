@@ -148,7 +148,8 @@ class AudioEngine {
         this.isPlaying = true;
         this.oscillators = [];
 
-        // Create oscillators for each peak
+        // Create oscillators for each peak using additive synthesis
+        // Each FTIR peak becomes one oscillator in the audio output
         peaks.forEach((peak, idx) => {
             const osc = this.audioContext.createOscillator();
             const gain = this.audioContext.createGain();
@@ -157,17 +158,19 @@ class AudioEngine {
             osc.frequency.value = peak.audioFreq;
 
             // Use different waveforms for variety and richness
+            // Alternates between sine, triangle, and square for harmonic variety
             const waveforms = ['sine', 'triangle', 'square'];
-            // Weight towards sine and triangle for more musical tones
+            // Weight towards sine and triangle (more musical) by using square only every 3rd peak
             const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
             osc.type = waveforms[waveformIndex];
 
             // Set amplitude based on absorption intensity
-            // Scale to prevent clipping and create balance
+            // Scale by 0.8 and divide by peak count to prevent clipping when many peaks play
             const baseGain = (peak.absorbance * 0.8) / peaks.length;
 
-            // Apply frequency-dependent amplitude correction
-            // Higher frequencies perceived as louder, so reduce their amplitude
+            // Apply frequency-dependent amplitude correction (equal loudness contour)
+            // Higher frequencies are perceived as louder, so we attenuate them
+            // freqCorrection ranges from 0.125 (at 8000 Hz) to 1.0 (at ≤1000 Hz)
             const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
             const finalGain = baseGain * freqCorrection;
 

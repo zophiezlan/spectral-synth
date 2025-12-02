@@ -73,13 +73,45 @@ Both visualizations use the same mathematical transformation, just on different 
 ```
 index.html           - Main UI structure
 style.css            - Styling and layout
+config.js            - Centralized configuration and constants
 ftir-library.json    - Real FTIR spectra (381 substances, 9.5MB)
 frequency-mapper.js  - IR → audio conversion algorithms
 audio-engine.js      - Web Audio API synthesis
 visualizer.js        - Canvas-based visualization
-app.js              - Main application coordinator
+app.js               - Main application coordinator
 build-library.js     - JCAMP-DX parser & library builder (Node.js)
+CONTRIBUTING.md      - Contribution guidelines
+LICENSE              - MIT License
 ```
+
+### Project Structure
+
+The application follows a modular architecture with clear separation of concerns:
+
+1. **Configuration Layer** (`config.js`)
+   - Centralized settings for all modules
+   - Easy customization without touching code
+   - Immutable configuration to prevent accidents
+
+2. **Data Layer** (`ftir-library.json`)
+   - Real FTIR spectra from ENFSI database
+   - Pre-processed for web performance
+   - Loaded asynchronously on startup
+
+3. **Core Modules**
+   - `frequency-mapper.js` - Handles IR to audio frequency conversion and peak detection
+   - `audio-engine.js` - Manages Web Audio API synthesis and effects
+   - `visualizer.js` - Renders FTIR spectra and audio FFT visualizations
+
+4. **Application Layer** (`app.js`)
+   - Coordinates between all modules
+   - Manages UI state and user interactions
+   - Handles error recovery and edge cases
+
+5. **Presentation Layer** (`index.html`, `style.css`)
+   - Accessible, semantic HTML structure
+   - Responsive CSS design
+   - Progressive enhancement approach
 
 ### Key Algorithms
 
