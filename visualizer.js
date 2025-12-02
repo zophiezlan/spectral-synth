@@ -55,14 +55,16 @@ class Visualizer {
      * 
      * Enables interactive peak selection by clicking on the FTIR spectrum.
      * Also changes cursor to pointer when hovering over peaks.
+     * Includes full touch support for mobile devices.
      */
     setupClickHandler() {
-        this.ftirCanvas.addEventListener('click', (e) => {
+        // Helper function to handle interaction (click or touch)
+        const handleInteraction = (clientX, clientY) => {
             if (!this.currentPeaks || this.currentPeaks.length === 0) return;
 
             const rect = this.ftirCanvas.getBoundingClientRect();
-            const clickX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
-            const clickY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
+            const clickX = ((clientX - rect.left) / rect.width) * this.ftirCanvas.width;
+            const clickY = ((clientY - rect.top) / rect.height) * this.ftirCanvas.height;
 
             // Find closest peak
             let closestIndex = -1;
@@ -95,18 +97,39 @@ class Visualizer {
                     this.onPeakSelectionChange(this.getSelectedPeaks());
                 }
             }
+        };
+
+        // Mouse click handler
+        this.ftirCanvas.addEventListener('click', (e) => {
+            handleInteraction(e.clientX, e.clientY);
         });
 
-        // Change cursor to pointer and show tooltip when hovering over peaks
-        this.ftirCanvas.addEventListener('mousemove', (e) => {
+        // Touch handler for mobile devices
+        this.ftirCanvas.addEventListener('touchend', (e) => {
+            // Prevent default to avoid triggering click event as well
+            e.preventDefault();
+            
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                const touch = e.changedTouches[0];
+                handleInteraction(touch.clientX, touch.clientY);
+            }
+            
+            // Always redraw to ensure spectrum stays visible
+            if (this.currentSpectrum) {
+                this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks || []);
+            }
+        });
+
+        // Helper function to handle hover/touch move
+        const handleHover = (clientX, clientY) => {
             if (!this.currentPeaks || this.currentPeaks.length === 0) {
                 this.hideTooltip();
-                return;
+                return -1;
             }
 
             const rect = this.ftirCanvas.getBoundingClientRect();
-            const mouseX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
-            const mouseY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
+            const mouseX = ((clientX - rect.left) / rect.width) * this.ftirCanvas.width;
+            const mouseY = ((clientY - rect.top) / rect.height) * this.ftirCanvas.height;
 
             let closestIndex = -1;
             let closestDistance = Infinity;
@@ -121,6 +144,13 @@ class Visualizer {
                 }
             });
 
+            return closestIndex;
+        };
+
+        // Change cursor to pointer and show tooltip when hovering over peaks
+        this.ftirCanvas.addEventListener('mousemove', (e) => {
+            const closestIndex = handleHover(e.clientX, e.clientY);
+            
             if (closestIndex !== -1) {
                 this.ftirCanvas.style.cursor = 'pointer';
                 this.showTooltip(this.currentPeaks[closestIndex], e.clientX, e.clientY, closestIndex);
@@ -130,9 +160,38 @@ class Visualizer {
             }
         });
 
+        // Touch move handler for showing tooltips on touch devices
+        this.ftirCanvas.addEventListener('touchmove', (e) => {
+            // Don't prevent default here to allow scrolling
+            if (e.touches && e.touches.length > 0) {
+                const touch = e.touches[0];
+                const closestIndex = handleHover(touch.clientX, touch.clientY);
+                
+                if (closestIndex !== -1) {
+                    this.showTooltip(this.currentPeaks[closestIndex], touch.clientX, touch.clientY, closestIndex);
+                } else {
+                    this.hideTooltip();
+                }
+            }
+        });
+
         // Hide tooltip when mouse leaves canvas
         this.ftirCanvas.addEventListener('mouseleave', () => {
             this.hideTooltip();
+        });
+
+        // Hide tooltip and ensure spectrum remains visible when touch ends
+        this.ftirCanvas.addEventListener('touchstart', (e) => {
+            // Don't prevent default to allow normal touch behavior
+        });
+
+        // Hide tooltip when touch is cancelled or leaves canvas
+        this.ftirCanvas.addEventListener('touchcancel', () => {
+            this.hideTooltip();
+            // Ensure spectrum remains visible
+            if (this.currentSpectrum) {
+                this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks || []);
+            }
         });
     }
 
