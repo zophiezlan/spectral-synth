@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectral Synthesizer - Hear Molecules</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🎵 Spectral Synthesizer</h1>
+        <p class="tagline">Making molecular fingerprints audible through sonification</p>
+    </header>
+
+    <main>
+        <section class="info-panel">
+            <h2>The Connection</h2>
+            <p>
+                FTIR spectroscopy and audio both use <strong>Fourier transforms</strong> to decompose signals
+                into frequency components. This tool maps infrared absorption spectra (molecular vibrations)
+                down to audible frequencies, revealing what molecules "sound like".
+            </p>
+        </section>
+
+        <section class="controls">
+            <div class="substance-selector">
+                <label for="substance">Choose a substance:</label>
+                <select id="substance">
+                    <option value="">-- Select --</option>
+                    <option value="mdma">MDMA (3,4-Methylenedioxymethamphetamine)</option>
+                    <option value="ketamine">Ketamine</option>
+                    <option value="caffeine">Caffeine</option>
+                    <option value="aspirin">Aspirin (Acetylsalicylic Acid)</option>
+                </select>
+            </div>
+
+            <div class="playback-controls">
+                <button id="play" disabled>▶ Play Sound</button>
+                <button id="stop" disabled>■ Stop</button>
+                <div class="slider-control">
+                    <label for="duration">Duration: <span id="duration-value">2.0</span>s</label>
+                    <input type="range" id="duration" min="0.5" max="5" step="0.1" value="2">
+                </div>
+                <div class="slider-control">
+                    <label for="volume">Volume: <span id="volume-value">50</span>%</label>
+                    <input type="range" id="volume" min="0" max="100" step="1" value="50">
+                </div>
+            </div>
+        </section>
+
+        <section class="visualization">
+            <div class="viz-panel">
+                <h3>FTIR Spectrum (Infrared)</h3>
+                <canvas id="ftir-canvas" width="600" height="300"></canvas>
+                <div class="axis-labels">
+                    <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
+                    <span class="axis-label-y">Transmittance (%)</span>
+                </div>
+            </div>
+
+            <div class="viz-panel">
+                <h3>Audio FFT (Audible)</h3>
+                <canvas id="audio-canvas" width="600" height="300"></canvas>
+                <div class="axis-labels">
+                    <span class="axis-label-x">Frequency (Hz)</span>
+                    <span class="axis-label-y">Amplitude</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-panel">
+            <h2>Understanding the Mapping</h2>
+            <div id="mapping-info" class="mapping-info">
+                <p>Select a substance to see how infrared frequencies map to audio frequencies.</p>
+            </div>
+        </section>
+
+        <section class="info-panel">
+            <h2>The Science</h2>
+            <div class="science-explanation">
+                <h3>Why molecules absorb infrared light</h3>
+                <p>
+                    Chemical bonds vibrate at specific frequencies. When infrared light matches these
+                    vibrational frequencies, the molecule absorbs that light. Different molecular structures
+                    create different absorption patterns - a unique "fingerprint".
+                </p>
+
+                <h3>The Fourier Transform connection</h3>
+                <p>
+                    Both FTIR and audio analysis use the same mathematical tool: the Fourier Transform.
+                    It decomposes complex signals into individual frequency components. In FTIR, we're
+                    analyzing molecular vibrations (~10¹³ Hz). In audio, we're analyzing sound waves (~100-10000 Hz).
+                </p>
+
+                <h3>The sonification process</h3>
+                <ol>
+                    <li>Extract absorption peaks from FTIR spectrum</li>
+                    <li>Map IR wavenumbers (400-4000 cm⁻¹) to audio frequencies (20-20000 Hz) logarithmically</li>
+                    <li>Create oscillators at mapped frequencies with amplitudes based on absorption intensity</li>
+                    <li>Synthesize the sound and visualize its FFT in real-time</li>
+                </ol>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>
+            <strong>Note:</strong> This is an educational/artistic tool, not for substance identification or drug checking.
+            FTIR data sourced from scientific databases.
+        </p>
+    </footer>
+
+    <script src="spectral-data.js"></script>
+    <script src="frequency-mapper.js"></script>
+    <script src="audio-engine.js"></script>
+    <script src="visualizer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
