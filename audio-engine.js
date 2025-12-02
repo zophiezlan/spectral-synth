@@ -563,8 +563,8 @@ class AudioEngine {
             // Release phase
             gainNode.gain.setTargetAtTime(0, releaseStart, release / 5);
         } else if (this.adsrCurve === 'logarithmic') {
-            // Logarithmic curves - fast start, slow end
-            // We approximate with exponentialRampToValueAtTime
+            // Logarithmic-style curves using exponentialRampToValueAtTime
+            // Creates smooth exponential transitions
             const minValue = 0.0001; // Minimum value for exponential ramps
             gainNode.gain.setValueAtTime(minValue, startTime);
             

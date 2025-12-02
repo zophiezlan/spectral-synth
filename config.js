@@ -71,7 +71,7 @@ const CONFIG = {
         },
         'logarithmic': {
             name: 'Logarithmic',
-            description: 'Fast start, slow end',
+            description: 'Smooth exponential curve',
         },
     },
     
