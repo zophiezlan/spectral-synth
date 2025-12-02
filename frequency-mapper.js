@@ -9,23 +9,40 @@
 
 class FrequencyMapper {
     constructor() {
+        // Load configuration from global CONFIG object
         // FTIR typical range in wavenumbers (cm⁻¹)
-        this.IR_MIN = 400;
-        this.IR_MAX = 4000;
+        this.IR_MIN = CONFIG.frequency.IR_MIN;
+        this.IR_MAX = CONFIG.frequency.IR_MAX;
 
         // Audible frequency range (Hz)
-        this.AUDIO_MIN = 100;  // Start at 100Hz for better musicality
-        this.AUDIO_MAX = 8000; // Cap at 8kHz for pleasant sounds
+        this.AUDIO_MIN = CONFIG.frequency.AUDIO_MIN;
+        this.AUDIO_MAX = CONFIG.frequency.AUDIO_MAX;
+        
+        // Peak detection parameters
+        this.DEFAULT_THRESHOLD = CONFIG.peakDetection.DEFAULT_THRESHOLD;
+        this.DEFAULT_MAX_PEAKS = CONFIG.peakDetection.DEFAULT_MAX_PEAKS;
     }
 
     /**
      * Map IR wavenumber to audio frequency using logarithmic scaling
+     * 
+     * Uses logarithmic scaling to preserve perceptual relationships between
+     * frequencies. Higher IR wavenumbers map to higher audio frequencies.
+     * 
      * @param {number} wavenumber - IR wavenumber in cm⁻¹
      * @returns {number} Audio frequency in Hz
+     * @throws {Error} If wavenumber is not a valid number
      */
     irToAudio(wavenumber) {
+        if (typeof wavenumber !== 'number' || isNaN(wavenumber)) {
+            throw new Error(`Invalid wavenumber: ${wavenumber}. Must be a number.`);
+        }
+        
+        // Clamp wavenumber to valid range
+        const clampedWavenumber = Math.max(this.IR_MIN, Math.min(this.IR_MAX, wavenumber));
+        
         // Normalize wavenumber to 0-1 range
-        const normalized = (wavenumber - this.IR_MIN) / (this.IR_MAX - this.IR_MIN);
+        const normalized = (clampedWavenumber - this.IR_MIN) / (this.IR_MAX - this.IR_MIN);
 
         // Apply logarithmic scaling for perceptual uniformity
         const logMin = Math.log(this.AUDIO_MIN);
@@ -38,12 +55,20 @@ class FrequencyMapper {
 
     /**
      * Extract peaks from FTIR spectrum for sonification
+     * 
+     * Identifies local maxima in the absorption spectrum that exceed the threshold.
+     * Returns the most intense peaks up to maxPeaks limit.
+     * 
      * @param {Array} spectrum - Array of {wavenumber, transmittance} objects
-     * @param {number} threshold - Minimum absorption intensity (0-1)
-     * @param {number} maxPeaks - Maximum number of peaks to extract
-     * @returns {Array} Array of {wavenumber, absorbance, audioFreq} objects
+     * @param {number} [threshold=0.15] - Minimum absorption intensity (0-1)
+     * @param {number} [maxPeaks=20] - Maximum number of peaks to extract
+     * @returns {Array} Array of {wavenumber, absorbance, audioFreq} objects sorted by intensity
+     * @throws {Error} If spectrum is invalid or empty
      */
-    extractPeaks(spectrum, threshold = 0.15, maxPeaks = 20) {
+    extractPeaks(spectrum, threshold = this.DEFAULT_THRESHOLD, maxPeaks = this.DEFAULT_MAX_PEAKS) {
+        if (!Array.isArray(spectrum) || spectrum.length === 0) {
+            throw new Error('Invalid spectrum: must be a non-empty array');
+        }
         // Convert transmittance to absorbance
         // Absorbance = -log10(Transmittance/100)
         // But for simplicity, we'll use: Absorbance = 1 - (Transmittance/100)

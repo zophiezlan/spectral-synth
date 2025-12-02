@@ -1,14 +1,32 @@
 /**
  * Visualizer - Canvas-based visualization for FTIR and audio FFT
+ * 
+ * Handles rendering of FTIR spectra and real-time audio FFT visualization.
+ * Supports interactive peak selection for custom sonification.
  */
 
 class Visualizer {
+    /**
+     * Create a new Visualizer instance
+     * 
+     * @param {HTMLCanvasElement} ftirCanvas - Canvas for FTIR spectrum display
+     * @param {HTMLCanvasElement} audioCanvas - Canvas for audio FFT display
+     * @throws {Error} If canvases are invalid
+     */
     constructor(ftirCanvas, audioCanvas) {
+        if (!ftirCanvas || !audioCanvas) {
+            throw new Error('Invalid canvases: both ftirCanvas and audioCanvas are required');
+        }
+        
         this.ftirCanvas = ftirCanvas;
         this.audioCanvas = audioCanvas;
 
         this.ftirCtx = ftirCanvas.getContext('2d');
         this.audioCtx = audioCanvas.getContext('2d');
+        
+        if (!this.ftirCtx || !this.audioCtx) {
+            throw new Error('Failed to get canvas 2D context');
+        }
 
         this.animationId = null;
         this.audioEngine = null;
@@ -19,6 +37,10 @@ class Visualizer {
         this.selectedPeakIndices = new Set();
         this.peakPositions = []; // Store peak positions for click detection
         this.onPeakSelectionChange = null; // Callback for selection changes
+        
+        // Load visualization constants from global CONFIG object
+        this.CLICK_RADIUS = CONFIG.visualization.CLICK_RADIUS;
+        this.PEAK_MARKER_SIZE = CONFIG.visualization.PEAK_MARKER_SIZE;
 
         // Set up click handler
         this.setupClickHandler();
@@ -26,6 +48,9 @@ class Visualizer {
 
     /**
      * Set up click handler for peak selection
+     * 
+     * Enables interactive peak selection by clicking on the FTIR spectrum.
+     * Also changes cursor to pointer when hovering over peaks.
      */
     setupClickHandler() {
         this.ftirCanvas.addEventListener('click', (e) => {
@@ -38,14 +63,13 @@ class Visualizer {
             // Find closest peak
             let closestIndex = -1;
             let closestDistance = Infinity;
-            const clickRadius = 20; // Pixels
 
             this.peakPositions.forEach((pos, idx) => {
                 const distance = Math.sqrt(
                     Math.pow(clickX - pos.x, 2) + Math.pow(clickY - pos.y, 2)
                 );
 
-                if (distance < clickRadius && distance < closestDistance) {
+                if (distance < this.CLICK_RADIUS && distance < closestDistance) {
                     closestDistance = distance;
                     closestIndex = idx;
                 }
@@ -77,14 +101,13 @@ class Visualizer {
             const mouseX = ((e.clientX - rect.left) / rect.width) * this.ftirCanvas.width;
             const mouseY = ((e.clientY - rect.top) / rect.height) * this.ftirCanvas.height;
 
-            const clickRadius = 20;
             let overPeak = false;
 
             this.peakPositions.forEach((pos) => {
                 const distance = Math.sqrt(
                     Math.pow(mouseX - pos.x, 2) + Math.pow(mouseY - pos.y, 2)
                 );
-                if (distance < clickRadius) {
+                if (distance < this.CLICK_RADIUS) {
                     overPeak = true;
                 }
             });
@@ -173,18 +196,21 @@ class Visualizer {
         const minWavenumber = Math.min(...wavenumbers);
         const maxWavenumber = Math.max(...wavenumbers);
 
-        // Scale functions
+        // Scale functions for mapping data coordinates to canvas pixels
+        // X: Map wavenumber range to canvas width (with 20px margins)
         const scaleX = (wavenumber) => {
             return ((wavenumber - minWavenumber) / (maxWavenumber - minWavenumber)) * (width - 40) + 20;
         };
 
+        // Y: Map transmittance percentage to canvas height (inverted, with margins)
+        // High transmittance (100%) = top, low transmittance (0%) = bottom
         const scaleY = (transmittance) => {
             return height - 20 - ((transmittance / 100) * (height - 40));
         };
 
         // Draw spectrum line
         ctx.beginPath();
-        ctx.strokeStyle = '#8b5cf6';
+        ctx.strokeStyle = CONFIG.visualization.SPECTRUM_COLOR;
         ctx.lineWidth = 2;
 
         sortedSpectrum.forEach((point, idx) => {
@@ -204,6 +230,8 @@ class Visualizer {
         if (peaks && peaks.length > 0) {
             peaks.forEach((peak, idx) => {
                 const x = scaleX(peak.wavenumber);
+                // Convert absorbance back to transmittance for Y coordinate
+                // Absorbance = 1 - (Transmittance / 100), so Transmittance = (1 - Absorbance) * 100
                 const y = scaleY((1 - peak.absorbance) * 100);
 
                 // Store position for click detection
@@ -213,16 +241,18 @@ class Visualizer {
 
                 // Draw vertical line to peak
                 ctx.beginPath();
-                ctx.strokeStyle = isSelected ? '#10b98188' : '#ec489944';
+                // Add transparency to colors: selected is semi-transparent green, unselected is very transparent pink
+                ctx.strokeStyle = isSelected ? (CONFIG.visualization.SELECTED_PEAK_COLOR + '88') : (CONFIG.visualization.PEAK_COLOR + '44');
                 ctx.lineWidth = isSelected ? 2 : 1;
                 ctx.moveTo(x, height - 20);
                 ctx.lineTo(x, y);
                 ctx.stroke();
 
-                // Draw peak marker
+                // Draw peak marker (slightly larger when selected)
+                const markerSize = isSelected ? this.PEAK_MARKER_SIZE * 0.875 : this.PEAK_MARKER_SIZE * 0.625;
                 ctx.beginPath();
-                ctx.arc(x, y, isSelected ? 7 : 5, 0, Math.PI * 2);
-                ctx.fillStyle = isSelected ? '#10b981' : '#ec4899';
+                ctx.arc(x, y, markerSize, 0, Math.PI * 2);
+                ctx.fillStyle = isSelected ? CONFIG.visualization.SELECTED_PEAK_COLOR : CONFIG.visualization.PEAK_COLOR;
                 ctx.fill();
 
                 // Add outline for selected peaks
