@@ -282,10 +282,10 @@ let searchDebounceTimer = null;
 
 /**
  * Initialize application
- * 
+ *
  * Creates all necessary instances, loads data, and sets up event listeners.
  * This is the main initialization function called when the page loads.
- * 
+ *
  * @throws {Error} If critical initialization fails
  */
 async function init() {
@@ -319,9 +319,19 @@ async function init() {
         // Set up event listeners
         setupEventListeners();
 
+        // Set up onboarding and shortcuts
+        setupOnboarding();
+        setupShortcutsOverlay();
+
+        // Set up theme toggle
+        setupThemeToggle();
+
         LoadingOverlay.hide();
         Toast.success('Spectral Synthesizer ready! 🎵');
         console.log('🎵 Spectral Synthesizer initialized');
+
+        // Show onboarding for first-time users
+        checkAndShowOnboarding();
     } catch (error) {
         LoadingOverlay.hide();
         ErrorHandler.handle(
@@ -433,7 +443,15 @@ function categorizeSubstance(item) {
  * @returns {Array} Filtered library data
  */
 function getFilteredLibrary() {
+    const showFavoritesOnly = document.getElementById('show-favorites')?.checked || false;
+    const favoritesList = Favorites.getAll();
+
     return libraryData.filter(item => {
+        // Favorites filter
+        if (showFavoritesOnly && !favoritesList.includes(item.name)) {
+            return false;
+        }
+
         // Category filter
         const itemCategory = categorizeSubstance(item);
         const categoryMatch = currentCategory === 'all' || itemCategory === currentCategory;
@@ -675,6 +693,18 @@ function setupEventListeners() {
 
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcut);
+
+    // Favorites toggle
+    const showFavoritesCheckbox = document.getElementById('show-favorites');
+    if (showFavoritesCheckbox) {
+        showFavoritesCheckbox.addEventListener('change', handleFavoritesFilterChange);
+    }
+
+    // Favorite button
+    const favoriteToggleButton = document.getElementById('favorite-toggle');
+    if (favoriteToggleButton) {
+        favoriteToggleButton.addEventListener('click', handleFavoriteToggle);
+    }
 }
 
 /**
@@ -684,6 +714,13 @@ function setupEventListeners() {
 function handleKeyboardShortcut(e) {
     // Don't trigger shortcuts when typing in input fields
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    // Show keyboard shortcuts help
+    if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        showShortcutsOverlay();
         return;
     }
 
@@ -854,11 +891,19 @@ function handleSubstanceChange() {
     stopButton.disabled = false;
     selectAllButton.disabled = false;
     clearSelectionButton.disabled = false;
-    
+
     // Enable export button
     const exportWAV = document.getElementById('export-wav');
     if (exportWAV) {
         exportWAV.disabled = false;
+    }
+
+    // Update favorite button
+    const favoriteButton = document.getElementById('favorite-toggle');
+    if (favoriteButton) {
+        favoriteButton.style.display = 'inline-block';
+        const isFavorite = Favorites.isFavorite(data.name);
+        updateFavoriteButton(isFavorite);
     }
 }
 
@@ -1336,6 +1381,280 @@ async function handleExportWAV() {
         exportButton.textContent = '💾 Export WAV';
 
         ErrorHandler.handle(error, `Failed to export audio: ${error.message}`);
+    }
+}
+
+/**
+ * Set up onboarding modal
+ */
+function setupOnboarding() {
+    const onboardingModal = document.getElementById('onboarding-modal');
+    const closeButton = document.getElementById('onboarding-close');
+    const startTourButton = document.getElementById('start-tour');
+    const skipTourButton = document.getElementById('skip-tour');
+    const dontShowCheckbox = document.getElementById('dont-show-again');
+
+    // Close modal handlers
+    const closeModal = () => {
+        if (dontShowCheckbox.checked) {
+            localStorage.setItem('onboarding-completed', 'true');
+        }
+        onboardingModal.style.display = 'none';
+    };
+
+    closeButton.addEventListener('click', closeModal);
+    skipTourButton.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    onboardingModal.addEventListener('click', (e) => {
+        if (e.target === onboardingModal) {
+            closeModal();
+        }
+    });
+
+    // Start tour button
+    startTourButton.addEventListener('click', () => {
+        closeModal();
+        startGuidedTour();
+    });
+
+    // Suggestion pill handlers
+    const suggestionPills = document.querySelectorAll('.suggestion-pill');
+    suggestionPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            const substanceId = pill.getAttribute('data-substance-id');
+            closeModal();
+            selectSubstanceByName(substanceId);
+        });
+    });
+}
+
+/**
+ * Check if we should show onboarding
+ */
+function checkAndShowOnboarding() {
+    const hasSeenOnboarding = localStorage.getItem('onboarding-completed');
+    if (!hasSeenOnboarding) {
+        setTimeout(() => {
+            const onboardingModal = document.getElementById('onboarding-modal');
+            onboardingModal.style.display = 'flex';
+        }, 500);
+    }
+}
+
+/**
+ * Select substance by name (partial match)
+ * @param {string} searchTerm - Substance name to search for
+ */
+function selectSubstanceByName(searchTerm) {
+    if (!libraryData) return;
+
+    const substance = libraryData.find(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (substance) {
+        substanceSelect.value = substance.id;
+        handleSubstanceChange();
+        // Scroll to substance selector
+        substanceSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+/**
+ * Start guided tour
+ */
+function startGuidedTour() {
+    // Simple tour implementation - highlights key areas in sequence
+    const tourSteps = [
+        {
+            element: substanceSelect,
+            message: 'Choose any of 381 real FTIR spectra from forensic labs'
+        },
+        {
+            element: ftirCanvas,
+            message: 'Each peak represents a molecular vibration'
+        },
+        {
+            element: playButton,
+            message: 'Click to hear what this molecule sounds like'
+        },
+        {
+            element: audioCanvas,
+            message: 'Watch the real-time frequency analysis—same math as FTIR!'
+        }
+    ];
+
+    let currentStep = 0;
+
+    function showTourStep() {
+        if (currentStep >= tourSteps.length) {
+            removeTourHighlight();
+            Toast.success('Tour complete! Press ? anytime to see keyboard shortcuts');
+            return;
+        }
+
+        const step = tourSteps[currentStep];
+        highlightElement(step.element);
+        Toast.info(step.message, 4000);
+
+        currentStep++;
+        setTimeout(showTourStep, 4500);
+    }
+
+    // Auto-select first substance for tour
+    if (libraryData && libraryData.length > 0) {
+        selectSubstanceByName('mdma');
+    }
+
+    setTimeout(showTourStep, 1000);
+}
+
+/**
+ * Highlight an element during tour
+ * @param {HTMLElement} element - Element to highlight
+ */
+function highlightElement(element) {
+    removeTourHighlight();
+
+    element.classList.add('tour-highlight');
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Add temporary CSS for highlight
+    if (!document.getElementById('tour-styles')) {
+        const style = document.createElement('style');
+        style.id = 'tour-styles';
+        style.textContent = `
+            .tour-highlight {
+                outline: 3px solid #ec4899 !important;
+                outline-offset: 5px !important;
+                box-shadow: 0 0 20px rgba(236, 72, 153, 0.6) !important;
+                position: relative !important;
+                z-index: 9999 !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+/**
+ * Remove tour highlight
+ */
+function removeTourHighlight() {
+    document.querySelectorAll('.tour-highlight').forEach(el => {
+        el.classList.remove('tour-highlight');
+    });
+}
+
+/**
+ * Set up keyboard shortcuts overlay
+ */
+function setupShortcutsOverlay() {
+    const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+    const closeButton = document.getElementById('shortcuts-close');
+    const okButton = document.getElementById('shortcuts-ok');
+
+    const closeModal = () => {
+        shortcutsOverlay.style.display = 'none';
+    };
+
+    closeButton.addEventListener('click', closeModal);
+    okButton.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    shortcutsOverlay.addEventListener('click', (e) => {
+        if (e.target === shortcutsOverlay) {
+            closeModal();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && shortcutsOverlay.style.display === 'flex') {
+            closeModal();
+        }
+    });
+}
+
+/**
+ * Show keyboard shortcuts overlay
+ */
+function showShortcutsOverlay() {
+    const shortcutsOverlay = document.getElementById('shortcuts-overlay');
+    shortcutsOverlay.style.display = 'flex';
+}
+
+/**
+ * Set up theme toggle
+ */
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+
+    // Load saved theme or default to dark
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+
+    // Toggle theme on click
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = document.body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+
+        // Show toast notification
+        Toast.info(`Switched to ${newTheme} theme`, 2000);
+    });
+}
+
+/**
+ * Set theme
+ * @param {string} theme - 'light' or 'dark'
+ */
+function setTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // Update theme color meta tag
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', theme === 'dark' ? '#8b5cf6' : '#7c3aed');
+    }
+}
+
+/**
+ * Handle favorites filter change
+ */
+function handleFavoritesFilterChange() {
+    populateSubstanceSelector();
+}
+
+/**
+ * Handle favorite toggle button
+ */
+function handleFavoriteToggle() {
+    const substanceId = substanceSelect.value;
+    if (!substanceId) return;
+
+    const substance = libraryData.find(item => item.id === substanceId);
+    if (!substance) return;
+
+    const isFavorite = Favorites.toggle(substance.name);
+    updateFavoriteButton(isFavorite);
+}
+
+/**
+ * Update favorite button state
+ * @param {boolean} isFavorite - Whether substance is favorited
+ */
+function updateFavoriteButton(isFavorite) {
+    const favoriteButton = document.getElementById('favorite-toggle');
+    if (favoriteButton) {
+        favoriteButton.textContent = isFavorite ? '★' : '☆';
+        favoriteButton.classList.toggle('active', isFavorite);
     }
 }
 
