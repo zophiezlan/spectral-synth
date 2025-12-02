@@ -310,7 +310,7 @@ Arpeggiation creates melodic sequences from spectral data, offering a completely
 
 **Near-term** (practical improvements):
 - Mix multiple substances (spectral blending)
-- JCAMP-DX file import for direct use of spectroscopy data
+- JCAMP-DX file import (standardized spectroscopy format) for direct use of spectroscopy data
 - MP3 audio export for broader compatibility
 
 **Long-term** (if there's community interest):
