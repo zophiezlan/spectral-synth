@@ -3,8 +3,19 @@
 /**
  * Build Library - Processes ENFSI JCAMP-DX files into JSON format
  *
- * This script reads JCAMP-DX FTIR spectra files and converts them
- * into a format suitable for the spectral synthesizer web app.
+ * This Node.js script reads JCAMP-DX FTIR spectra files from the ENFSI library
+ * and converts them into a JSON format suitable for the web application.
+ * 
+ * Features:
+ * - Parses JCAMP-DX format (standard for spectroscopy data)
+ * - Converts absorbance to transmittance
+ * - Downsamples spectra for web performance (~400 points per spectrum)
+ * - Extracts metadata (name, formula, molecular weight, etc.)
+ * 
+ * Usage:
+ *   1. Download ENFSI library and extract to enfsi_data/ directory
+ *   2. Run: node build-library.js
+ *   3. Output: ftir-library.json (ready for web app)
  */
 
 const fs = require('fs');
@@ -12,8 +23,12 @@ const path = require('path');
 
 /**
  * Parse a JCAMP-DX file
+ * 
+ * JCAMP-DX is a standard format for exchanging spectroscopic data.
+ * Files contain metadata (##KEY=VALUE) and compressed data tables.
+ * 
  * @param {string} filePath - Path to .JDX file
- * @returns {Object} Parsed spectrum data
+ * @returns {Object} Parsed spectrum data with metadata and spectrum array
  */
 function parseJCAMP(filePath) {
     const content = fs.readFileSync(filePath, 'utf8');
@@ -97,6 +112,11 @@ function extractSubstanceName(title) {
 
 /**
  * Convert absorbance spectrum to transmittance
+ * 
+ * Transmittance (T) and absorbance (A) are related by: T = 10^(-A)
+ * For web display, we normalize and use a simplified conversion:
+ * T% = 100 * (1 - normalized_absorbance)
+ * 
  * @param {Array} spectrum - Array of {wavenumber, absorbance}
  * @returns {Array} Array of {wavenumber, transmittance}
  */
@@ -112,8 +132,15 @@ function convertToTransmittance(spectrum) {
 
 /**
  * Downsample spectrum for web performance
+ * 
+ * Original FTIR spectra can have 1800+ data points, which is excessive for web display.
+ * This function reduces the number of points by uniform sampling while maintaining
+ * the overall shape and key features.
+ * 
+ * Note: A more sophisticated approach would use peak-preserving downsampling.
+ * 
  * @param {Array} spectrum - Full spectrum
- * @param {number} targetPoints - Target number of points
+ * @param {number} [targetPoints=500] - Target number of points
  * @returns {Array} Downsampled spectrum
  */
 function downsample(spectrum, targetPoints = 500) {

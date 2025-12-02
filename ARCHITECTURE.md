@@ -1,0 +1,292 @@
+# Architecture Documentation
+
+## Overview
+
+Spectral Synthesizer is a pure vanilla JavaScript web application that sonifies FTIR (Fourier-Transform Infrared) spectroscopy data. It demonstrates the mathematical connection between molecular spectroscopy and audio synthesis through the Fourier transform.
+
+## Design Principles
+
+1. **Zero Dependencies**: No frameworks, no build step, no npm packages for the web app
+2. **Progressive Enhancement**: Works without JavaScript (displays content), enhanced with JS
+3. **Separation of Concerns**: Clear boundaries between data, logic, and presentation
+4. **Configuration-Driven**: All magic numbers extracted to centralized config
+5. **Accessibility First**: ARIA labels, keyboard shortcuts, semantic HTML
+
+## Module Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Browser Environment                │
+├─────────────────────────────────────────────────────┤
+│                                                       │
+│  ┌──────────────────────────────────────────────┐   │
+│  │            index.html (UI Layer)             │   │
+│  │  - Semantic HTML structure                   │   │
+│  │  - Accessibility attributes                  │   │
+│  │  - No inline scripts                         │   │
+│  └──────────────────────────────────────────────┘   │
+│                         │                            │
+│                         ▼                            │
+│  ┌──────────────────────────────────────────────┐   │
+│  │         config.js (Configuration)            │   │
+│  │  - All constants and magic numbers           │   │
+│  │  - Frozen objects (immutable)                │   │
+│  │  - Easy customization point                  │   │
+│  └──────────────────────────────────────────────┘   │
+│                         │                            │
+│        ┌────────────────┼────────────────┐           │
+│        ▼                ▼                ▼           │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐      │
+│  │frequency-│    │  audio-  │    │visualizer│      │
+│  │mapper.js │    │engine.js │    │   .js    │      │
+│  │          │    │          │    │          │      │
+│  │IR→Audio  │    │Web Audio │    │Canvas    │      │
+│  │mapping   │    │synthesis │    │rendering │      │
+│  │Peak      │    │Effects   │    │FFT viz   │      │
+│  │detection │    │Analyser  │    │Selection │      │
+│  └──────────┘    └──────────┘    └──────────┘      │
+│        │                │                │           │
+│        └────────────────┼────────────────┘           │
+│                         ▼                            │
+│  ┌──────────────────────────────────────────────┐   │
+│  │         app.js (Application Layer)           │   │
+│  │  - Orchestrates all modules                  │   │
+│  │  - Event handling                            │   │
+│  │  - State management                          │   │
+│  │  - Error recovery                            │   │
+│  └──────────────────────────────────────────────┘   │
+│                         │                            │
+│                         ▼                            │
+│  ┌──────────────────────────────────────────────┐   │
+│  │      ftir-library.json (Data Layer)          │   │
+│  │  - 381 FTIR spectra from ENFSI               │   │
+│  │  - Pre-processed and downsampled             │   │
+│  │  - Loaded asynchronously                     │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                       │
+└───────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────┐
+│              Node.js Environment (Build)               │
+├───────────────────────────────────────────────────────┤
+│  ┌──────────────────────────────────────────────┐    │
+│  │      build-library.js (Build Tool)           │    │
+│  │  - Parses JCAMP-DX files                     │    │
+│  │  - Converts absorbance to transmittance      │    │
+│  │  - Downsamples to ~400 points per spectrum   │    │
+│  │  - Outputs ftir-library.json                 │    │
+│  └──────────────────────────────────────────────┘    │
+└───────────────────────────────────────────────────────┘
+```
+
+## Data Flow
+
+### Initialization Flow
+
+1. **Page Load**
+   ```
+   index.html loads → config.js → modules → app.js
+   ```
+
+2. **App Initialization**
+   ```
+   init() → create instances → loadLibrary() → setupEventListeners()
+   ```
+
+3. **Library Loading**
+   ```
+   fetch(ftir-library.json) → parse JSON → populate UI → ready
+   ```
+
+### Playback Flow
+
+1. **User selects substance**
+   ```
+   handleSubstanceChange() → find spectrum → extractPeaks() → visualize
+   ```
+
+2. **User clicks play**
+   ```
+   handlePlay() → audioEngine.play(peaks) → synthesize audio → visualize FFT
+   ```
+
+3. **Audio synthesis**
+   ```
+   For each peak:
+     create oscillator → set frequency/amplitude → apply envelope → mix
+   ```
+
+4. **Real-time visualization**
+   ```
+   requestAnimationFrame → get FFT data → draw bars → repeat
+   ```
+
+## Key Algorithms
+
+### 1. Frequency Mapping (frequency-mapper.js)
+
+Converts IR wavenumbers to audio frequencies using logarithmic scaling:
+
+```javascript
+audioFreq = exp(log(AUDIO_MIN) + normalized * (log(AUDIO_MAX) - log(AUDIO_MIN)))
+```
+
+This preserves perceptual relationships - doubling the IR frequency approximately doubles the audio frequency.
+
+### 2. Peak Detection (frequency-mapper.js)
+
+Identifies local maxima in the absorption spectrum:
+
+```javascript
+For each point i:
+  if (absorbance[i] > absorbance[i-1] && 
+      absorbance[i] > absorbance[i+1] && 
+      absorbance[i] > threshold):
+    → peak detected
+```
+
+### 3. Additive Synthesis (audio-engine.js)
+
+Each peak becomes one oscillator:
+
+```javascript
+For each peak:
+  frequency = peak.audioFreq
+  amplitude = peak.absorbance / numPeaks
+  waveform = cycle through [sine, triangle, square]
+  envelope = [fade-in, sustain, fade-out]
+```
+
+### 4. Amplitude Correction (audio-engine.js)
+
+Applies equal loudness contour correction:
+
+```javascript
+correction = min(1.0, 1000 / frequency)
+```
+
+Higher frequencies are perceived as louder, so we attenuate them.
+
+## State Management
+
+### Global State
+
+```javascript
+// Module instances (created once)
+audioEngine: AudioEngine
+frequencyMapper: FrequencyMapper
+visualizer: Visualizer
+
+// Current data
+currentSpectrum: Array<{wavenumber, transmittance}>
+currentPeaks: Array<{wavenumber, absorbance, audioFreq}>
+libraryData: Array<SubstanceData>
+
+// UI state
+comparisonMode: boolean
+currentSearchTerm: string
+currentCategory: string
+```
+
+### No Framework State Management
+
+We intentionally avoid React/Vue state management because:
+- Simple enough to manage manually
+- Better performance for real-time audio visualization
+- No learning curve for contributors
+- Smaller bundle size
+
+## Performance Considerations
+
+### Optimizations
+
+1. **Debounced Search**: 300ms delay on search input to avoid excessive filtering
+2. **Downsampled Data**: ~400 points per spectrum (vs. 1800+ in originals)
+3. **RAF Animation**: requestAnimationFrame for smooth 60fps visualization
+4. **Canvas Rendering**: Direct canvas API for maximum performance
+5. **Frozen Config**: Object.freeze() for V8 optimization
+
+### Performance Bottlenecks
+
+1. **Peak Detection**: O(n) scan of spectrum data (currently fast enough)
+2. **Canvas Redraw**: Full redraw on each frame (could cache static elements)
+3. **JSON Parsing**: 9.5MB library file (could split/lazy load)
+
+## Security
+
+### XSS Prevention
+
+- No innerHTML with user data
+- All user inputs validated
+- Library data loaded from same origin
+- No eval() or Function() constructor
+
+### Content Security Policy (Recommended)
+
+```html
+<meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
+```
+
+## Browser Compatibility
+
+### Required APIs
+
+- Web Audio API (Chrome 35+, Firefox 25+, Safari 14.1+)
+- Canvas API (all modern browsers)
+- ES6 JavaScript (const/let, arrow functions, classes)
+- Fetch API (all modern browsers)
+
+### Graceful Degradation
+
+1. No Web Audio API → Show error message
+2. No Canvas → Show error message
+3. No JavaScript → Content still readable
+
+## Testing Strategy
+
+### Manual Testing Checklist
+
+- [ ] Load library successfully
+- [ ] Search and filter substances
+- [ ] Select substance and see spectrum
+- [ ] Play audio from full spectrum
+- [ ] Select individual peaks and play
+- [ ] Test all keyboard shortcuts
+- [ ] Switch to comparison mode
+- [ ] Compare two substances
+- [ ] Test audio effects (reverb, filter)
+- [ ] Test on mobile device
+
+### Browser Testing
+
+- Chrome (desktop + mobile)
+- Firefox (desktop + mobile)
+- Safari (desktop + mobile)
+- Edge (desktop)
+
+## Future Architecture Improvements
+
+### Potential Enhancements
+
+1. **Module System**: Use ES6 modules with import/export
+2. **TypeScript**: Add type safety while keeping build-free for users
+3. **Web Workers**: Offload peak detection to background thread
+4. **IndexedDB**: Cache library data for faster loading
+5. **Service Worker**: Enable offline usage
+6. **WebAssembly**: Accelerate DSP operations
+
+### Non-Goals
+
+- Server-side rendering (pure client-side is fine)
+- Database backend (JSON file is sufficient)
+- User accounts (not needed for this use case)
+- Complex build pipeline (keep it simple)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+MIT - See [LICENSE](LICENSE) file.
