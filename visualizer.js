@@ -17,13 +17,13 @@ class Visualizer {
         if (!ftirCanvas || !audioCanvas) {
             throw new Error('Invalid canvases: both ftirCanvas and audioCanvas are required');
         }
-        
+
         this.ftirCanvas = ftirCanvas;
         this.audioCanvas = audioCanvas;
 
         this.ftirCtx = ftirCanvas.getContext('2d');
         this.audioCtx = audioCanvas.getContext('2d');
-        
+
         if (!this.ftirCtx || !this.audioCtx) {
             throw new Error('Failed to get canvas 2D context');
         }
@@ -37,10 +37,14 @@ class Visualizer {
         this.selectedPeakIndices = new Set();
         this.peakPositions = []; // Store peak positions for click detection
         this.onPeakSelectionChange = null; // Callback for selection changes
-        
+
         // Load visualization constants from global CONFIG object
         this.CLICK_RADIUS = CONFIG.visualization.CLICK_RADIUS;
         this.PEAK_MARKER_SIZE = CONFIG.visualization.PEAK_MARKER_SIZE;
+
+        // Cached static elements for performance
+        this.audioStaticCanvas = null;
+        this.audioStaticCached = false;
 
         // Set up click handler
         this.setupClickHandler();
@@ -269,7 +273,34 @@ class Visualizer {
     }
 
     /**
-     * Draw audio FFT visualization
+     * Cache static audio visualization elements (grid and axes)
+     * @private
+     */
+    cacheAudioStatic() {
+        const width = this.audioCanvas.width;
+        const height = this.audioCanvas.height;
+
+        // Create offscreen canvas for static elements
+        this.audioStaticCanvas = document.createElement('canvas');
+        this.audioStaticCanvas.width = width;
+        this.audioStaticCanvas.height = height;
+        const staticCtx = this.audioStaticCanvas.getContext('2d');
+
+        // Draw background
+        staticCtx.fillStyle = '#0a0a0a';
+        staticCtx.fillRect(0, 0, width, height);
+
+        // Draw grid
+        this.drawGrid(staticCtx, width, height);
+
+        // Draw axes labels
+        this.drawAudioAxes(staticCtx, width, height, 10000);
+
+        this.audioStaticCached = true;
+    }
+
+    /**
+     * Draw audio FFT visualization (optimized with caching)
      */
     drawAudioFFT() {
         const canvas = this.audioCanvas;
@@ -277,18 +308,19 @@ class Visualizer {
         const width = canvas.width;
         const height = canvas.height;
 
-        // Clear canvas
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, width, height);
+        // Cache static elements on first draw
+        if (!this.audioStaticCached) {
+            this.cacheAudioStatic();
+        }
+
+        // Draw cached static elements
+        ctx.drawImage(this.audioStaticCanvas, 0, 0);
 
         if (!this.audioEngine) return;
 
         // Get frequency data
         const frequencyData = this.audioEngine.getFrequencyData();
         if (!frequencyData) return;
-
-        // Draw grid
-        this.drawGrid(ctx, width, height);
 
         const bufferLength = frequencyData.length;
         const sampleRate = this.audioEngine.getSampleRate();
@@ -300,7 +332,7 @@ class Visualizer {
         const barWidth = (width - 40) / maxBin;
         let x = 20;
 
-        // Draw frequency bars
+        // Draw frequency bars only (dynamic content)
         for (let i = 0; i < maxBin; i++) {
             const barHeight = (frequencyData[i] / 255) * (height - 40);
 
@@ -312,9 +344,6 @@ class Visualizer {
 
             x += barWidth;
         }
-
-        // Draw axes labels
-        this.drawAudioAxes(ctx, width, height, maxFreq);
 
         // Continue animation if playing
         if (this.audioEngine.getIsPlaying()) {
@@ -341,16 +370,21 @@ class Visualizer {
             this.animationId = null;
         }
 
-        // Clear canvas
-        const ctx = this.audioCtx;
-        const width = this.audioCanvas.width;
-        const height = this.audioCanvas.height;
+        // Use cached static elements if available
+        if (this.audioStaticCached && this.audioStaticCanvas) {
+            this.audioCtx.drawImage(this.audioStaticCanvas, 0, 0);
+        } else {
+            // Fallback to drawing directly
+            const ctx = this.audioCtx;
+            const width = this.audioCanvas.width;
+            const height = this.audioCanvas.height;
 
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, width, height);
 
-        this.drawGrid(ctx, width, height);
-        this.drawAudioAxes(ctx, width, height, 10000);
+            this.drawGrid(ctx, width, height);
+            this.drawAudioAxes(ctx, width, height, 10000);
+        }
     }
 
     /**

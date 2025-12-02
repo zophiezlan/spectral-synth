@@ -27,6 +27,16 @@ class CSVImporter {
             throw new Error('File must be a CSV file');
         }
 
+        // Validate file size (10MB max)
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        if (file.size > MAX_FILE_SIZE) {
+            throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 10MB`);
+        }
+
+        if (file.size === 0) {
+            throw new Error('File is empty');
+        }
+
         const text = await file.text();
         const lines = text.split('\n').filter(line => line.trim());
 
@@ -99,7 +109,7 @@ class CSVImporter {
         }
 
         return {
-            name: file.name.replace('.csv', ''),
+            name: this.sanitizeName(file.name.replace('.csv', '')),
             source: 'User Import',
             category: 'custom',
             spectrum: finalSpectrum,
@@ -113,6 +123,27 @@ class CSVImporter {
                 importDate: new Date().toISOString(),
             }
         };
+    }
+
+    /**
+     * Sanitize substance name for security
+     * Removes potentially dangerous characters and limits length
+     *
+     * @param {string} name - Raw name from file
+     * @returns {string} Sanitized name
+     * @private
+     */
+    static sanitizeName(name) {
+        if (!name || typeof name !== 'string') {
+            return 'Untitled';
+        }
+
+        return name
+            .replace(/[<>'"&]/g, '') // Remove XSS-prone characters
+            .replace(/[\/\\]/g, '-')  // Replace path separators
+            .trim()
+            .slice(0, 100) // Limit length
+            || 'Untitled';
     }
 
     /**
