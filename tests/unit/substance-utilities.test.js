@@ -83,7 +83,7 @@ describe('SubstanceUtilities', () => {
             });
 
             test('should categorize substance with opioid keyword in mixed case', () => {
-                const item = { name: 'OxyCodene Hydrochloride' };
+                const item = { name: 'Oxycodone Hydrochloride' };
                 expect(categorizeSubstance(item)).toBe('opioids');
             });
 
@@ -240,7 +240,7 @@ describe('SubstanceUtilities', () => {
             });
 
             test('should handle partial matches in compound names', () => {
-                const item = { name: 'Dextromethorphan' }; // Contains 'morphine'
+                const item = { name: 'Diacetylmorphine' }; // Contains 'morphine'
                 expect(categorizeSubstance(item)).toBe('opioids');
             });
 

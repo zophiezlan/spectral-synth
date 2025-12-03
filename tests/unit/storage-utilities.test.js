@@ -2,13 +2,21 @@
  * Unit tests for Storage Utilities
  */
 
+import { jest } from '@jest/globals';
+
 describe('StorageUtilities', () => {
     let StorageUtilities;
 
     beforeEach(() => {
-        // Clear mocks before each test
+        // Clear all mocks before each test
         jest.clearAllMocks();
-        localStorage.clear();
+        jest.restoreAllMocks();
+        
+        // Spy on localStorage methods
+        jest.spyOn(global.localStorage, 'getItem').mockImplementation(() => null);
+        jest.spyOn(global.localStorage, 'setItem').mockImplementation(() => {});
+        jest.spyOn(global.localStorage, 'removeItem').mockImplementation(() => {});
+        jest.spyOn(global.localStorage, 'clear').mockImplementation(() => {});
 
         // Mock StorageUtilities for testing
         StorageUtilities = {

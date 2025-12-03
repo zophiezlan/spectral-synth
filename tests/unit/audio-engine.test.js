@@ -173,10 +173,9 @@ describe('AudioEngine', () => {
         jest.resetModules();
 
         // Mock window.AudioContext
-        global.window = {
-            AudioContext: MockAudioContext,
-            webkitAudioContext: MockAudioContext
-        };
+        global.AudioContext = MockAudioContext;
+        global.webkitAudioContext = MockAudioContext;
+        global.window = global;
 
         global.OfflineAudioContext = MockOfflineAudioContext;
         global.URL = {
@@ -435,7 +434,8 @@ describe('AudioEngine', () => {
                     }
                 });
 
-                const blendedPeaks = Array.from(frequencyMap.values());
+                const blendedPeaks = Array.from(frequencyMap.values())
+                    .filter(peak => peak.absorbance > 0); // Filter out peaks with zero absorbance
                 blendedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
                 return blendedPeaks;
             }
