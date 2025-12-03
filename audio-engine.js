@@ -20,7 +20,7 @@ class AudioEngine {
         this.filterFrequency = CONFIG.frequency.AUDIO_MAX;  // Hz
         
         // Playback mode
-        this.playbackMode = 'chord';  // Default to chord mode
+        this.playbackMode = 'sequential';  // Default to sequential mode (order by intensity)
         
         // ADSR envelope parameters
         this.attackTime = CONFIG.adsr.DEFAULT_ATTACK;
@@ -319,6 +319,66 @@ class AudioEngine {
         setTimeout(() => {
             this.isPlaying = false;
         }, duration * 1000);
+    }
+
+    /**
+     * Blend two sets of peaks with a given ratio
+     * 
+     * Combines peaks from two spectra with weighted averaging based on blend ratio.
+     * 
+     * @param {Array} peaksA - First set of peaks
+     * @param {Array} peaksB - Second set of peaks
+     * @param {number} ratio - Blend ratio (0-1, where 0=pure A, 1=pure B)
+     * @returns {Array} Blended peaks
+     */
+    blendPeaks(peaksA, peaksB, ratio) {
+        if (!Array.isArray(peaksA) || !Array.isArray(peaksB)) {
+            throw new Error('Both peak arrays must be valid');
+        }
+
+        if (typeof ratio !== 'number' || ratio < 0 || ratio > 1) {
+            throw new Error('Blend ratio must be between 0 and 1');
+        }
+
+        // Create a combined list of all unique frequencies
+        const frequencyMap = new Map();
+
+        // Add peaks from A with weight (1 - ratio)
+        const weightA = 1 - ratio;
+        peaksA.forEach(peak => {
+            const key = peak.audioFreq.toFixed(2); // Group similar frequencies
+            if (!frequencyMap.has(key)) {
+                frequencyMap.set(key, {
+                    wavenumber: peak.wavenumber,
+                    audioFreq: peak.audioFreq,
+                    absorbance: peak.absorbance * weightA
+                });
+            } else {
+                const existing = frequencyMap.get(key);
+                existing.absorbance += peak.absorbance * weightA;
+            }
+        });
+
+        // Add peaks from B with weight ratio
+        peaksB.forEach(peak => {
+            const key = peak.audioFreq.toFixed(2);
+            if (!frequencyMap.has(key)) {
+                frequencyMap.set(key, {
+                    wavenumber: peak.wavenumber,
+                    audioFreq: peak.audioFreq,
+                    absorbance: peak.absorbance * ratio
+                });
+            } else {
+                const existing = frequencyMap.get(key);
+                existing.absorbance += peak.absorbance * ratio;
+            }
+        });
+
+        // Convert map to array and sort by frequency
+        const blendedPeaks = Array.from(frequencyMap.values());
+        blendedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
+
+        return blendedPeaks;
     }
 
     /**
@@ -694,9 +754,109 @@ class AudioEngine {
     }
 
     /**
+     * Create oscillators in offline context based on playback mode
+     * 
+     * @param {OfflineAudioContext} offlineContext - Offline audio context
+     * @param {Array} peaks - Array of peak objects
+     * @param {AudioNode} masterGain - Master gain node to connect to
+     * @param {number} duration - Total duration in seconds
+     * @private
+     */
+    createOfflineOscillators(offlineContext, peaks, masterGain, duration) {
+        if (this.playbackMode === 'chord') {
+            // Chord mode: all peaks play simultaneously
+            peaks.forEach((peak, idx) => {
+                const osc = offlineContext.createOscillator();
+                const gain = offlineContext.createGain();
+
+                osc.frequency.value = peak.audioFreq;
+                
+                const waveforms = ['sine', 'triangle', 'square'];
+                const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
+                osc.type = waveforms[waveformIndex];
+
+                const baseGain = (peak.absorbance * 0.8) / peaks.length;
+                const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
+                const peakGain = baseGain * freqCorrection;
+                const sustainGain = peakGain * this.sustainLevel;
+
+                // Apply ADSR envelope
+                this.applyADSREnvelope(gain, 0, duration, peakGain, sustainGain);
+
+                osc.connect(gain);
+                gain.connect(masterGain);
+
+                osc.start(0);
+                osc.stop(duration);
+            });
+        } else {
+            // Arpeggio/sequential modes: peaks play in sequence
+            let orderedPeaks = [...peaks];
+            
+            // Sort based on playback mode
+            switch (this.playbackMode) {
+                case 'arpeggio-up':
+                    orderedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
+                    break;
+                case 'arpeggio-down':
+                    orderedPeaks.sort((a, b) => b.audioFreq - a.audioFreq);
+                    break;
+                case 'arpeggio-updown':
+                    orderedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
+                    orderedPeaks = [...orderedPeaks, ...orderedPeaks.slice(0, -1).reverse()];
+                    break;
+                case 'sequential':
+                    orderedPeaks.sort((a, b) => b.absorbance - a.absorbance);
+                    break;
+                case 'random':
+                    for (let i = orderedPeaks.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [orderedPeaks[i], orderedPeaks[j]] = [orderedPeaks[j], orderedPeaks[i]];
+                    }
+                    break;
+            }
+
+            // Calculate timing
+            const noteCount = orderedPeaks.length;
+            const noteDuration = duration / noteCount;
+            const noteOverlap = 0.1;
+            const actualNoteDuration = Math.min(noteDuration + noteOverlap, 0.5);
+
+            orderedPeaks.forEach((peak, idx) => {
+                const osc = offlineContext.createOscillator();
+                const gain = offlineContext.createGain();
+                
+                const startTime = idx * noteDuration;
+                const endTime = startTime + actualNoteDuration;
+
+                osc.frequency.value = peak.audioFreq;
+
+                const waveforms = ['sine', 'triangle', 'square'];
+                const waveformIndex = idx % 3;
+                osc.type = waveforms[waveformIndex];
+
+                const baseGain = peak.absorbance * 0.5;
+                const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
+                const peakGain = baseGain * freqCorrection;
+                const sustainGain = peakGain * this.sustainLevel;
+
+                // Apply ADSR envelope
+                this.applyADSREnvelope(gain, startTime, actualNoteDuration, peakGain, sustainGain);
+
+                osc.connect(gain);
+                gain.connect(masterGain);
+
+                osc.start(startTime);
+                osc.stop(endTime);
+            });
+        }
+    }
+
+    /**
      * Export audio as WAV file
      * 
      * Renders the synthesized audio to a buffer and exports it as a downloadable WAV file.
+     * Uses the currently selected playback mode for rendering.
      * 
      * @param {Array} peaks - Array of {wavenumber, absorbance, audioFreq} objects
      * @param {number} [duration=2.0] - Duration in seconds
@@ -755,31 +915,8 @@ class AudioEngine {
         convolver.connect(wetGain);
         wetGain.connect(offlineContext.destination);
 
-        // Create oscillators for each peak
-        peaks.forEach((peak, idx) => {
-            const osc = offlineContext.createOscillator();
-            const gain = offlineContext.createGain();
-
-            osc.frequency.value = peak.audioFreq;
-            
-            const waveforms = ['sine', 'triangle', 'square'];
-            const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
-            osc.type = waveforms[waveformIndex];
-
-            const baseGain = (peak.absorbance * 0.8) / peaks.length;
-            const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
-            const peakGain = baseGain * freqCorrection;
-            const sustainGain = peakGain * this.sustainLevel;
-
-            // Apply ADSR envelope
-            this.applyADSREnvelope(gain, 0, duration, peakGain, sustainGain);
-
-            osc.connect(gain);
-            gain.connect(masterGain);
-
-            osc.start(0);
-            osc.stop(duration);
-        });
+        // Create oscillators based on playback mode
+        this.createOfflineOscillators(offlineContext, peaks, masterGain, duration);
 
         // Render audio
         const renderedBuffer = await offlineContext.startRendering();
@@ -859,5 +996,92 @@ class AudioEngine {
         }
 
         return new Blob([arrayBuffer], { type: 'audio/wav' });
+    }
+
+    /**
+     * Export audio as MP3 file
+     * 
+     * Renders the synthesized audio to a buffer and exports it as a downloadable MP3 file.
+     * Requires lamejs library to be loaded.
+     * 
+     * @param {Array} peaks - Array of {wavenumber, absorbance, audioFreq} objects
+     * @param {number} [duration=2.0] - Duration in seconds
+     * @param {string} [filename='spectral-synth.mp3'] - Output filename
+     * @param {number} [bitrate=128] - MP3 bitrate in kbps
+     * @throws {Error} If peaks array is invalid, duration is not positive, or lamejs is not loaded
+     */
+    async exportMP3(peaks, duration = 2.0, filename = 'spectral-synth.mp3', bitrate = 128) {
+        if (!Array.isArray(peaks) || peaks.length === 0) {
+            throw new Error('Invalid peaks: must be a non-empty array');
+        }
+        
+        if (typeof duration !== 'number' || duration <= 0) {
+            throw new Error('Invalid duration: must be a positive number');
+        }
+
+        // Check if MP3Encoder is available
+        if (typeof MP3Encoder === 'undefined') {
+            throw new Error('MP3 encoder not available. Please ensure mp3-encoder.js is loaded.');
+        }
+
+        await this.init();
+
+        // Create an offline audio context for rendering
+        const sampleRate = this.audioContext.sampleRate;
+        const offlineContext = new OfflineAudioContext(2, sampleRate * duration, sampleRate);
+
+        // Create master gain
+        const masterGain = offlineContext.createGain();
+        masterGain.gain.value = this.masterGain.gain.value;
+
+        // Create filter
+        const filter = offlineContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = this.filterFrequency;
+        filter.Q.value = this.FILTER_Q_VALUE;
+
+        // Create reverb if enabled
+        const dryGain = offlineContext.createGain();
+        const wetGain = offlineContext.createGain();
+        dryGain.gain.value = 1 - this.reverbMix;
+        wetGain.gain.value = this.reverbMix;
+
+        // Create reverb impulse
+        const convolver = offlineContext.createConvolver();
+        const impulseLength = sampleRate * this.REVERB_DURATION;
+        const impulse = offlineContext.createBuffer(2, impulseLength, sampleRate);
+        
+        for (let channel = 0; channel < 2; channel++) {
+            const channelData = impulse.getChannelData(channel);
+            for (let i = 0; i < impulseLength; i++) {
+                channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / impulseLength, 2);
+            }
+        }
+        convolver.buffer = impulse;
+
+        // Connect audio graph
+        masterGain.connect(filter);
+        filter.connect(dryGain);
+        dryGain.connect(offlineContext.destination);
+        filter.connect(convolver);
+        convolver.connect(wetGain);
+        wetGain.connect(offlineContext.destination);
+
+        // Create oscillators based on playback mode
+        this.createOfflineOscillators(offlineContext, peaks, masterGain, duration);
+
+        // Render audio
+        const renderedBuffer = await offlineContext.startRendering();
+
+        // Convert to MP3
+        const mp3Blob = await MP3Encoder.encodeToMP3(renderedBuffer, bitrate);
+        
+        // Download file
+        const url = URL.createObjectURL(mp3Blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 }

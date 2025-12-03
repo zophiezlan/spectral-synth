@@ -216,6 +216,10 @@
                                 📁 Import CSV
                             </label>
                             <input type="file" id="csv-import" accept=".csv" style="display: none;" aria-label="Import FTIR data from CSV file">
+                            <label for="jcamp-import" class="file-label">
+                                📊 Import JCAMP-DX
+                            </label>
+                            <input type="file" id="jcamp-import" accept=".jdx,.dx,.jcamp" style="display: none;" aria-label="Import FTIR data from JCAMP-DX file">
                             <button id="download-template" class="secondary-button" aria-label="Download CSV template">
                                 📋 Download Template
                             </button>
@@ -224,8 +228,51 @@
                             <button id="export-wav" disabled class="secondary-button" aria-label="Export audio as WAV file">
                                 💾 Export WAV
                             </button>
+                            <button id="export-mp3" disabled class="secondary-button" aria-label="Export audio as MP3 file">
+                                🎵 Export MP3
+                            </button>
                         </div>
                     </div>
+                    <p class="import-export-info">Audio exports (WAV/MP3) use the current Playback Mode setting.</p>
+                </div>
+            </div>
+
+            <div class="collapsible-section midi-output-controls" role="group" aria-label="MIDI output controls">
+                <h4 class="section-header collapsible-header" data-section="midi-output">
+                    <span class="collapse-icon">▼</span>
+                    MIDI Output
+                </h4>
+                <div class="collapsible-content" id="midi-output-content">
+                    <div class="midi-device-selector">
+                        <label for="midi-device-select">MIDI Device:</label>
+                        <select id="midi-device-select" aria-label="Select MIDI output device">
+                            <option value="">-- No MIDI devices found --</option>
+                        </select>
+                        <button id="refresh-midi-devices" class="secondary-button" aria-label="Refresh MIDI device list">
+                            🔄 Refresh Devices
+                        </button>
+                    </div>
+                    <div class="midi-controls">
+                        <button id="send-midi-notes" disabled class="secondary-button" aria-label="Send spectrum as MIDI notes">
+                            🎹 Send to MIDI Device
+                        </button>
+                        <button id="export-midi-file" disabled class="secondary-button" aria-label="Export spectrum as MIDI file">
+                            💾 Export MIDI File
+                        </button>
+                        <div class="slider-control">
+                            <label for="midi-velocity">MIDI Velocity: <span id="midi-velocity-value">80</span></label>
+                            <input type="range" id="midi-velocity" min="1" max="127" step="1" value="80">
+                        </div>
+                        <div class="slider-control">
+                            <label for="midi-note-duration">Note Duration: <span id="midi-note-duration-value">500</span> ms</label>
+                            <input type="range" id="midi-note-duration" min="100" max="2000" step="100" value="500">
+                        </div>
+                        <div class="slider-control">
+                            <label for="midi-tempo">MIDI Tempo: <span id="midi-tempo-value">120</span> BPM</label>
+                            <input type="range" id="midi-tempo" min="40" max="240" step="1" value="120">
+                        </div>
+                    </div>
+                    <p class="midi-info">Send spectral peaks as MIDI notes to external synthesizers or export as Standard MIDI File (.mid). Uses the global Playback Mode setting. Requires Web MIDI API support for device output.</p>
                 </div>
             </div>
 
@@ -285,6 +332,16 @@
             <div class="comparison-combined">
                 <button id="play-both-sequential" disabled>▶ Play A → B (Sequential)</button>
                 <button id="play-both-simultaneous" disabled>▶ Play A + B (Simultaneous)</button>
+                <button id="play-blend" disabled>🎛️ Play Blended</button>
+            </div>
+
+            <div class="blend-controls" id="blend-controls" style="display: none;">
+                <h4 class="section-title">Spectral Blending</h4>
+                <div class="slider-control">
+                    <label for="blend-ratio">Blend Ratio (A ← → B): <span id="blend-ratio-value">50</span>%</label>
+                    <input type="range" id="blend-ratio" min="0" max="100" step="1" value="50">
+                    <p class="blend-description">Adjust the mix between substances A and B. 0% = pure A, 100% = pure B</p>
+                </div>
             </div>
 
             <div class="slider-control">
@@ -535,6 +592,9 @@
         </div>
     </div>
 
+    <!-- External libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+    
     <!-- Configuration must be loaded first -->
     <script src="config.js"></script>
     
@@ -543,6 +603,9 @@
     <script src="audio-engine.js"></script>
     <script src="visualizer.js"></script>
     <script src="csv-importer.js"></script>
+    <script src="jcamp-importer.js"></script>
+    <script src="mp3-encoder.js"></script>
+    <script src="midi-output.js"></script>
     
     <!-- Main application -->
     <script src="app.js"></script>
