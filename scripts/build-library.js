@@ -18,8 +18,12 @@
  *   3. Output: data/ftir-library.json (ready for web app)
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Parse a JCAMP-DX file
@@ -163,6 +167,21 @@ function buildLibrary() {
     const enfsiDir = path.join(__dirname, 'enfsi_data');
     const outputFile = path.join(__dirname, '..', 'data', 'ftir-library.json');
 
+    // Check if output file already exists
+    if (fs.existsSync(outputFile)) {
+        console.log('✓ FTIR library already exists at:', outputFile);
+        console.log('  Skipping build. Delete the file to rebuild from source.');
+        return;
+    }
+
+    // Check if enfsi_data directory exists
+    if (!fs.existsSync(enfsiDir)) {
+        console.error('Error: enfsi_data directory not found and no pre-built library exists.');
+        console.error('Please download the ENFSI library and extract it to scripts/enfsi_data/');
+        console.error('Expected location:', enfsiDir);
+        process.exit(1);
+    }
+
     // Curated list of interesting substances
     const curatedSubstances = [
         'Caffeine',
@@ -252,8 +271,8 @@ function buildLibrary() {
 }
 
 // Run the builder
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     buildLibrary();
 }
 
-module.exports = { parseJCAMP, buildLibrary };
+export { parseJCAMP, buildLibrary };
