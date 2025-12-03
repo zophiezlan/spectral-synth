@@ -8,7 +8,7 @@
  */
 
 // Utility: Waveform thumbnail generator
-const ThumbnailGenerator = {
+export const ThumbnailGenerator = {
     /**
      * Generate a small canvas thumbnail of a spectrum
      * @param {Array} spectrum - Spectrum data points
@@ -73,7 +73,7 @@ const ThumbnailGenerator = {
 };
 
 // Utility: Color mapping for frequency visualization
-const ColorMapper = {
+export const ColorMapper = {
     /**
      * Map infrared frequency to visible color (like if you could "see" IR)
      * @param {number} wavenumber - Wavenumber in cm⁻¹
@@ -118,7 +118,7 @@ const ColorMapper = {
 };
 
 // Utility: Responsive canvas handler for mobile optimization
-const ResponsiveCanvas = {
+export const ResponsiveCanvas = {
     /**
      * Setup responsive canvas sizing based on viewport
      * @param {HTMLCanvasElement} canvas - Canvas element to resize

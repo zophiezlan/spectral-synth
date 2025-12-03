@@ -5,7 +5,7 @@
  */
 
 // Utility: Interactive Tutorial Manager
-const TutorialManager = {
+export const TutorialManager = {
     currentStep: 0,
     currentPath: null,
     isActive: false,

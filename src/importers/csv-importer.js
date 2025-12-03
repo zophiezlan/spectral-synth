@@ -5,7 +5,7 @@
  * and sonify it using the Spectral Synthesizer.
  */
 
-class CSVImporter {
+export class CSVImporter {
     /**
      * Parse CSV file containing FTIR data
      * 

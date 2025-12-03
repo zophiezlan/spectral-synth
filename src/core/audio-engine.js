@@ -5,7 +5,7 @@
  * Each absorption peak becomes an oscillator at the mapped audio frequency
  */
 
-class AudioEngine {
+export class AudioEngine {
     constructor() {
         this.audioContext = null;
         this.masterGain = null;

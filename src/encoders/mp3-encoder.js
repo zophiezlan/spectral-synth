@@ -5,7 +5,7 @@
  * This is a lightweight wrapper around lamejs for easier integration.
  */
 
-class MP3Encoder {
+export class MP3Encoder {
     /**
      * Encode audio buffer to MP3
      * 

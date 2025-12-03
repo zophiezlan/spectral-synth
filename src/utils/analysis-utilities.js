@@ -12,7 +12,7 @@
  * @param {Array} spectrum2 - Second spectrum data
  * @returns {number} Similarity score (0-1)
  */
-function calculateSpectralSimilarity(spectrum1, spectrum2) {
+export function calculateSpectralSimilarity(spectrum1, spectrum2) {
     // Convert spectra to fixed-length vectors for comparison
     const minWavenumber = 400;
     const maxWavenumber = 4000;
