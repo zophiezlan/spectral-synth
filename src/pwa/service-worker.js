@@ -27,6 +27,7 @@ const STATIC_ASSETS = [
     '../src/utils/ui-utilities.js',
     '../src/utils/visualization-utilities.js',
     '../src/utils/storage-utilities.js',
+    '../src/utils/data-loader.js',
     '../src/utils/tutorial-manager.js',
     '../src/utils/analysis-utilities.js',
     '../src/utils/substance-utilities.js',

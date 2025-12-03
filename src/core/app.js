@@ -124,10 +124,11 @@ function checkMP3ExportAvailability() {
 }
 
 /**
- * Load FTIR library from JSON
- * 
- * Fetches the FTIR spectral database and populates the substance selectors.
- * 
+ * Load FTIR library from JSON with lazy loading and progress tracking
+ *
+ * Fetches the FTIR spectral database using DataLoader utility for optimized
+ * loading with progress indication and caching.
+ *
  * @throws {Error} If library fails to load
  */
 async function loadLibrary() {
@@ -135,15 +136,16 @@ async function loadLibrary() {
         LoadingOverlay.show('Loading FTIR library (381 spectra)...');
         console.log('Loading FTIR library...');
 
-        const response = await fetch(CONFIG.library.LIBRARY_FILE);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        libraryData = await response.json();
+        // Use DataLoader for lazy loading with progress tracking
+        libraryData = await DataLoader.loadJSON(CONFIG.library.LIBRARY_FILE, {
+            onProgress: (percentage) => {
+                LoadingOverlay.show(`Loading FTIR library... ${percentage}%`);
+            },
+            useCache: true // Cache for future sessions
+        });
 
         console.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
+        console.log(`✓ Library cached (${(JSON.stringify(libraryData).length / 1024 / 1024).toFixed(2)} MB)`);
 
         // Populate substance selector
         populateSubstanceSelector();

@@ -29,6 +29,7 @@ export default [
                 ColorMapper: 'readonly',
                 ResponsiveCanvas: 'readonly',
                 StorageUtilities: 'readonly',
+                DataLoader: 'readonly',
                 TutorialManager: 'readonly',
                 AnalysisUtilities: 'readonly',
                 SubstanceUtilities: 'readonly',
