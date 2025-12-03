@@ -5,7 +5,7 @@
  * Provides insights into real-world application performance
  */
 
-const PerformanceMonitor = (function() {
+// Performance Monitor Module
     // Storage for performance metrics
     const metrics = {
         vitals: {},
@@ -361,17 +361,13 @@ const PerformanceMonitor = (function() {
         return lines.join('\n');
     }
 
-    // Public API
-    return {
-        init,
-        mark,
-        measure,
-        getMetrics,
-        clearMetrics,
-        getSummary,
-        config
-    };
-})();
-
-// Make available globally
-window.PerformanceMonitor = PerformanceMonitor;
+// Export public API
+export const PerformanceMonitor = {
+    init,
+    mark,
+    measure,
+    getMetrics,
+    clearMetrics,
+    getSummary,
+    config
+};

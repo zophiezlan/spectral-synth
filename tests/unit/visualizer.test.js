@@ -730,6 +730,7 @@ describe('Visualizer', () => {
         });
 
         test('should start animation', () => {
+            mockEngine.getIsPlaying.mockReturnValue(true);
             visualizer.startAudioAnimation();
 
             expect(visualizer.animationId).not.toBeNull();

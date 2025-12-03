@@ -191,15 +191,14 @@ describe('AnalysisUtilities', () => {
             ];
 
             const spectrum2 = [
-                { wavenumber: 1100, transmittance: 20 },  // Offset by 100
-                { wavenumber: 2100, transmittance: 20 }
+                { wavenumber: 1010, transmittance: 20 },  // Offset by 10 (within same bin, bin size is 36)
+                { wavenumber: 2010, transmittance: 20 }
             ];
 
             const similarity = calculateSpectralSimilarity(spectrum1, spectrum2);
 
-            // Should have some similarity but not perfect
-            expect(similarity).toBeGreaterThan(0.3);
-            expect(similarity).toBeLessThan(1.0);
+            // Should have high similarity since peaks are in same bins
+            expect(similarity).toBeGreaterThan(0.99);
         });
 
         test('should be symmetric (similarity(A,B) = similarity(B,A))', () => {

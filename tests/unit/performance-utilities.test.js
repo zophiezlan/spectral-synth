@@ -2,6 +2,8 @@
  * Unit tests for Performance Utilities
  */
 
+import { jest } from '@jest/globals';
+
 describe('PerformanceUtilities', () => {
     describe('debounce', () => {
         let debounce;

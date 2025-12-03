@@ -5,7 +5,7 @@
  * This module provides browser-based parsing of JCAMP-DX files.
  */
 
-class JCAMPImporter {
+export class JCAMPImporter {
     /**
      * Parse JCAMP-DX file containing FTIR data
      * 

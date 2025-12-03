@@ -9,7 +9,7 @@
  */
 
 // Utility: Loading overlay
-const LoadingOverlay = {
+export const LoadingOverlay = {
     show(message = 'Loading...') {
         const overlay = document.getElementById('loading-overlay');
         const text = overlay.querySelector('.loading-text');
@@ -23,7 +23,7 @@ const LoadingOverlay = {
 };
 
 // Utility: Toast notifications (replaces alerts)
-const Toast = {
+export const Toast = {
     show(message, type = 'info', duration = 3000) {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -57,7 +57,7 @@ const Toast = {
 };
 
 // Utility: Screen reader announcements
-const ScreenReader = {
+export const ScreenReader = {
     announce(message) {
         const status = document.getElementById('playback-status');
         if (status) {
@@ -69,7 +69,7 @@ const ScreenReader = {
 };
 
 // Utility: Error handler
-const ErrorHandler = {
+export const ErrorHandler = {
     handle(error, userMessage, options = {}) {
         console.error('Error:', error);
 
@@ -111,7 +111,7 @@ const iOSAudioHelper = {
 };
 
 // Utility: Browser compatibility checker
-const BrowserCompatibility = {
+export const BrowserCompatibility = {
     check() {
         const required = {
             'Web Audio API': ('AudioContext' in window) || ('webkitAudioContext' in window),
@@ -143,7 +143,7 @@ const BrowserCompatibility = {
 };
 
 // Utility: Enhanced micro-interactions
-const MicroInteractions = {
+export const MicroInteractions = {
     /**
      * Add pulse animation to element
      * @param {HTMLElement} element - Element to animate
@@ -197,7 +197,7 @@ const MicroInteractions = {
 };
 
 // Utility: Format time with dynamic units
-const TimeFormatter = {
+export const TimeFormatter = {
     format(ms) {
         if (ms < 1000) {
             return `${Math.round(ms)} ms`;

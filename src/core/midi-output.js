@@ -5,7 +5,7 @@
  * Maps audio frequencies from spectral peaks to MIDI note numbers.
  */
 
-class MIDIOutput {
+export class MIDIOutput {
     constructor() {
         this.midiAccess = null;
         this.selectedOutput = null;

@@ -1,65 +1,79 @@
 /**
  * Unit tests for Storage Utilities
+ * 
+ * Tests the Favorites object from storage-utilities.js
  */
 
-describe('StorageUtilities', () => {
-    let StorageUtilities;
+import { jest } from '@jest/globals';
+
+// Mock Toast module before importing Favorites
+jest.unstable_mockModule('../../src/utils/ui-utilities.js', () => ({
+    Toast: {
+        success: jest.fn(),
+        error: jest.fn(),
+        info: jest.fn()
+    }
+}));
+
+// Import Favorites after mocking dependencies
+const { Favorites } = await import('../../src/utils/storage-utilities.js');
+const { Toast } = await import('../../src/utils/ui-utilities.js');
+
+describe('Favorites', () => {
+    let getItemSpy, setItemSpy, mockStorage;
 
     beforeEach(() => {
-        // Clear mocks before each test
+        // Clear and restore all mocks before each test
         jest.clearAllMocks();
-        localStorage.clear();
-
-        // Mock StorageUtilities for testing
-        StorageUtilities = {
-            saveFavorites: function(favorites) {
-                try {
-                    const data = JSON.stringify(favorites);
-                    localStorage.setItem('spectral-synth-favorites', data);
-                    return true;
-                } catch (error) {
-                    console.error('Failed to save favorites:', error);
-                    return false;
-                }
-            },
-
-            loadFavorites: function() {
-                try {
-                    const data = localStorage.getItem('spectral-synth-favorites');
-                    return data ? JSON.parse(data) : [];
-                } catch (error) {
-                    console.error('Failed to load favorites:', error);
-                    return [];
-                }
-            },
-
-            toggleFavorite: function(substanceId) {
-                const favorites = this.loadFavorites();
-                const index = favorites.indexOf(substanceId);
-
-                if (index > -1) {
-                    favorites.splice(index, 1);
-                } else {
-                    favorites.push(substanceId);
-                }
-
-                this.saveFavorites(favorites);
-                return index === -1; // Returns true if added, false if removed
-            },
-
-            isFavorite: function(substanceId) {
-                const favorites = this.loadFavorites();
-                return favorites.includes(substanceId);
-            }
-        };
+        jest.restoreAllMocks();
+        
+        // Create mock storage
+        mockStorage = {};
+        
+        // Spy on localStorage methods (using the one from setup.js)
+        getItemSpy = jest.spyOn(Storage.prototype, 'getItem');
+        setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+        
+        // Implement mock behavior
+        getItemSpy.mockImplementation((key) => mockStorage[key] || null);
+        setItemSpy.mockImplementation((key, value) => { mockStorage[key] = value; });
     });
 
-    describe('saveFavorites', () => {
+    afterEach(() => {
+        // Restore original implementations
+        jest.restoreAllMocks();
+    });
+
+    describe('load', () => {
+        test('should load favorites from localStorage', () => {
+            mockStorage['spectral-synth-favorites'] = JSON.stringify(['caffeine', 'mdma']);
+
+            const result = Favorites.load();
+
+            expect(result).toEqual(['caffeine', 'mdma']);
+            expect(localStorage.getItem).toHaveBeenCalledWith('spectral-synth-favorites');
+        });
+
+        test('should return empty array when no favorites exist', () => {
+            const result = Favorites.load();
+
+            expect(result).toEqual([]);
+        });
+
+        test('should return empty array on parse error', () => {
+            mockStorage['spectral-synth-favorites'] = 'invalid json';
+
+            const result = Favorites.load();
+
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('save', () => {
         test('should save favorites to localStorage', () => {
             const favorites = ['caffeine', 'mdma', 'cocaine'];
-            const result = StorageUtilities.saveFavorites(favorites);
+            Favorites.save(favorites);
 
-            expect(result).toBe(true);
             expect(localStorage.setItem).toHaveBeenCalledWith(
                 'spectral-synth-favorites',
                 JSON.stringify(favorites)
@@ -67,9 +81,8 @@ describe('StorageUtilities', () => {
         });
 
         test('should handle empty favorites array', () => {
-            const result = StorageUtilities.saveFavorites([]);
+            Favorites.save([]);
 
-            expect(result).toBe(true);
             expect(localStorage.setItem).toHaveBeenCalledWith(
                 'spectral-synth-favorites',
                 '[]'
@@ -77,83 +90,87 @@ describe('StorageUtilities', () => {
         });
     });
 
-    describe('loadFavorites', () => {
-        test('should load favorites from localStorage', () => {
-            const favorites = ['caffeine', 'mdma'];
-            localStorage.getItem.mockReturnValue(JSON.stringify(favorites));
+    describe('add', () => {
+        test('should add substance to favorites', () => {
+            Favorites.add('caffeine');
 
-            const result = StorageUtilities.loadFavorites();
-
-            expect(result).toEqual(favorites);
-            expect(localStorage.getItem).toHaveBeenCalledWith('spectral-synth-favorites');
+            expect(localStorage.setItem).toHaveBeenCalled();
+            expect(Toast.success).toHaveBeenCalled();
+            expect(Favorites.load()).toContain('caffeine');
         });
 
-        test('should return empty array when no favorites exist', () => {
-            localStorage.getItem.mockReturnValue(null);
+        test('should not add duplicate substance', () => {
+            mockStorage['spectral-synth-favorites'] = JSON.stringify(['caffeine']);
+            
+            Favorites.add('caffeine');
 
-            const result = StorageUtilities.loadFavorites();
-
-            expect(result).toEqual([]);
-        });
-
-        test('should return empty array on parse error', () => {
-            localStorage.getItem.mockReturnValue('invalid json');
-
-            const result = StorageUtilities.loadFavorites();
-
-            expect(result).toEqual([]);
+            // Should not call setItem again since caffeine already exists
+            expect(localStorage.setItem).not.toHaveBeenCalled();
         });
     });
 
-    describe('toggleFavorite', () => {
-        test('should add substance to favorites', () => {
-            localStorage.getItem.mockReturnValue('[]');
+    describe('remove', () => {
+        test('should remove substance from favorites', () => {
+            mockStorage['spectral-synth-favorites'] = JSON.stringify(['caffeine', 'mdma']);
 
-            const result = StorageUtilities.toggleFavorite('caffeine');
+            Favorites.remove('caffeine');
+
+            expect(localStorage.setItem).toHaveBeenCalled();
+            expect(Toast.info).toHaveBeenCalled();
+            expect(Favorites.load()).not.toContain('caffeine');
+            expect(Favorites.load()).toContain('mdma');
+        });
+    });
+
+    describe('toggle', () => {
+        test('should add substance when not in favorites', () => {
+            const result = Favorites.toggle('caffeine');
 
             expect(result).toBe(true);
-            expect(localStorage.setItem).toHaveBeenCalledWith(
-                'spectral-synth-favorites',
-                '["caffeine"]'
-            );
+            expect(Toast.success).toHaveBeenCalled();
         });
 
-        test('should remove substance from favorites', () => {
-            localStorage.getItem.mockReturnValue('["caffeine","mdma"]');
+        test('should remove substance when already in favorites', () => {
+            mockStorage['spectral-synth-favorites'] = JSON.stringify(['caffeine']);
 
-            const result = StorageUtilities.toggleFavorite('caffeine');
+            const result = Favorites.toggle('caffeine');
 
             expect(result).toBe(false);
-            expect(localStorage.setItem).toHaveBeenCalledWith(
-                'spectral-synth-favorites',
-                '["mdma"]'
-            );
+            expect(Toast.info).toHaveBeenCalled();
         });
     });
 
     describe('isFavorite', () => {
         test('should return true for favorited substance', () => {
-            localStorage.getItem.mockReturnValue('["caffeine","mdma"]');
+            mockStorage['spectral-synth-favorites'] = JSON.stringify(['caffeine', 'mdma']);
 
-            const result = StorageUtilities.isFavorite('caffeine');
-
-            expect(result).toBe(true);
+            expect(Favorites.isFavorite('caffeine')).toBe(true);
         });
 
         test('should return false for non-favorited substance', () => {
-            localStorage.getItem.mockReturnValue('["caffeine","mdma"]');
+            mockStorage['spectral-synth-favorites'] = JSON.stringify(['caffeine', 'mdma']);
 
-            const result = StorageUtilities.isFavorite('cocaine');
-
-            expect(result).toBe(false);
+            expect(Favorites.isFavorite('cocaine')).toBe(false);
         });
 
         test('should return false when no favorites exist', () => {
-            localStorage.getItem.mockReturnValue(null);
+            expect(Favorites.isFavorite('caffeine')).toBe(false);
+        });
+    });
 
-            const result = StorageUtilities.isFavorite('caffeine');
+    describe('getAll', () => {
+        test('should return all favorites', () => {
+            mockStorage['spectral-synth-favorites'] = JSON.stringify(['caffeine', 'mdma', 'cocaine']);
 
-            expect(result).toBe(false);
+            const result = Favorites.getAll();
+
+            expect(result).toEqual(['caffeine', 'mdma', 'cocaine']);
+        });
+
+        test('should return empty array when no favorites', () => {
+            const result = Favorites.getAll();
+
+            expect(result).toEqual([]);
         });
     });
 });

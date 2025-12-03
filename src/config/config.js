@@ -5,7 +5,7 @@
  * Adjust these values to customize the application behavior.
  */
 
-const CONFIG = {
+export const CONFIG = {
     // Frequency mapping parameters
     frequency: {
         // FTIR wavenumber range (cm⁻¹)

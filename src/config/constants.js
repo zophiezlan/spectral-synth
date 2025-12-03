@@ -5,7 +5,7 @@
  * Reduces magic numbers and improves maintainability.
  */
 
-const CONSTANTS = Object.freeze({
+export const CONSTANTS = Object.freeze({
     // Timing constants (milliseconds)
     TIMING: {
         SEARCH_DEBOUNCE: 300,

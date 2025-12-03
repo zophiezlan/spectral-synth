@@ -5,23 +5,22 @@
  * and caching to improve initial page load performance.
  */
 
-const DataLoader = (function() {
-    // Private cache for loaded data
-    const cache = new Map();
+// Private cache for loaded data
+const cache = new Map();
 
-    // Track loading state
-    const loadingState = new Map();
+// Track loading state
+const loadingState = new Map();
 
-    /**
-     * Load JSON data from a URL with progress tracking
-     *
-     * @param {string} url - URL to fetch data from
-     * @param {Object} options - Loading options
-     * @param {Function} options.onProgress - Progress callback (receives percentage 0-100)
-     * @param {boolean} options.useCache - Whether to cache the result (default: true)
-     * @returns {Promise<Object>} The loaded data
-     */
-    async function loadJSON(url, options = {}) {
+/**
+ * Load JSON data from a URL with progress tracking
+ *
+ * @param {string} url - URL to fetch data from
+ * @param {Object} options - Loading options
+ * @param {Function} options.onProgress - Progress callback (receives percentage 0-100)
+ * @param {boolean} options.useCache - Whether to cache the result (default: true)
+ * @returns {Promise<Object>} The loaded data
+ */
+export async function loadJSON(url, options = {}) {
         const {
             onProgress = null,
             useCache = true
@@ -113,40 +112,40 @@ const DataLoader = (function() {
         loadingState.set(url, loadPromise);
 
         return loadPromise;
-    }
+}
 
-    /**
-     * Preload data in the background without blocking
-     *
-     * @param {string} url - URL to preload
-     * @param {Object} options - Loading options
-     * @returns {Promise<void>}
-     */
-    async function preload(url, options = {}) {
+/**
+ * Preload data in the background without blocking
+ *
+ * @param {string} url - URL to preload
+ * @param {Object} options - Loading options
+ * @returns {Promise<void>}
+ */
+export async function preload(url, options = {}) {
         try {
             await loadJSON(url, { ...options, useCache: true });
             console.info('[DataLoader] Preloaded:', url);
         } catch (error) {
             console.warn('[DataLoader] Preload failed:', url, error);
         }
-    }
+}
 
-    /**
-     * Check if data is cached
-     *
-     * @param {string} url - URL to check
-     * @returns {boolean} Whether data is cached
-     */
-    function isCached(url) {
+/**
+ * Check if data is cached
+ *
+ * @param {string} url - URL to check
+ * @returns {boolean} Whether data is cached
+ */
+export function isCached(url) {
         return cache.has(url);
-    }
+}
 
-    /**
-     * Clear cached data
-     *
-     * @param {string} url - URL to clear (if not provided, clears all)
-     */
-    function clearCache(url = null) {
+/**
+ * Clear cached data
+ *
+ * @param {string} url - URL to clear (if not provided, clears all)
+ */
+export function clearCache(url = null) {
         if (url) {
             cache.delete(url);
             console.info('[DataLoader] Cleared cache for:', url);
@@ -154,14 +153,14 @@ const DataLoader = (function() {
             cache.clear();
             console.info('[DataLoader] Cleared all cache');
         }
-    }
+}
 
-    /**
-     * Get cache statistics
-     *
-     * @returns {Object} Cache statistics
-     */
-    function getCacheStats() {
+/**
+ * Get cache statistics
+ *
+ * @returns {Object} Cache statistics
+ */
+export function getCacheStats() {
         let totalSize = 0;
         const entries = [];
 
@@ -176,17 +175,13 @@ const DataLoader = (function() {
             totalSize,
             entries
         };
-    }
+}
 
-    // Public API
-    return {
-        loadJSON,
-        preload,
-        isCached,
-        clearCache,
-        getCacheStats
-    };
-})();
-
-// Make available globally
-window.DataLoader = DataLoader;
+// For backward compatibility, also export as default object
+export const DataLoader = {
+    loadJSON,
+    preload,
+    isCached,
+    clearCache,
+    getCacheStats
+};

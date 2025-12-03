@@ -5,7 +5,7 @@
  * Supports interactive peak selection for custom sonification.
  */
 
-class Visualizer {
+export class Visualizer {
     /**
      * Create a new Visualizer instance
      * 

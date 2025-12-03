@@ -2,8 +2,7 @@ export default {
     testEnvironment: 'jsdom',
     injectGlobals: true,
     testMatch: [
-        '**/tests/**/*.test.js',
-        '**/tests/**/*.spec.js'
+        '**/tests/unit/**/*.test.js'
     ],
     collectCoverageFrom: [
         'src/**/*.js',

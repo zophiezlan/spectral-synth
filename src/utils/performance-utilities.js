@@ -16,7 +16,7 @@
  * @param {boolean} immediate - If true, trigger on leading edge instead of trailing
  * @returns {Function} Debounced function
  */
-function debounce(func, wait, immediate = false) {
+export function debounce(func, wait, immediate = false) {
     let timeout;
     
     return function executedFunction(...args) {
@@ -43,7 +43,7 @@ function debounce(func, wait, immediate = false) {
  * @param {number} limit - Milliseconds between calls
  * @returns {Function} Throttled function
  */
-function throttle(func, limit) {
+export function throttle(func, limit) {
     let inThrottle;
     let lastResult;
     
@@ -66,7 +66,7 @@ function throttle(func, limit) {
 /**
  * RequestAnimationFrame utility with automatic cleanup
  */
-const RAFManager = {
+export const RAFManager = {
     activeRAFs: new Map(),
     
     /**
@@ -111,7 +111,7 @@ const RAFManager = {
 /**
  * Memory management utilities
  */
-const MemoryManager = {
+export const MemoryManager = {
     /**
      * Clear data from memory with null assignment
      * @param {Object} obj - Object to clear
@@ -147,7 +147,7 @@ const MemoryManager = {
 /**
  * Lazy loading utility for heavy operations
  */
-const LazyLoader = {
+export const LazyLoader = {
     cache: new Map(),
     
     /**
@@ -185,7 +185,7 @@ const LazyLoader = {
 /**
  * Batch DOM operations for better performance
  */
-const DOMBatcher = {
+export const DOMBatcher = {
     /**
      * Update multiple elements at once using DocumentFragment
      * @param {HTMLElement} container - Container element
@@ -213,7 +213,7 @@ const DOMBatcher = {
 /**
  * Intersection Observer utility for lazy loading
  */
-const LazyObserver = {
+export const LazyObserver = {
     observer: null,
     
     /**

@@ -7,7 +7,7 @@
  * We use logarithmic mapping to preserve perceptual relationships
  */
 
-class FrequencyMapper {
+export class FrequencyMapper {
     constructor() {
         // Load configuration from global CONFIG object
         // FTIR typical range in wavenumbers (cm⁻¹)

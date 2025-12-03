@@ -9,7 +9,7 @@
  * @param {Object} item - Substance data object
  * @returns {string} Category name
  */
-function categorizeSubstance(item) {
+export function categorizeSubstance(item) {
     const name = item.name.toLowerCase();
     const formula = (item.formula || '').toLowerCase();
 

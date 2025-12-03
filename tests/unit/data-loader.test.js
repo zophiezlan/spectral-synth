@@ -2,6 +2,8 @@
  * Unit tests for DataLoader utility
  */
 
+import { jest } from '@jest/globals';
+
 describe('DataLoader', () => {
     let DataLoader;
     let fetchMock;
