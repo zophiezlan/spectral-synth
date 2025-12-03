@@ -1,6 +1,6 @@
 /**
  * DOM Elements Module
- * 
+ *
  * Centralizes all DOM element references for the application.
  * This improves maintainability by keeping element selectors in one place.
  */
@@ -38,5 +38,4 @@ export const ftirCanvas = document.getElementById('ftir-canvas');
 export const audioCanvas = document.getElementById('audio-canvas');
 export const selectAllButton = document.getElementById('select-all');
 export const playSelectedButton = document.getElementById('play-selected');
-
 

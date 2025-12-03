@@ -1,6 +1,6 @@
 /**
  * MIDI Output - Send spectral peaks as MIDI notes to external synthesizers
- * 
+ *
  * Uses the Web MIDI API to communicate with hardware and software MIDI devices.
  * Maps audio frequencies from spectral peaks to MIDI note numbers.
  */
@@ -10,7 +10,7 @@ export class MIDIOutput {
         this.midiAccess = null;
         this.selectedOutput = null;
         this.midiSupported = false;
-        
+
         // Default MIDI parameters
         this.velocity = 80; // 0-127
         this.noteDuration = 500; // milliseconds
@@ -19,9 +19,9 @@ export class MIDIOutput {
 
     /**
      * Initialize MIDI access
-     * 
+     *
      * Requests MIDI access from the browser and detects available output devices.
-     * 
+     *
      * @returns {Promise<boolean>} True if MIDI is supported and initialized
      * @throws {Error} If MIDI access is denied or not supported
      */
@@ -44,7 +44,7 @@ export class MIDIOutput {
 
     /**
      * Get list of available MIDI output devices
-     * 
+     *
      * @returns {Array} Array of MIDI output devices
      */
     getOutputDevices() {
@@ -68,7 +68,7 @@ export class MIDIOutput {
 
     /**
      * Select MIDI output device
-     * 
+     *
      * @param {string} deviceId - ID of the MIDI output device
      * @returns {boolean} True if device was selected successfully
      */
@@ -89,24 +89,24 @@ export class MIDIOutput {
 
     /**
      * Map audio frequency to MIDI note number
-     * 
+     *
      * Uses standard A4 = 440 Hz tuning.
      * MIDI note 69 = A4 (440 Hz)
-     * 
+     *
      * @param {number} frequency - Frequency in Hz
      * @returns {number} MIDI note number (0-127), clamped to valid range
      */
     frequencyToMIDINote(frequency) {
         // Formula: MIDI note = 69 + 12 * log2(frequency / 440)
         const noteNumber = 69 + 12 * Math.log2(frequency / 440);
-        
+
         // Clamp to valid MIDI note range (0-127)
         return Math.max(0, Math.min(127, Math.round(noteNumber)));
     }
 
     /**
      * Send a single MIDI note
-     * 
+     *
      * @param {number} note - MIDI note number (0-127)
      * @param {number} velocity - Note velocity (0-127)
      * @param {number} duration - Note duration in milliseconds
@@ -131,10 +131,10 @@ export class MIDIOutput {
 
     /**
      * Send spectrum peaks as MIDI notes
-     * 
+     *
      * Converts spectral peaks to MIDI notes and sends them to the selected output device.
      * Can be sent as a chord (all at once) or as an arpeggio (sequentially).
-     * 
+     *
      * @param {Array} peaks - Array of peak objects with audioFreq and absorbance
      * @param {string} mode - 'chord' or 'arpeggio'
      * @returns {Promise<void>}
@@ -157,23 +157,23 @@ export class MIDIOutput {
                 const velocity = Math.max(1, Math.min(127, Math.round(this.velocity * peak.absorbance)));
                 this.sendNote(note, velocity, this.noteDuration);
             });
-            
+
             console.log(`Sent ${peaks.length} MIDI notes as chord`);
         } else if (mode === 'arpeggio') {
             // Send notes sequentially
             const noteDelay = this.noteDuration / peaks.length;
-            
+
             for (let i = 0; i < peaks.length; i++) {
                 const peak = peaks[i];
                 const note = this.frequencyToMIDINote(peak.audioFreq);
                 const velocity = Math.max(1, Math.min(127, Math.round(this.velocity * peak.absorbance)));
-                
+
                 // Schedule note with delay
                 setTimeout(() => {
                     this.sendNote(note, velocity, this.noteDuration);
                 }, i * noteDelay);
             }
-            
+
             console.log(`Sent ${peaks.length} MIDI notes as arpeggio`);
         } else {
             throw new Error(`Invalid mode: ${mode}. Must be 'chord' or 'arpeggio'.`);
@@ -182,7 +182,7 @@ export class MIDIOutput {
 
     /**
      * Send all notes off (panic button)
-     * 
+     *
      * Sends note off messages for all possible notes to stop any stuck notes.
      */
     allNotesOff() {
@@ -205,7 +205,7 @@ export class MIDIOutput {
 
     /**
      * Set MIDI velocity
-     * 
+     *
      * @param {number} velocity - Velocity value (0-127)
      */
     setVelocity(velocity) {
@@ -214,7 +214,7 @@ export class MIDIOutput {
 
     /**
      * Set note duration
-     * 
+     *
      * @param {number} duration - Duration in milliseconds
      */
     setNoteDuration(duration) {
@@ -223,7 +223,7 @@ export class MIDIOutput {
 
     /**
      * Set MIDI channel
-     * 
+     *
      * @param {number} channel - MIDI channel (0-15, corresponding to channels 1-16)
      */
     setChannel(channel) {
@@ -232,7 +232,7 @@ export class MIDIOutput {
 
     /**
      * Check if MIDI is supported
-     * 
+     *
      * @returns {boolean} True if Web MIDI API is supported
      */
     isSupported() {
@@ -241,7 +241,7 @@ export class MIDIOutput {
 
     /**
      * Check if a device is selected
-     * 
+     *
      * @returns {boolean} True if a device is selected
      */
     hasSelectedDevice() {
@@ -250,10 +250,10 @@ export class MIDIOutput {
 
     /**
      * Export spectrum peaks as Standard MIDI File (.mid)
-     * 
+     *
      * Creates a downloadable MIDI file with peaks encoded as notes.
      * Supports different playback modes (chord, sequential, arpeggio).
-     * 
+     *
      * @param {Array} peaks - Array of peak objects with audioFreq and absorbance
      * @param {string} mode - Playback mode: 'chord', 'sequential', 'arpeggio-up', 'arpeggio-down', 'arpeggio-updown', 'random'
      * @param {number} tempo - Tempo in BPM (default: 120)
@@ -267,7 +267,7 @@ export class MIDIOutput {
 
         // Sort/arrange peaks based on mode
         let orderedPeaks = [...peaks];
-        
+
         switch (mode) {
             case 'chord':
                 // All notes play simultaneously - no reordering needed
@@ -297,7 +297,7 @@ export class MIDIOutput {
 
         // Build MIDI file
         const midiData = this.buildMIDIFile(orderedPeaks, mode, tempo);
-        
+
         // Create blob and download
         const blob = new Blob([midiData], { type: 'audio/midi' });
         const url = URL.createObjectURL(blob);
@@ -312,9 +312,9 @@ export class MIDIOutput {
 
     /**
      * Build Standard MIDI File binary data
-     * 
+     *
      * Creates a Type 0 MIDI file with a single track containing the notes.
-     * 
+     *
      * @param {Array} peaks - Ordered array of peak objects
      * @param {string} mode - Playback mode
      * @param {number} tempo - Tempo in BPM
@@ -324,14 +324,14 @@ export class MIDIOutput {
     buildMIDIFile(peaks, mode, tempo) {
         const ticksPerBeat = 480; // Standard MIDI resolution
         const microsecondsPerBeat = Math.round(60000000 / tempo);
-        
+
         // Calculate note timing
         const noteDurationTicks = Math.round((this.noteDuration / 1000) * (ticksPerBeat * tempo / 60));
         const noteSpacingTicks = mode === 'chord' ? 0 : Math.round(noteDurationTicks * 0.8);
 
         // Build track events
         const events = [];
-        
+
         // Set tempo meta event
         events.push(...this.createTempoEvent(0, microsecondsPerBeat));
 
@@ -340,7 +340,7 @@ export class MIDIOutput {
             peaks.forEach((peak, idx) => {
                 const note = this.frequencyToMIDINote(peak.audioFreq);
                 const velocity = Math.max(1, Math.min(127, Math.round(this.velocity * peak.absorbance)));
-                
+
                 // Note on at time 0
                 events.push(...this.createNoteEvent(0, 0x90, note, velocity));
                 // Note off after duration
@@ -352,14 +352,14 @@ export class MIDIOutput {
             peaks.forEach((peak, idx) => {
                 const note = this.frequencyToMIDINote(peak.audioFreq);
                 const velocity = Math.max(1, Math.min(127, Math.round(this.velocity * peak.absorbance)));
-                
+
                 // Note on
                 const deltaTimeOn = idx === 0 ? 0 : noteSpacingTicks;
                 events.push(...this.createNoteEvent(deltaTimeOn, 0x90, note, velocity));
-                
+
                 // Note off
                 events.push(...this.createNoteEvent(noteDurationTicks, 0x80, note, 0));
-                
+
                 currentTick += deltaTimeOn + noteDurationTicks;
             });
         }
@@ -381,7 +381,7 @@ export class MIDIOutput {
 
     /**
      * Create MIDI file header chunk
-     * 
+     *
      * @param {number} format - MIDI format (0, 1, or 2)
      * @param {number} tracks - Number of tracks
      * @param {number} division - Ticks per quarter note
@@ -390,37 +390,37 @@ export class MIDIOutput {
      */
     createMIDIHeader(format, tracks, division) {
         const header = new Uint8Array(14);
-        
+
         // "MThd" chunk type
         header[0] = 0x4D; // M
         header[1] = 0x54; // T
         header[2] = 0x68; // h
         header[3] = 0x64; // d
-        
+
         // Chunk length (always 6 for header)
         header[4] = 0x00;
         header[5] = 0x00;
         header[6] = 0x00;
         header[7] = 0x06;
-        
+
         // Format (2 bytes)
         header[8] = (format >> 8) & 0xFF;
         header[9] = format & 0xFF;
-        
+
         // Number of tracks (2 bytes)
         header[10] = (tracks >> 8) & 0xFF;
         header[11] = tracks & 0xFF;
-        
+
         // Division (ticks per quarter note, 2 bytes)
         header[12] = (division >> 8) & 0xFF;
         header[13] = division & 0xFF;
-        
+
         return header;
     }
 
     /**
      * Create MIDI track chunk
-     * 
+     *
      * @param {Array} events - Array of event bytes
      * @returns {Uint8Array} Track chunk
      * @private
@@ -428,29 +428,29 @@ export class MIDIOutput {
     createMIDITrack(events) {
         const eventData = new Uint8Array(events);
         const track = new Uint8Array(8 + eventData.length);
-        
+
         // "MTrk" chunk type
         track[0] = 0x4D; // M
         track[1] = 0x54; // T
         track[2] = 0x72; // r
         track[3] = 0x6B; // k
-        
+
         // Chunk length (4 bytes, big-endian)
         const length = eventData.length;
         track[4] = (length >> 24) & 0xFF;
         track[5] = (length >> 16) & 0xFF;
         track[6] = (length >> 8) & 0xFF;
         track[7] = length & 0xFF;
-        
+
         // Event data
         track.set(eventData, 8);
-        
+
         return track;
     }
 
     /**
      * Create a MIDI note event (note on or note off)
-     * 
+     *
      * @param {number} deltaTime - Ticks since last event
      * @param {number} status - Status byte (0x90 for note on, 0x80 for note off)
      * @param {number} note - MIDI note number (0-127)
@@ -465,7 +465,7 @@ export class MIDIOutput {
 
     /**
      * Create a tempo meta event
-     * 
+     *
      * @param {number} deltaTime - Ticks since last event
      * @param {number} microsecondsPerBeat - Microseconds per quarter note
      * @returns {Array} Event bytes
@@ -486,7 +486,7 @@ export class MIDIOutput {
 
     /**
      * Create a generic meta event
-     * 
+     *
      * @param {number} deltaTime - Ticks since last event
      * @param {number} type - Meta event type
      * @param {Array} data - Event data bytes
@@ -501,22 +501,24 @@ export class MIDIOutput {
 
     /**
      * Encode a number as MIDI variable-length quantity
-     * 
+     *
      * @param {number} value - Value to encode
      * @returns {Array} Variable-length encoded bytes
      * @private
      */
     encodeVariableLength(value) {
-        if (value === 0) return [0];
-        
+        if (value === 0) {
+            return [0];
+        }
+
         const bytes = [];
         let buffer = value & 0x7F;
-        
+
         while (value >>= 7) {
             buffer <<= 8;
             buffer |= ((value & 0x7F) | 0x80);
         }
-        
+
         while (true) {
             bytes.push(buffer & 0xFF);
             if (buffer & 0x80) {
@@ -525,7 +527,7 @@ export class MIDIOutput {
                 break;
             }
         }
-        
+
         return bytes;
     }
 }

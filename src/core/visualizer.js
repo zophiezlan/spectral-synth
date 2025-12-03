@@ -1,6 +1,6 @@
 /**
  * Visualizer - Canvas-based visualization for FTIR and audio FFT
- * 
+ *
  * Handles rendering of FTIR spectra and real-time audio FFT visualization.
  * Supports interactive peak selection for custom sonification.
  */
@@ -10,7 +10,7 @@ import { CONFIG } from '../config/config.js';
 export class Visualizer {
     /**
      * Create a new Visualizer instance
-     * 
+     *
      * @param {HTMLCanvasElement} ftirCanvas - Canvas for FTIR spectrum display
      * @param {HTMLCanvasElement} audioCanvas - Canvas for audio FFT display
      * @throws {Error} If canvases are invalid
@@ -54,7 +54,7 @@ export class Visualizer {
 
     /**
      * Set up click handler for peak selection
-     * 
+     *
      * Enables interactive peak selection by clicking on the FTIR spectrum.
      * Also changes cursor to pointer when hovering over peaks.
      * Includes full touch support for mobile devices.
@@ -62,7 +62,9 @@ export class Visualizer {
     setupClickHandler() {
         // Helper function to handle interaction (click or touch)
         const handleInteraction = (clientX, clientY) => {
-            if (!this.currentPeaks || this.currentPeaks.length === 0) return;
+            if (!this.currentPeaks || this.currentPeaks.length === 0) {
+                return;
+            }
 
             const rect = this.ftirCanvas.getBoundingClientRect();
             const clickX = ((clientX - rect.left) / rect.width) * this.ftirCanvas.width;
@@ -110,12 +112,12 @@ export class Visualizer {
         this.ftirCanvas.addEventListener('touchend', (e) => {
             // Prevent default to avoid triggering click event as well
             e.preventDefault();
-            
+
             if (e.changedTouches && e.changedTouches.length > 0) {
                 const touch = e.changedTouches[0];
                 handleInteraction(touch.clientX, touch.clientY);
             }
-            
+
             // Always redraw to ensure spectrum stays visible
             if (this.currentSpectrum) {
                 this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks || []);
@@ -152,7 +154,7 @@ export class Visualizer {
         // Change cursor to pointer and show tooltip when hovering over peaks
         this.ftirCanvas.addEventListener('mousemove', (e) => {
             const closestIndex = handleHover(e.clientX, e.clientY);
-            
+
             if (closestIndex !== -1) {
                 this.ftirCanvas.style.cursor = 'pointer';
                 this.showTooltip(this.currentPeaks[closestIndex], e.clientX, e.clientY, closestIndex);
@@ -168,7 +170,7 @@ export class Visualizer {
             if (e.touches && e.touches.length > 0) {
                 const touch = e.touches[0];
                 const closestIndex = handleHover(touch.clientX, touch.clientY);
-                
+
                 if (closestIndex !== -1) {
                     this.showTooltip(this.currentPeaks[closestIndex], touch.clientX, touch.clientY, closestIndex);
                 } else {
@@ -197,7 +199,9 @@ export class Visualizer {
      * @returns {Array} Selected peaks
      */
     getSelectedPeaks() {
-        if (!this.currentPeaks) return [];
+        if (!this.currentPeaks) {
+            return [];
+        }
         return Array.from(this.selectedPeakIndices)
             .map(idx => this.currentPeaks[idx])
             .filter(p => p !== undefined);
@@ -220,7 +224,9 @@ export class Visualizer {
      * Select all peaks
      */
     selectAllPeaks() {
-        if (!this.currentPeaks) return;
+        if (!this.currentPeaks) {
+            return;
+        }
         this.selectedPeakIndices.clear();
         this.currentPeaks.forEach((_, idx) => {
             this.selectedPeakIndices.add(idx);
@@ -241,7 +247,9 @@ export class Visualizer {
      */
     showTooltip(peak, x, y, index) {
         const tooltip = document.getElementById('peak-tooltip');
-        if (!tooltip) return;
+        if (!tooltip) {
+            return;
+        }
 
         const header = tooltip.querySelector('.tooltip-header');
         const content = tooltip.querySelector('.tooltip-content');
@@ -299,16 +307,36 @@ export class Visualizer {
      * @private
      */
     getFunctionalGroup(wavenumber) {
-        if (wavenumber > 3500 && wavenumber < 3700) return 'O-H stretch';
-        if (wavenumber > 3200 && wavenumber < 3500) return 'N-H stretch';
-        if (wavenumber > 3000 && wavenumber < 3100) return 'C-H aromatic';
-        if (wavenumber > 2850 && wavenumber < 3000) return 'C-H aliphatic';
-        if (wavenumber > 2100 && wavenumber < 2300) return 'C≡N / C≡C';
-        if (wavenumber > 1650 && wavenumber < 1750) return 'C=O carbonyl';
-        if (wavenumber > 1500 && wavenumber < 1650) return 'C=C aromatic';
-        if (wavenumber > 1350 && wavenumber < 1500) return 'C-H bend';
-        if (wavenumber > 1000 && wavenumber < 1300) return 'C-O stretch';
-        if (wavenumber > 650 && wavenumber < 900) return 'C-H aromatic';
+        if (wavenumber > 3500 && wavenumber < 3700) {
+            return 'O-H stretch';
+        }
+        if (wavenumber > 3200 && wavenumber < 3500) {
+            return 'N-H stretch';
+        }
+        if (wavenumber > 3000 && wavenumber < 3100) {
+            return 'C-H aromatic';
+        }
+        if (wavenumber > 2850 && wavenumber < 3000) {
+            return 'C-H aliphatic';
+        }
+        if (wavenumber > 2100 && wavenumber < 2300) {
+            return 'C≡N / C≡C';
+        }
+        if (wavenumber > 1650 && wavenumber < 1750) {
+            return 'C=O carbonyl';
+        }
+        if (wavenumber > 1500 && wavenumber < 1650) {
+            return 'C=C aromatic';
+        }
+        if (wavenumber > 1350 && wavenumber < 1500) {
+            return 'C-H bend';
+        }
+        if (wavenumber > 1000 && wavenumber < 1300) {
+            return 'C-O stretch';
+        }
+        if (wavenumber > 650 && wavenumber < 900) {
+            return 'C-H aromatic';
+        }
         return 'Fingerprint region';
     }
 
@@ -340,7 +368,9 @@ export class Visualizer {
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, width, height);
 
-        if (!spectrum || spectrum.length === 0) return;
+        if (!spectrum || spectrum.length === 0) {
+            return;
+        }
 
         // Draw grid
         this.drawGrid(ctx, width, height);
@@ -487,11 +517,15 @@ export class Visualizer {
         // Draw cached static elements
         ctx.drawImage(this.audioStaticCanvas, 0, 0);
 
-        if (!this.audioEngine) return;
+        if (!this.audioEngine) {
+            return;
+        }
 
         // Get frequency data
         const frequencyData = this.audioEngine.getFrequencyData();
-        if (!frequencyData) return;
+        if (!frequencyData) {
+            return;
+        }
 
         const bufferLength = frequencyData.length;
         const sampleRate = this.audioEngine.getSampleRate();

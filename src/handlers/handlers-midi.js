@@ -1,11 +1,11 @@
 /**
  * MIDI Handlers Module
- * 
+ *
  * Handles all MIDI-related operations:
  * - Device refresh and selection
  * - MIDI note sending
  * - MIDI file export
- * 
+ *
  * Dependencies: midiOutput, Toast, ErrorHandler, LoadingOverlay
  */
 
@@ -27,7 +27,9 @@ async function refreshMIDIDevices(context) {
         const devices = midiOutput.getOutputDevices();
         const deviceSelect = document.getElementById('midi-device-select');
 
-        if (!deviceSelect) return;
+        if (!deviceSelect) {
+            return;
+        }
 
         // Clear existing options
         deviceSelect.innerHTML = '<option value="">Select MIDI device...</option>';
@@ -60,7 +62,9 @@ function updateMIDISendButton(context) {
     const { midiOutput } = context;
     const sendButton = document.getElementById('send-midi-notes');
 
-    if (!sendButton) return;
+    if (!sendButton) {
+        return;
+    }
 
     if (midiOutput && midiOutput.isOutputSelected()) {
         sendButton.disabled = false;

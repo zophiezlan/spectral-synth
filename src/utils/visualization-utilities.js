@@ -1,6 +1,6 @@
 /**
  * Visualization Utilities Module
- * 
+ *
  * Provides visualization-related utilities:
  * - Thumbnail generation
  * - Color mapping
@@ -125,7 +125,9 @@ export const ResponsiveCanvas = {
      * @param {number} aspectRatio - Desired aspect ratio (width/height), default 2:1
      */
     setupCanvas(canvas, aspectRatio = 2) {
-        if (!canvas) return;
+        if (!canvas) {
+            return;
+        }
 
         // Define redraw handlers once to avoid repeated object creation
         const redrawHandlers = {
@@ -147,24 +149,26 @@ export const ResponsiveCanvas = {
 
         const resize = () => {
             const container = canvas.parentElement;
-            if (!container) return;
+            if (!container) {
+                return;
+            }
 
             // Get container width
             const containerWidth = container.clientWidth;
-            
+
             // Calculate dimensions based on screen size
             let canvasWidth, canvasHeight;
-            
+
             if (window.innerWidth <= 768) {
                 // Mobile: full container width, reduced height
                 canvasWidth = Math.min(containerWidth - 32, 600); // Subtract padding
                 canvasHeight = Math.min(canvasWidth / aspectRatio, 250);
-                
+
                 // Set canvas internal dimensions to match logical pixels
                 // This ensures drawing code coordinates match the display size
                 canvas.width = canvasWidth;
                 canvas.height = canvasHeight;
-                
+
                 // Set CSS size to match (no scaling needed)
                 canvas.style.width = canvasWidth + 'px';
                 canvas.style.height = canvasHeight + 'px';
@@ -175,7 +179,7 @@ export const ResponsiveCanvas = {
                 canvas.style.width = '100%';
                 canvas.style.height = 'auto';
             }
-            
+
             // Trigger redraw of current visualization after resize
             const handler = redrawHandlers[canvas.id];
             if (handler) {

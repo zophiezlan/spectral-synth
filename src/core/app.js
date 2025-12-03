@@ -3,7 +3,7 @@
  *
  * Coordinates between UI, data, audio engine, and visualization.
  * This is the main entry point that ties together all the modules.
- * 
+ *
  * Utility modules (LoadingOverlay, Toast, ErrorHandler, etc.) are now
  * loaded from separate files for better maintainability.
  */
@@ -254,7 +254,6 @@ function populateSubstanceSelector() {
 }
 
 
-
 /**
  * Set up event listeners
  */
@@ -333,8 +332,12 @@ function navigateSubstance(direction) {
 
     // Find next valid option (skip the first placeholder option)
     let newIndex = currentIndex + direction;
-    if (newIndex < 1) newIndex = options.length - 1;
-    if (newIndex >= options.length) newIndex = 1;
+    if (newIndex < 1) {
+        newIndex = options.length - 1;
+    }
+    if (newIndex >= options.length) {
+        newIndex = 1;
+    }
 
     if (newIndex >= 1 && newIndex < options.length) {
         substanceSelect.value = options[newIndex].value;
@@ -344,7 +347,7 @@ function navigateSubstance(direction) {
 
 /**
  * Handle search input with debouncing
- * 
+ *
  * Debounces search to avoid excessive filtering during typing.
  */
 function handleSearch() {
@@ -352,7 +355,7 @@ function handleSearch() {
     if (searchDebounceTimer) {
         clearTimeout(searchDebounceTimer);
     }
-    
+
     // Set new timer
     searchDebounceTimer = setTimeout(() => {
         currentSearchTerm = searchInput.value.trim();
@@ -631,10 +634,14 @@ function handlePeakSelectionChange(selectedPeaks) {
 
     if (count === 0) {
         selectionCount.textContent = 'Click peaks to select specific frequencies';
-        if (clearBtn) clearBtn.classList.add('hidden');
+        if (clearBtn) {
+            clearBtn.classList.add('hidden');
+        }
     } else {
         selectionCount.textContent = `${count} peak${count !== 1 ? 's' : ''} selected`;
-        if (clearBtn) clearBtn.classList.remove('hidden');
+        if (clearBtn) {
+            clearBtn.classList.remove('hidden');
+        }
     }
 
     console.log(`Peak selection changed: ${count} peaks selected`);
@@ -649,14 +656,15 @@ function handleClearSelection() {
 }
 
 
-
 /**
  * Handle CSV import
  * @param {Event} e - File input change event
  */
 async function handleCSVImport(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
     try {
         LoadingOverlay.show(`Importing ${file.name}...`);
@@ -737,7 +745,9 @@ async function handleExportWAV() {
  */
 async function handleJCAMPImport(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
     try {
         LoadingOverlay.show(`Importing JCAMP-DX: ${file.name}...`);
@@ -759,8 +769,12 @@ async function handleJCAMPImport(e) {
         // Enable export buttons
         const exportWAV = document.getElementById('export-wav');
         const exportMP3 = document.getElementById('export-mp3');
-        if (exportWAV) exportWAV.disabled = false;
-        if (exportMP3) exportMP3.disabled = false;
+        if (exportWAV) {
+            exportWAV.disabled = false;
+        }
+        if (exportMP3) {
+            exportMP3.disabled = false;
+        }
 
         LoadingOverlay.hide();
         Toast.success(`Successfully imported JCAMP-DX: ${data.name} (${data.metadata.finalPoints} data points)`);
@@ -820,13 +834,14 @@ async function handleExportMP3() {
 }
 
 
-
 /**
  * Refresh MIDI device list
  */
 async function refreshMIDIDevices() {
     const midiDeviceSelect = document.getElementById('midi-device-select');
-    if (!midiDeviceSelect) return;
+    if (!midiDeviceSelect) {
+        return;
+    }
 
     if (!midiOutput || !midiOutput.isSupported()) {
         Toast.warning('Web MIDI API is not supported in your browser', 4000);
@@ -840,9 +855,9 @@ async function refreshMIDIDevices() {
         }
 
         const devices = midiOutput.getOutputDevices();
-        
+
         midiDeviceSelect.innerHTML = '';
-        
+
         if (devices.length === 0) {
             const option = document.createElement('option');
             option.value = '';
@@ -875,11 +890,11 @@ async function refreshMIDIDevices() {
 function updateMIDISendButton() {
     const sendButton = document.getElementById('send-midi-notes');
     const exportButton = document.getElementById('export-midi-file');
-    
+
     if (sendButton) {
         sendButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput || !midiOutput.hasSelectedDevice();
     }
-    
+
     // MIDI file export doesn't require a device
     if (exportButton) {
         exportButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput;
@@ -937,7 +952,7 @@ async function handleExportMIDIFile() {
     try {
         const exportButton = document.getElementById('export-midi-file');
         const tempoSlider = document.getElementById('midi-tempo');
-        
+
         exportButton.disabled = true;
         exportButton.textContent = '⏳ Exporting...';
 
@@ -1087,7 +1102,9 @@ function setupEventListeners() {
             fileInput.addEventListener('change', handleCSVImport);
         }
         importCSV.addEventListener('click', () => {
-            if (fileInput) fileInput.click();
+            if (fileInput) {
+                fileInput.click();
+            }
         });
     }
 
@@ -1098,7 +1115,9 @@ function setupEventListeners() {
             jcampInput.addEventListener('change', handleJCAMPImport);
         }
         importJCAMP.addEventListener('click', () => {
-            if (jcampInput) jcampInput.click();
+            if (jcampInput) {
+                jcampInput.click();
+            }
         });
     }
 
@@ -1199,11 +1218,17 @@ function setupMenuModals() {
             settingsModal.style.display = 'none';
         };
 
-        if (settingsClose) settingsClose.addEventListener('click', closeSettings);
-        if (settingsOk) settingsOk.addEventListener('click', closeSettings);
+        if (settingsClose) {
+            settingsClose.addEventListener('click', closeSettings);
+        }
+        if (settingsOk) {
+            settingsOk.addEventListener('click', closeSettings);
+        }
 
         settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) closeSettings();
+            if (e.target === settingsModal) {
+                closeSettings();
+            }
         });
     }
 
@@ -1224,11 +1249,17 @@ function setupMenuModals() {
             importExportModal.style.display = 'none';
         };
 
-        if (importExportClose) importExportClose.addEventListener('click', closeImportExport);
-        if (importExportOk) importExportOk.addEventListener('click', closeImportExport);
+        if (importExportClose) {
+            importExportClose.addEventListener('click', closeImportExport);
+        }
+        if (importExportOk) {
+            importExportOk.addEventListener('click', closeImportExport);
+        }
 
         importExportModal.addEventListener('click', (e) => {
-            if (e.target === importExportModal) closeImportExport();
+            if (e.target === importExportModal) {
+                closeImportExport();
+            }
         });
     }
 
@@ -1249,11 +1280,17 @@ function setupMenuModals() {
             midiModal.style.display = 'none';
         };
 
-        if (midiClose) midiClose.addEventListener('click', closeMidi);
-        if (midiOk) midiOk.addEventListener('click', closeMidi);
+        if (midiClose) {
+            midiClose.addEventListener('click', closeMidi);
+        }
+        if (midiOk) {
+            midiOk.addEventListener('click', closeMidi);
+        }
 
         midiModal.addEventListener('click', (e) => {
-            if (e.target === midiModal) closeMidi();
+            if (e.target === midiModal) {
+                closeMidi();
+            }
         });
     }
 
@@ -1278,8 +1315,12 @@ function setupMenuModals() {
     if (helpBtn && helpModal) {
         helpBtn.addEventListener('click', openHelp);
 
-        if (helpClose) helpClose.addEventListener('click', closeHelp);
-        if (helpOk) helpOk.addEventListener('click', closeHelp);
+        if (helpClose) {
+            helpClose.addEventListener('click', closeHelp);
+        }
+        if (helpOk) {
+            helpOk.addEventListener('click', closeHelp);
+        }
 
         if (restartTutorial) {
             restartTutorial.addEventListener('click', () => {
@@ -1289,7 +1330,9 @@ function setupMenuModals() {
         }
 
         helpModal.addEventListener('click', (e) => {
-            if (e.target === helpModal) closeHelp();
+            if (e.target === helpModal) {
+                closeHelp();
+            }
         });
     }
 
@@ -1317,7 +1360,9 @@ function checkAndShowOnboarding() {
  * @param {string} searchTerm - Substance name to search for
  */
 function selectSubstanceByName(searchTerm) {
-    if (!libraryData) return;
+    if (!libraryData) {
+        return;
+    }
 
     const substance = libraryData.find(item =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1340,41 +1385,41 @@ function startGuidedTour() {
         console.error('Tutorial path modal not found');
         return;
     }
-    
+
     modal.style.display = 'flex';
-    
+
     // Setup path selection handlers (only once)
     if (!modal.dataset.initialized) {
         const closeButton = document.getElementById('tutorial-path-close');
         const pathCards = modal.querySelectorAll('.tutorial-path-card');
-        
+
         closeButton.addEventListener('click', () => {
             modal.style.display = 'none';
         });
-        
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.style.display = 'none';
             }
         });
-        
+
         pathCards.forEach(card => {
             card.addEventListener('click', () => {
                 const path = card.getAttribute('data-path');
                 modal.style.display = 'none';
-                
+
                 // Auto-select first substance for tour
                 if (libraryData && libraryData.length > 0) {
                     selectSubstanceByName('mdma');
                 }
-                
+
                 // Start tutorial with selected path
                 setTimeout(() => {
                     TutorialManager.start(path);
                 }, 500);
             });
         });
-        
+
         modal.dataset.initialized = 'true';
     }
 }
@@ -1537,10 +1582,14 @@ function handleFavoritesFilterChange(showFavoritesOnly) {
  */
 function handleFavoriteToggle() {
     const substanceId = substanceSelect.value;
-    if (!substanceId) return;
+    if (!substanceId) {
+        return;
+    }
 
     const substance = libraryData.find(item => item.id === substanceId);
-    if (!substance) return;
+    if (!substance) {
+        return;
+    }
 
     const isFavorite = Favorites.toggle(substance.name);
     updateFavoriteButton(isFavorite);

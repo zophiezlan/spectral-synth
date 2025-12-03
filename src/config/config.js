@@ -1,6 +1,6 @@
 /**
  * Configuration - Centralized application settings
- * 
+ *
  * This file contains all configurable parameters for the Spectral Synthesizer.
  * Adjust these values to customize the application behavior.
  */
@@ -11,18 +11,18 @@ export const CONFIG = {
         // FTIR wavenumber range (cm⁻¹)
         IR_MIN: 400,
         IR_MAX: 4000,
-        
+
         // Audio frequency range (Hz)
         AUDIO_MIN: 100,  // Start at 100Hz for better musicality
         AUDIO_MAX: 8000, // Cap at 8kHz for pleasant sounds
     },
-    
+
     // Peak detection parameters
     peakDetection: {
         DEFAULT_THRESHOLD: 0.15,  // Minimum absorption intensity (0-1)
         DEFAULT_MAX_PEAKS: 20,    // Maximum number of peaks to extract
     },
-    
+
     // Audio synthesis parameters
     audio: {
         DEFAULT_VOLUME: 0.3,         // Default master volume (0-1)
@@ -36,7 +36,7 @@ export const CONFIG = {
         MIN_DURATION: 0.5,           // Minimum playback duration
         MAX_DURATION: 5.0,           // Maximum playback duration
     },
-    
+
     // ADSR envelope parameters
     adsr: {
         // Default values
@@ -44,7 +44,7 @@ export const CONFIG = {
         DEFAULT_DECAY: 0.1,          // Decay time in seconds (0.01 - 2.0)
         DEFAULT_SUSTAIN: 0.7,        // Sustain level (0.0 - 1.0)
         DEFAULT_RELEASE: 0.1,        // Release time in seconds (0.01 - 3.0)
-        
+
         // Ranges for UI controls
         MIN_ATTACK: 0.001,
         MAX_ATTACK: 2.0,
@@ -54,11 +54,11 @@ export const CONFIG = {
         MAX_SUSTAIN: 1.0,
         MIN_RELEASE: 0.001,
         MAX_RELEASE: 3.0,
-        
+
         // Curve types
         DEFAULT_CURVE: 'exponential', // Default curve type
     },
-    
+
     // ADSR curve types
     adsrCurves: {
         'linear': {
@@ -74,7 +74,7 @@ export const CONFIG = {
             description: 'Smooth exponential curve',
         },
     },
-    
+
     // Visualization parameters
     visualization: {
         CLICK_RADIUS: 20,         // Pixels - radius for peak click detection
@@ -84,18 +84,18 @@ export const CONFIG = {
         PEAK_COLOR: '#ec4899',    // Color for peak markers
         SELECTED_PEAK_COLOR: '#10b981', // Color for selected peaks
     },
-    
+
     // UI parameters
     ui: {
         DEBOUNCE_DELAY: 300,      // ms - delay for search input debouncing
         ANIMATION_BUFFER: 100,    // ms - extra time after audio stops for cleanup
     },
-    
+
     // Library parameters
     library: {
         LIBRARY_FILE: './data/ftir-library.json',  // Path to FTIR library JSON file
     },
-    
+
     // Effect presets
     presets: {
         'clean': {
@@ -135,7 +135,7 @@ export const CONFIG = {
             filterFreq: 5000,
         },
     },
-    
+
     // Playback modes
     playbackModes: {
         'chord': {

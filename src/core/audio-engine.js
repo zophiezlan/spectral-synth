@@ -20,17 +20,17 @@ export class AudioEngine {
         this.filter = null;     // Low-pass filter
         this.reverbMix = 0;     // 0-1
         this.filterFrequency = CONFIG.frequency.AUDIO_MAX;  // Hz
-        
+
         // Playback mode
         this.playbackMode = 'sequential';  // Default to sequential mode (order by intensity)
-        
+
         // ADSR envelope parameters
         this.attackTime = CONFIG.adsr.DEFAULT_ATTACK;
         this.decayTime = CONFIG.adsr.DEFAULT_DECAY;
         this.sustainLevel = CONFIG.adsr.DEFAULT_SUSTAIN;
         this.releaseTime = CONFIG.adsr.DEFAULT_RELEASE;
         this.adsrCurve = CONFIG.adsr.DEFAULT_CURVE;
-        
+
         // Load audio constants from global CONFIG object
         this.DEFAULT_VOLUME = CONFIG.audio.DEFAULT_VOLUME;
         this.DEFAULT_FADE_IN = CONFIG.audio.DEFAULT_FADE_IN;  // Deprecated, kept for backwards compatibility
@@ -43,10 +43,10 @@ export class AudioEngine {
 
     /**
      * Initialize Web Audio API context
-     * 
+     *
      * Sets up the audio graph with master gain, filter, reverb, and analyser nodes.
      * Safe to call multiple times - will only initialize once.
-     * 
+     *
      * @throws {Error} If Web Audio API is not supported
      */
     async init() {
@@ -56,7 +56,7 @@ export class AudioEngine {
             if (!AudioContext) {
                 throw new Error('Web Audio API is not supported in this browser');
             }
-            
+
             this.audioContext = new AudioContext();
 
             // Create master gain node for volume control
@@ -109,7 +109,7 @@ export class AudioEngine {
 
     /**
      * Create impulse response for reverb
-     * 
+     *
      * Generates an exponentially decaying noise impulse for natural-sounding reverb.
      */
     async createReverbImpulse() {
@@ -131,10 +131,10 @@ export class AudioEngine {
 
     /**
      * Synthesize sound from FTIR peaks
-     * 
+     *
      * Creates one oscillator per peak using additive synthesis. Each oscillator's
      * frequency and amplitude are derived from the peak's IR wavenumber and intensity.
-     * 
+     *
      * @param {Array} peaks - Array of {wavenumber, absorbance, audioFreq} objects
      * @param {number} [duration=2.0] - Duration in seconds
      * @throws {Error} If peaks array is invalid or duration is not positive
@@ -143,7 +143,7 @@ export class AudioEngine {
         if (!Array.isArray(peaks) || peaks.length === 0) {
             throw new Error('Invalid peaks: must be a non-empty array');
         }
-        
+
         if (typeof duration !== 'number' || duration <= 0) {
             throw new Error('Invalid duration: must be a positive number');
         }
@@ -163,7 +163,7 @@ export class AudioEngine {
 
     /**
      * Play all peaks simultaneously as a chord
-     * 
+     *
      * @param {Array} peaks - Array of peak objects
      * @param {number} duration - Duration in seconds
      * @private
@@ -229,7 +229,7 @@ export class AudioEngine {
 
     /**
      * Play peaks in sequence (arpeggio mode)
-     * 
+     *
      * @param {Array} peaks - Array of peak objects
      * @param {number} duration - Total duration in seconds
      * @private
@@ -241,7 +241,7 @@ export class AudioEngine {
 
         // Sort and arrange peaks based on playback mode
         let orderedPeaks = [...peaks];
-        
+
         switch (this.playbackMode) {
             case 'arpeggio-up':
                 // Sort by frequency (low to high)
@@ -279,7 +279,7 @@ export class AudioEngine {
         orderedPeaks.forEach((peak, idx) => {
             const osc = this.audioContext.createOscillator();
             const gain = this.audioContext.createGain();
-            
+
             const startTime = currentTime + (idx * noteDuration);
             const endTime = startTime + actualNoteDuration;
 
@@ -325,9 +325,9 @@ export class AudioEngine {
 
     /**
      * Blend two sets of peaks with a given ratio
-     * 
+     *
      * Combines peaks from two spectra with weighted averaging based on blend ratio.
-     * 
+     *
      * @param {Array} peaksA - First set of peaks
      * @param {Array} peaksB - Second set of peaks
      * @param {number} ratio - Blend ratio (0-1, where 0=pure A, 1=pure B)
@@ -408,7 +408,7 @@ export class AudioEngine {
 
     /**
      * Set master volume
-     * 
+     *
      * @param {number} volume - Volume from 0 to 1
      * @throws {Error} If volume is not a number or out of range
      */
@@ -416,10 +416,10 @@ export class AudioEngine {
         if (typeof volume !== 'number' || isNaN(volume)) {
             throw new Error('Invalid volume: must be a number');
         }
-        
+
         // Clamp volume to valid range
         const clampedVolume = Math.max(0, Math.min(1, volume));
-        
+
         if (this.masterGain) {
             this.masterGain.gain.value = clampedVolume;
         }
@@ -438,7 +438,9 @@ export class AudioEngine {
      * @returns {Uint8Array} Frequency domain data
      */
     getFrequencyData() {
-        if (!this.analyser) return null;
+        if (!this.analyser) {
+            return null;
+        }
 
         const bufferLength = this.analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
@@ -452,7 +454,9 @@ export class AudioEngine {
      * @returns {Uint8Array} Time domain data
      */
     getTimeDomainData() {
-        if (!this.analyser) return null;
+        if (!this.analyser) {
+            return null;
+        }
 
         const bufferLength = this.analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
@@ -479,7 +483,7 @@ export class AudioEngine {
 
     /**
      * Set reverb amount
-     * 
+     *
      * @param {number} amount - Reverb mix 0-1 (0 = dry, 1 = wet)
      * @throws {Error} If amount is not a number
      */
@@ -487,7 +491,7 @@ export class AudioEngine {
         if (typeof amount !== 'number' || isNaN(amount)) {
             throw new Error('Invalid reverb amount: must be a number');
         }
-        
+
         if (this.dryGain && this.wetGain) {
             this.reverbMix = Math.max(0, Math.min(1, amount));
             this.dryGain.gain.value = 1 - this.reverbMix;
@@ -497,7 +501,7 @@ export class AudioEngine {
 
     /**
      * Set filter frequency
-     * 
+     *
      * @param {number} frequency - Cutoff frequency in Hz
      * @throws {Error} If frequency is not a positive number
      */
@@ -505,7 +509,7 @@ export class AudioEngine {
         if (typeof frequency !== 'number' || isNaN(frequency) || frequency <= 0) {
             throw new Error('Invalid filter frequency: must be a positive number');
         }
-        
+
         if (this.filter) {
             this.filterFrequency = frequency;
             this.filter.frequency.value = frequency;
@@ -530,7 +534,7 @@ export class AudioEngine {
 
     /**
      * Apply an effect preset
-     * 
+     *
      * @param {string} presetName - Name of preset from CONFIG.presets
      * @throws {Error} If preset name is invalid
      */
@@ -539,7 +543,7 @@ export class AudioEngine {
         if (!preset) {
             throw new Error(`Invalid preset: ${presetName}`);
         }
-        
+
         this.setReverb(preset.reverb);
         this.setFilterFrequency(preset.filterFreq);
     }
@@ -554,7 +558,7 @@ export class AudioEngine {
 
     /**
      * Set playback mode
-     * 
+     *
      * @param {string} mode - Playback mode from CONFIG.playbackModes
      * @throws {Error} If mode is invalid
      */
@@ -583,23 +587,23 @@ export class AudioEngine {
 
     /**
      * Apply ADSR envelope to a gain node
-     * 
+     *
      * The ADSR envelope shapes the amplitude over time:
      * - Attack: Fade in from 0 to peak gain
-     * - Decay: Drop from peak to sustain level  
+     * - Decay: Drop from peak to sustain level
      * - Sustain: Hold at sustain level
      * - Release: Fade out to 0
-     * 
+     *
      * The envelope automatically scales to fit within the given duration:
      * - Attack is capped at 30% of duration
      * - Decay is capped at 30% of duration
      * - Release is capped at 40% of duration
      * - Sustain fills remaining time (if any)
-     * 
+     *
      * This ensures ADSR works correctly for both:
      * - Chord mode: All notes play for full duration with synchronized envelopes
      * - Arpeggio mode: Short individual notes each get properly shaped envelopes
-     * 
+     *
      * @param {GainNode} gainNode - Web Audio API gain node to apply envelope to
      * @param {number} startTime - AudioContext time when envelope should start
      * @param {number} duration - Total duration in seconds (from UI slider or note length)
@@ -613,21 +617,21 @@ export class AudioEngine {
         const attack = Math.min(this.attackTime, duration * 0.3);
         const decay = Math.min(this.decayTime, duration * 0.3);
         const release = Math.min(this.releaseTime, duration * 0.4);
-        
+
         // Calculate time points for each phase
         const attackEnd = startTime + attack;
         const decayEnd = attackEnd + decay;
         const releaseStart = startTime + duration - release;
         const noteEnd = startTime + duration;
-        
+
         // Ensure decay doesn't overlap with release (can happen with very short durations)
         // If attack+decay+release > duration, sustain phase will be 0
         const sustainDuration = Math.max(0, releaseStart - decayEnd);
-        
+
         // Apply envelope based on curve type
         gainNode.gain.cancelScheduledValues(startTime);
         gainNode.gain.setValueAtTime(0, startTime);
-        
+
         if (this.adsrCurve === 'exponential') {
             // Exponential curves - natural sounding
             // Attack phase
@@ -646,7 +650,7 @@ export class AudioEngine {
             // Creates smooth exponential transitions
             const minValue = 0.0001; // Minimum value for exponential ramps
             gainNode.gain.setValueAtTime(minValue, startTime);
-            
+
             // Attack phase
             gainNode.gain.exponentialRampToValueAtTime(Math.max(minValue, peakGain), attackEnd);
             // Decay phase
@@ -757,7 +761,7 @@ export class AudioEngine {
 
     /**
      * Create oscillators in offline context based on playback mode
-     * 
+     *
      * @param {OfflineAudioContext} offlineContext - Offline audio context
      * @param {Array} peaks - Array of peak objects
      * @param {AudioNode} masterGain - Master gain node to connect to
@@ -772,7 +776,7 @@ export class AudioEngine {
                 const gain = offlineContext.createGain();
 
                 osc.frequency.value = peak.audioFreq;
-                
+
                 const waveforms = ['sine', 'triangle', 'square'];
                 const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
                 osc.type = waveforms[waveformIndex];
@@ -794,7 +798,7 @@ export class AudioEngine {
         } else {
             // Arpeggio/sequential modes: peaks play in sequence
             let orderedPeaks = [...peaks];
-            
+
             // Sort based on playback mode
             switch (this.playbackMode) {
                 case 'arpeggio-up':
@@ -827,7 +831,7 @@ export class AudioEngine {
             orderedPeaks.forEach((peak, idx) => {
                 const osc = offlineContext.createOscillator();
                 const gain = offlineContext.createGain();
-                
+
                 const startTime = idx * noteDuration;
                 const endTime = startTime + actualNoteDuration;
 
@@ -856,10 +860,10 @@ export class AudioEngine {
 
     /**
      * Export audio as WAV file
-     * 
+     *
      * Renders the synthesized audio to a buffer and exports it as a downloadable WAV file.
      * Uses the currently selected playback mode for rendering.
-     * 
+     *
      * @param {Array} peaks - Array of {wavenumber, absorbance, audioFreq} objects
      * @param {number} [duration=2.0] - Duration in seconds
      * @param {string} [filename='spectral-synth.wav'] - Output filename
@@ -869,7 +873,7 @@ export class AudioEngine {
         if (!Array.isArray(peaks) || peaks.length === 0) {
             throw new Error('Invalid peaks: must be a non-empty array');
         }
-        
+
         if (typeof duration !== 'number' || duration <= 0) {
             throw new Error('Invalid duration: must be a positive number');
         }
@@ -900,7 +904,7 @@ export class AudioEngine {
         const convolver = offlineContext.createConvolver();
         const impulseLength = sampleRate * this.REVERB_DURATION;
         const impulse = offlineContext.createBuffer(2, impulseLength, sampleRate);
-        
+
         for (let channel = 0; channel < 2; channel++) {
             const channelData = impulse.getChannelData(channel);
             for (let i = 0; i < impulseLength; i++) {
@@ -925,7 +929,7 @@ export class AudioEngine {
 
         // Convert to WAV
         const wavBlob = this.bufferToWave(renderedBuffer);
-        
+
         // Download file
         const url = URL.createObjectURL(wavBlob);
         const a = document.createElement('a');
@@ -937,7 +941,7 @@ export class AudioEngine {
 
     /**
      * Convert AudioBuffer to WAV blob
-     * 
+     *
      * @param {AudioBuffer} buffer - Audio buffer to convert
      * @returns {Blob} WAV file as blob
      * @private
@@ -1002,10 +1006,10 @@ export class AudioEngine {
 
     /**
      * Export audio as MP3 file
-     * 
+     *
      * Renders the synthesized audio to a buffer and exports it as a downloadable MP3 file.
      * Requires lamejs library to be loaded.
-     * 
+     *
      * @param {Array} peaks - Array of {wavenumber, absorbance, audioFreq} objects
      * @param {number} [duration=2.0] - Duration in seconds
      * @param {string} [filename='spectral-synth.mp3'] - Output filename
@@ -1016,7 +1020,7 @@ export class AudioEngine {
         if (!Array.isArray(peaks) || peaks.length === 0) {
             throw new Error('Invalid peaks: must be a non-empty array');
         }
-        
+
         if (typeof duration !== 'number' || duration <= 0) {
             throw new Error('Invalid duration: must be a positive number');
         }
@@ -1052,7 +1056,7 @@ export class AudioEngine {
         const convolver = offlineContext.createConvolver();
         const impulseLength = sampleRate * this.REVERB_DURATION;
         const impulse = offlineContext.createBuffer(2, impulseLength, sampleRate);
-        
+
         for (let channel = 0; channel < 2; channel++) {
             const channelData = impulse.getChannelData(channel);
             for (let i = 0; i < impulseLength; i++) {
@@ -1077,7 +1081,7 @@ export class AudioEngine {
 
         // Convert to MP3
         const mp3Blob = await MP3Encoder.encodeToMP3(renderedBuffer, bitrate);
-        
+
         // Download file
         const url = URL.createObjectURL(mp3Blob);
         const a = document.createElement('a');

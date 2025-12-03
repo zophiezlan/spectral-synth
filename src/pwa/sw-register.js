@@ -1,6 +1,6 @@
 /**
  * Service Worker Registration
- * 
+ *
  * Registers the service worker for PWA functionality.
  * Separated from index.html to comply with CSP (no inline scripts).
  */

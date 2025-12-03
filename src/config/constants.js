@@ -1,6 +1,6 @@
 /**
  * Application Constants
- * 
+ *
  * Centralized constants for the Spectral Synthesizer application.
  * Reduces magic numbers and improves maintainability.
  */
@@ -18,7 +18,7 @@ export const CONSTANTS = Object.freeze({
         PULSE_DURATION: 2000,
         RIPPLE_DURATION: 600,
     },
-    
+
     // UI constants
     UI: {
         MIN_TOUCH_TARGET: 44, // px - WCAG AA minimum
@@ -28,14 +28,14 @@ export const CONSTANTS = Object.freeze({
         MAX_CANVAS_WIDTH: 600, // px
         MOBILE_CANVAS_HEIGHT: 250, // px
     },
-    
+
     // File size limits (bytes)
     FILE_LIMITS: {
         CSV_MAX: 5 * 1024 * 1024, // 5MB
         JCAMP_MAX: 10 * 1024 * 1024, // 10MB
         LIBRARY_MAX: 20 * 1024 * 1024, // 20MB
     },
-    
+
     // Data validation
     VALIDATION: {
         MIN_SPECTRUM_POINTS: 10,
@@ -45,7 +45,7 @@ export const CONSTANTS = Object.freeze({
         MIN_TRANSMITTANCE: 0,
         MAX_TRANSMITTANCE: 100,
     },
-    
+
     // Audio constants
     AUDIO: {
         MIN_FREQUENCY: 20, // Hz
@@ -57,7 +57,7 @@ export const CONSTANTS = Object.freeze({
         FADE_IN_TIME: 0.05, // seconds
         FADE_OUT_TIME: 0.1, // seconds
     },
-    
+
     // MIDI constants
     MIDI: {
         MIN_NOTE: 0,
@@ -68,7 +68,7 @@ export const CONSTANTS = Object.freeze({
         DEFAULT_TEMPO: 120, // BPM
         NOTE_DURATION: 500, // ms
     },
-    
+
     // Performance constants
     PERFORMANCE: {
         RAF_THROTTLE: 16, // ~60fps
@@ -76,7 +76,7 @@ export const CONSTANTS = Object.freeze({
         SCROLL_THROTTLE: 100, // ms
         MAX_CACHE_SIZE: 50, // items
     },
-    
+
     // Categories for substance filtering
     CATEGORIES: {
         ALL: 'all',
@@ -88,14 +88,14 @@ export const CONSTANTS = Object.freeze({
         STEROIDS: 'steroids',
         OTHER: 'other',
     },
-    
+
     // Comparison mode
     COMPARISON: {
         BLEND_MIN: 0,
         BLEND_MAX: 100,
         BLEND_DEFAULT: 50,
     },
-    
+
     // Storage keys
     STORAGE_KEYS: {
         FAVORITES: 'spectral-synth-favorites',
@@ -104,7 +104,7 @@ export const CONSTANTS = Object.freeze({
         TUTORIAL_PROGRESS: 'tutorial-progress',
         ONBOARDING_COMPLETED: 'onboarding-completed',
     },
-    
+
     // Error messages
     ERRORS: {
         BROWSER_INCOMPATIBLE: 'Your browser does not support required features',
@@ -116,7 +116,7 @@ export const CONSTANTS = Object.freeze({
         INVALID_FILE_FORMAT: 'Invalid file format',
         EXPORT_FAILED: 'Failed to export file',
     },
-    
+
     // Feature flags
     FEATURES: {
         ENABLE_TUTORIAL: true,

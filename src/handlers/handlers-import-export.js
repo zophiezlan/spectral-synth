@@ -1,13 +1,13 @@
 /**
  * Import/Export Handlers Module
- * 
+ *
  * Handles all import and export operations:
  * - CSV import
  * - JCAMP-DX import
  * - WAV export
  * - MP3 export
- * 
- * Dependencies: CSVImporter, JCAMPImporter, MP3Encoder, audioEngine, 
+ *
+ * Dependencies: CSVImporter, JCAMPImporter, MP3Encoder, audioEngine,
  *               LoadingOverlay, Toast, ErrorHandler, MicroInteractions
  */
 
@@ -18,7 +18,9 @@
  */
 async function handleCSVImport(e, context) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
     const { libraryData, substanceSelect, populateSubstanceSelector, handleSubstanceChange } = context;
 
@@ -65,7 +67,9 @@ async function handleCSVImport(e, context) {
  */
 async function handleJCAMPImport(e, context) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
     const { libraryData, substanceSelect, populateSubstanceSelector, handleSubstanceChange } = context;
 

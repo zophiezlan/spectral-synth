@@ -1,6 +1,6 @@
 /**
  * UI Utilities Module
- * 
+ *
  * Provides common UI utilities for the Spectral Synthesizer application:
  * - Loading overlay management
  * - Toast notifications

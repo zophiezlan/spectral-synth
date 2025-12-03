@@ -1,6 +1,6 @@
 /**
  * Storage Utilities Module
- * 
+ *
  * Provides localStorage-based utilities:
  * - Favorites management
  */

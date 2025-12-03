@@ -1,6 +1,6 @@
 /**
  * Analysis Utilities Module
- * 
+ *
  * Provides spectral analysis utilities:
  * - Spectral similarity calculations
  * - Smart suggestions
@@ -52,7 +52,9 @@ export function calculateSpectralSimilarity(spectrum1, spectrum2) {
     magnitude1 = Math.sqrt(magnitude1);
     magnitude2 = Math.sqrt(magnitude2);
 
-    if (magnitude1 === 0 || magnitude2 === 0) return 0;
+    if (magnitude1 === 0 || magnitude2 === 0) {
+        return 0;
+    }
 
     return dotProduct / (magnitude1 * magnitude2);
 }

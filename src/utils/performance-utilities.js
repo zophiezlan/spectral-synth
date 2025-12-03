@@ -1,6 +1,6 @@
 /**
  * Performance Utilities Module
- * 
+ *
  * Provides performance optimization utilities:
  * - Debounce and throttle functions
  * - RAF (RequestAnimationFrame) utilities
@@ -10,7 +10,7 @@
 /**
  * Debounce function - delays execution until after wait milliseconds have elapsed
  * since the last time it was invoked.
- * 
+ *
  * @param {Function} func - Function to debounce
  * @param {number} wait - Milliseconds to wait
  * @param {boolean} immediate - If true, trigger on leading edge instead of trailing
@@ -18,27 +18,31 @@
  */
 export function debounce(func, wait, immediate = false) {
     let timeout;
-    
+
     return function executedFunction(...args) {
         const context = this;
-        
+
         const later = function() {
             timeout = null;
-            if (!immediate) func.apply(context, args);
+            if (!immediate) {
+                func.apply(context, args);
+            }
         };
-        
+
         const callNow = immediate && !timeout;
-        
+
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
-        
-        if (callNow) func.apply(context, args);
+
+        if (callNow) {
+            func.apply(context, args);
+        }
     };
 }
 
 /**
  * Throttle function - ensures function is called at most once per specified time period
- * 
+ *
  * @param {Function} func - Function to throttle
  * @param {number} limit - Milliseconds between calls
  * @returns {Function} Throttled function
@@ -46,19 +50,19 @@ export function debounce(func, wait, immediate = false) {
 export function throttle(func, limit) {
     let inThrottle;
     let lastResult;
-    
+
     return function executedFunction(...args) {
         const context = this;
-        
+
         if (!inThrottle) {
             lastResult = func.apply(context, args);
             inThrottle = true;
-            
+
             setTimeout(() => {
                 inThrottle = false;
             }, limit);
         }
-        
+
         return lastResult;
     };
 }
@@ -68,7 +72,7 @@ export function throttle(func, limit) {
  */
 export const RAFManager = {
     activeRAFs: new Map(),
-    
+
     /**
      * Start a RAF loop with automatic ID management
      * @param {string} id - Unique identifier for this RAF loop
@@ -77,16 +81,16 @@ export const RAFManager = {
     start(id, callback) {
         // Stop existing RAF with same ID
         this.stop(id);
-        
+
         const loop = () => {
             callback();
             const rafId = requestAnimationFrame(loop);
             this.activeRAFs.set(id, rafId);
         };
-        
+
         loop();
     },
-    
+
     /**
      * Stop a RAF loop
      * @param {string} id - ID of the RAF loop to stop
@@ -98,7 +102,7 @@ export const RAFManager = {
             this.activeRAFs.delete(id);
         }
     },
-    
+
     /**
      * Stop all active RAF loops
      */
@@ -118,8 +122,10 @@ export const MemoryManager = {
      * @param {Array<string>} keys - Keys to clear (if not provided, clears all)
      */
     clearObject(obj, keys = null) {
-        if (!obj) return;
-        
+        if (!obj) {
+            return;
+        }
+
         const keysToClean = keys || Object.keys(obj);
         keysToClean.forEach(key => {
             if (obj[key] instanceof Array) {
@@ -129,7 +135,7 @@ export const MemoryManager = {
             }
         });
     },
-    
+
     /**
      * Revoke object URLs to free memory
      * @param {string|Array<string>} urls - URL or array of URLs to revoke
@@ -149,7 +155,7 @@ export const MemoryManager = {
  */
 export const LazyLoader = {
     cache: new Map(),
-    
+
     /**
      * Load and cache result of expensive operation
      * @param {string} key - Cache key
@@ -160,12 +166,12 @@ export const LazyLoader = {
         if (this.cache.has(key)) {
             return this.cache.get(key);
         }
-        
+
         const result = await loader();
         this.cache.set(key, result);
         return result;
     },
-    
+
     /**
      * Clear cache entry
      * @param {string} key - Cache key to clear
@@ -173,7 +179,7 @@ export const LazyLoader = {
     clear(key) {
         this.cache.delete(key);
     },
-    
+
     /**
      * Clear all cache
      */
@@ -196,7 +202,7 @@ export const DOMBatcher = {
         elements.forEach(el => fragment.appendChild(el));
         container.appendChild(fragment);
     },
-    
+
     /**
      * Update element styles in batch (avoids reflows)
      * @param {HTMLElement} element - Element to update
@@ -215,7 +221,7 @@ export const DOMBatcher = {
  */
 export const LazyObserver = {
     observer: null,
-    
+
     /**
      * Initialize observer for lazy loading elements
      * @param {Function} callback - Function to call when element is visible
@@ -233,7 +239,7 @@ export const LazyObserver = {
             }, options);
         }
     },
-    
+
     /**
      * Observe an element
      * @param {HTMLElement} element - Element to observe
@@ -243,7 +249,7 @@ export const LazyObserver = {
             this.observer.observe(element);
         }
     },
-    
+
     /**
      * Disconnect observer
      */

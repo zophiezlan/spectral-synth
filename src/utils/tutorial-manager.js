@@ -1,6 +1,6 @@
 /**
  * Tutorial Manager Module
- * 
+ *
  * Provides interactive tutorial/onboarding functionality
  */
 
@@ -11,7 +11,7 @@ export const TutorialManager = {
     isActive: false,
     overlay: null,
     tooltip: null,
-    
+
     // Tutorial paths
     paths: {
         chemistry: [
@@ -131,7 +131,7 @@ export const TutorialManager = {
             }
         ]
     },
-    
+
     /**
      * Start tutorial with selected path
      * @param {string} path - 'chemistry' or 'music'
@@ -140,18 +140,18 @@ export const TutorialManager = {
         this.currentPath = path;
         this.currentStep = 0;
         this.isActive = true;
-        
+
         // Save state
         this.saveProgress();
-        
+
         // Create overlay and tooltip
         this.createOverlay();
         this.createTooltip();
-        
+
         // Show first step
         this.showStep();
     },
-    
+
     /**
      * Resume tutorial from saved progress
      */
@@ -163,22 +163,24 @@ export const TutorialManager = {
             this.start(this.currentPath);
         }
     },
-    
+
     /**
      * Show current step
      */
     showStep() {
-        if (!this.isActive || !this.currentPath) return;
-        
+        if (!this.isActive || !this.currentPath) {
+            return;
+        }
+
         const steps = this.paths[this.currentPath];
         if (this.currentStep >= steps.length) {
             this.complete();
             return;
         }
-        
+
         const step = steps[this.currentStep];
         const target = document.querySelector(step.target);
-        
+
         if (!target) {
             // Skip to next step if target not found, but prevent infinite loop
             this.currentStep++;
@@ -190,22 +192,22 @@ export const TutorialManager = {
             setTimeout(() => this.showStep(), 100);
             return;
         }
-        
+
         // Position overlay spotlight
         this.positionSpotlight(target);
-        
+
         // Position and show tooltip
         this.showTooltip(target, step);
-        
+
         // Execute step action if any
         if (step.action && typeof step.action === 'function') {
             setTimeout(() => step.action(), 500);
         }
-        
+
         // Save progress
         this.saveProgress();
     },
-    
+
     /**
      * Next step
      */
@@ -213,7 +215,7 @@ export const TutorialManager = {
         this.currentStep++;
         this.showStep();
     },
-    
+
     /**
      * Previous step
      */
@@ -223,7 +225,7 @@ export const TutorialManager = {
             this.showStep();
         }
     },
-    
+
     /**
      * Skip tutorial
      */
@@ -232,7 +234,7 @@ export const TutorialManager = {
             this.end(false);
         }
     },
-    
+
     /**
      * Complete tutorial
      */
@@ -240,12 +242,12 @@ export const TutorialManager = {
         this.end(true);
         Toast.success('🎉 Tutorial complete! Press ? anytime to see keyboard shortcuts');
         MicroInteractions.celebrate('Tutorial completed');
-        
+
         // Mark as completed
         localStorage.setItem('tutorial-completed', 'true');
         localStorage.removeItem('tutorial-progress');
     },
-    
+
     /**
      * End tutorial
      * @param {boolean} completed - Whether tutorial was completed
@@ -254,7 +256,7 @@ export const TutorialManager = {
         this.isActive = false;
         this.currentStep = 0;
         this.currentPath = null;
-        
+
         // Remove overlay and tooltip
         if (this.overlay) {
             this.overlay.remove();
@@ -264,14 +266,14 @@ export const TutorialManager = {
             this.tooltip.remove();
             this.tooltip = null;
         }
-        
+
         // Remove spotlight styles
         const style = document.getElementById('tutorial-spotlight-styles');
         if (style) {
             style.remove();
         }
     },
-    
+
     /**
      * Create overlay for spotlight effect
      */
@@ -279,16 +281,16 @@ export const TutorialManager = {
         if (this.overlay) {
             this.overlay.remove();
         }
-        
+
         const overlay = document.createElement('div');
         overlay.id = 'tutorial-overlay';
         overlay.className = 'tutorial-overlay';
         overlay.setAttribute('role', 'presentation');
         document.body.appendChild(overlay);
-        
+
         this.overlay = overlay;
     },
-    
+
     /**
      * Create tooltip container
      */
@@ -296,18 +298,18 @@ export const TutorialManager = {
         if (this.tooltip) {
             this.tooltip.remove();
         }
-        
+
         const tooltip = document.createElement('div');
         tooltip.id = 'tutorial-tooltip';
         tooltip.className = 'tutorial-tooltip';
         tooltip.setAttribute('role', 'dialog');
         tooltip.setAttribute('aria-live', 'polite');
-        
+
         document.body.appendChild(tooltip);
-        
+
         this.tooltip = tooltip;
     },
-    
+
     /**
      * Position spotlight on target element
      * @param {HTMLElement} target - Target element
@@ -315,7 +317,7 @@ export const TutorialManager = {
     positionSpotlight(target) {
         const rect = target.getBoundingClientRect();
         const padding = 10;
-        
+
         // Add spotlight styles
         let style = document.getElementById('tutorial-spotlight-styles');
         if (!style) {
@@ -323,11 +325,11 @@ export const TutorialManager = {
             style.id = 'tutorial-spotlight-styles';
             document.head.appendChild(style);
         }
-        
+
         // Use viewport dimensions instead of magic 9999px for better performance
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        
+
         style.textContent = `
             .tutorial-overlay {
                 position: fixed;
@@ -352,17 +354,17 @@ export const TutorialManager = {
                 border-radius: 4px;
             }
         `;
-        
+
         // Remove previous spotlight
         document.querySelectorAll('.tutorial-spotlight-target').forEach(el => {
             el.classList.remove('tutorial-spotlight-target');
         });
-        
+
         // Add spotlight to target
         target.classList.add('tutorial-spotlight-target');
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
-    
+
     /**
      * Show tooltip with step information
      * @param {HTMLElement} target - Target element
@@ -371,7 +373,7 @@ export const TutorialManager = {
     showTooltip(target, step) {
         const steps = this.paths[this.currentPath];
         const progress = `${this.currentStep + 1}/${steps.length}`;
-        
+
         this.tooltip.innerHTML = `
             <div class="tutorial-tooltip-header">
                 <h3>${step.title}</h3>
@@ -389,21 +391,21 @@ export const TutorialManager = {
                 </div>
             </div>
         `;
-        
+
         // Make tooltip visible but off-screen to get accurate dimensions
         this.tooltip.style.display = 'block';
         this.tooltip.style.visibility = 'hidden';
         this.tooltip.style.left = '-9999px';
-        
+
         // Force layout reflow to ensure dimensions are calculated
         void this.tooltip.offsetHeight;
-        
+
         // Position tooltip
         const rect = target.getBoundingClientRect();
         const tooltipRect = this.tooltip.getBoundingClientRect();
-        
+
         let top, left;
-        
+
         switch (step.position) {
             case 'top':
                 top = rect.top - tooltipRect.height - 20;
@@ -425,23 +427,23 @@ export const TutorialManager = {
                 top = rect.bottom + 20;
                 left = rect.left;
         }
-        
+
         // Keep within viewport
         top = Math.max(10, Math.min(top, window.innerHeight - tooltipRect.height - 10));
         left = Math.max(10, Math.min(left, window.innerWidth - tooltipRect.width - 10));
-        
+
         // Position and make visible
         this.tooltip.style.top = top + 'px';
         this.tooltip.style.left = left + 'px';
         this.tooltip.style.visibility = 'visible';
-        
+
         // Add event listeners
         this.tooltip.querySelector('.tutorial-close')?.addEventListener('click', () => this.skip());
         this.tooltip.querySelector('.tutorial-prev')?.addEventListener('click', () => this.previous());
         this.tooltip.querySelector('.tutorial-skip')?.addEventListener('click', () => this.skip());
         this.tooltip.querySelector('.tutorial-next')?.addEventListener('click', () => this.next());
     },
-    
+
     /**
      * Save progress to localStorage
      */
@@ -454,7 +456,7 @@ export const TutorialManager = {
             }));
         }
     },
-    
+
     /**
      * Load progress from localStorage
      * @returns {Object|null} Progress object or null
@@ -467,7 +469,7 @@ export const TutorialManager = {
             return null;
         }
     },
-    
+
     /**
      * Check if tutorial has been completed
      * @returns {boolean}
@@ -475,7 +477,7 @@ export const TutorialManager = {
     isCompleted() {
         return localStorage.getItem('tutorial-completed') === 'true';
     },
-    
+
     /**
      * Reset tutorial state
      */
