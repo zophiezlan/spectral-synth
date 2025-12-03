@@ -822,48 +822,7 @@ footer p {
     color: #a0a0a0;
 }
 
-/* Collapsible sections for mobile */
-.collapsible-section {
-    margin-bottom: 1rem;
-}
-
-.collapsible-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    background: rgba(139, 92, 246, 0.15);
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.collapsible-header:hover,
-.collapsible-header:active {
-    background: rgba(139, 92, 246, 0.25);
-}
-
-.collapsible-header h4 {
-    margin: 0;
-    color: var(--accent-secondary);
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.collapsible-toggle {
-    font-size: 1.25rem;
-    color: var(--accent-primary);
-    transition: transform 0.3s;
-    line-height: 1;
-}
-
-.collapsible-section.expanded .collapsible-toggle {
-    transform: rotate(180deg);
-}
+/* NOTE: Collapsible section styles consolidated above (lines 454-506) */
 
 
 
@@ -988,6 +947,30 @@ footer p {
     color: #a78bfa;
     font-size: 1.1rem;
     font-weight: bold;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+.info-highlight {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(139, 92, 246, 0.15);
+    border-left: 3px solid var(--accent-primary);
+    border-radius: 4px;
+}
+
+.info-highlight .info-link {
+    color: var(--accent-secondary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.info-highlight .info-link:hover {
+    color: var(--accent-tertiary);
+    text-decoration: underline;
 }
 
 /* Screen reader only */
@@ -1388,6 +1371,23 @@ input[type="range"]:hover::-moz-range-thumb {
     background: linear-gradient(135deg, #7c3aed, #6d28d9);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.modal-action-button {
+    margin-top: 1.5rem;
+}
+
+.tutorial-intro-text {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-secondary);
+}
+
+.tutorial-help-text {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
 }
 
 .onboarding-checkbox {

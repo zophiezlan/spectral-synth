@@ -41,9 +41,9 @@
                 into frequency components. This tool maps infrared absorption spectra (molecular vibrations)
                 down to audible frequencies, revealing what molecules "sound like".
             </p>
-            <p style="margin-top: 1rem; padding: 0.75rem; background: rgba(139, 92, 246, 0.15); border-left: 3px solid #8b5cf6; border-radius: 4px;">
+            <p class="info-highlight">
                 <strong>Now using real data!</strong> This version includes 381 authentic FTIR spectra from the
-                <a href="https://enfsi.eu/" target="_blank" style="color: #a78bfa;">ENFSI DWG IR Library</a>
+                <a href="https://enfsi.eu/" target="_blank" class="info-link">ENFSI DWG IR Library</a>
                 (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints.
             </p>
         </section>
@@ -89,7 +89,7 @@
             <div class="substance-selector">
                 <label for="substance">
                     Select a substance:
-                    <button id="favorite-toggle" class="favorite-button" type="button" aria-label="Toggle favorite" style="display: none;">☆</button>
+                    <button id="favorite-toggle" class="favorite-button hidden" type="button" aria-label="Toggle favorite">☆</button>
                 </label>
                 <select id="substance">
                     <option value="">-- Loading library... --</option>
@@ -97,8 +97,8 @@
             </div>
 
             <div class="playback-controls" role="group" aria-label="Playback buttons">
-                <button id="play" disabled aria-label="Play sound from selected substance">▶ Play Sound</button>
-                <button id="stop" disabled aria-label="Stop playback">■ Stop</button>
+                <button id="play" class="primary-button" disabled aria-label="Play sound from selected substance">▶ Play Sound</button>
+                <button id="stop" class="secondary-button" disabled aria-label="Stop playback">■ Stop</button>
                 <div class="slider-control">
                     <label for="duration">Duration: <span id="duration-value">2.0</span>s</label>
                     <input type="range" id="duration" min="0.5" max="5" step="0.1" value="2">
@@ -134,7 +134,7 @@
             <div class="collapsible-section audio-effects">
                 <h4 class="section-header collapsible-header" data-section="audio-effects">
                     <span class="collapse-icon">▼</span>
-                    Audio Effects
+                    🎚️ Audio Effects
                 </h4>
                 <div class="collapsible-content" id="audio-effects-content">
                     <div class="effects-grid">
@@ -159,7 +159,7 @@
             <div class="collapsible-section adsr-controls" role="group" aria-label="ADSR envelope controls">
                 <h4 class="section-header collapsible-header" data-section="adsr">
                     <span class="collapse-icon">▼</span>
-                    ADSR Envelope
+                    📊 ADSR Envelope
                 </h4>
                 <div class="collapsible-content" id="adsr-content">
                     <div class="adsr-grid">
@@ -192,7 +192,7 @@
             <div class="collapsible-section playback-mode-controls" role="group" aria-label="Playback mode controls">
                 <h4 class="section-header collapsible-header" data-section="playback-mode">
                     <span class="collapse-icon">▼</span>
-                    Playback Mode
+                    🎵 Playback Mode
                 </h4>
                 <div class="collapsible-content" id="playback-mode-content">
                     <div class="playback-mode-selector">
@@ -215,11 +215,11 @@
                             <label for="csv-import" class="file-label">
                                 📁 Import CSV
                             </label>
-                            <input type="file" id="csv-import" accept=".csv" style="display: none;" aria-label="Import FTIR data from CSV file">
+                            <input type="file" id="csv-import" accept=".csv" class="hidden" aria-label="Import FTIR data from CSV file">
                             <label for="jcamp-import" class="file-label">
                                 📊 Import JCAMP-DX
                             </label>
-                            <input type="file" id="jcamp-import" accept=".jdx,.dx,.jcamp" style="display: none;" aria-label="Import FTIR data from JCAMP-DX file">
+                            <input type="file" id="jcamp-import" accept=".jdx,.dx,.jcamp" class="hidden" aria-label="Import FTIR data from JCAMP-DX file">
                             <button id="download-template" class="secondary-button" aria-label="Download CSV template">
                                 📋 Download Template
                             </button>
@@ -279,28 +279,28 @@
             <div class="collapsible-section peak-selection-controls" role="group" aria-label="Peak selection controls">
                 <h4 class="section-header collapsible-header" data-section="peak-selection">
                     <span class="collapse-icon">▼</span>
-                    Peak Selection
+                    🎯 Peak Selection
                 </h4>
                 <div class="collapsible-content" id="peak-selection-content">
                     <div class="selection-info" role="status" aria-live="polite">
                         <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
                     </div>
                     <div class="selection-buttons">
-                        <button id="play-selected" disabled aria-label="Play only selected peaks">▶ Play Selected</button>
-                        <button id="select-all" disabled aria-label="Select all peaks">Select All</button>
-                        <button id="clear-selection" disabled aria-label="Clear peak selection">Clear Selection</button>
+                        <button id="play-selected" class="primary-button" disabled aria-label="Play only selected peaks">▶ Play Selected</button>
+                        <button id="select-all" class="secondary-button" disabled aria-label="Select all peaks">Select All</button>
+                        <button id="clear-selection" class="secondary-button" disabled aria-label="Clear peak selection">Clear Selection</button>
                     </div>
                 </div>
             </div>
 
-            <div class="smart-suggestions" id="smart-suggestions" style="display: none;" role="group" aria-label="Similar substances">
+            <div class="smart-suggestions hidden" id="smart-suggestions" role="group" aria-label="Similar substances">
                 <h4 class="section-title">✨ Similar Substances</h4>
                 <p class="suggestions-description">Based on spectral similarity</p>
                 <div class="suggestions-list" id="suggestions-list"></div>
             </div>
         </section>
 
-        <section class="controls comparison-controls" id="comparison-controls" style="display: none;">
+        <section class="controls comparison-controls hidden" id="comparison-controls">
             <div class="comparison-grid">
                 <div class="comparison-side">
                     <h3 class="comparison-title">Substance A</h3>
@@ -311,7 +311,7 @@
                         </select>
                     </div>
                     <div class="comparison-playback">
-                        <button id="play-a" disabled>▶ Play A</button>
+                        <button id="play-a" class="primary-button" disabled>▶ Play A</button>
                     </div>
                 </div>
 
@@ -324,18 +324,18 @@
                         </select>
                     </div>
                     <div class="comparison-playback">
-                        <button id="play-b" disabled>▶ Play B</button>
+                        <button id="play-b" class="primary-button" disabled>▶ Play B</button>
                     </div>
                 </div>
             </div>
 
             <div class="comparison-combined">
-                <button id="play-both-sequential" disabled>▶ Play A → B (Sequential)</button>
-                <button id="play-both-simultaneous" disabled>▶ Play A + B (Simultaneous)</button>
-                <button id="play-blend" disabled>🎛️ Play Blended</button>
+                <button id="play-both-sequential" class="primary-button" disabled>▶ Play A → B (Sequential)</button>
+                <button id="play-both-simultaneous" class="primary-button" disabled>▶ Play A + B (Simultaneous)</button>
+                <button id="play-blend" class="primary-button" disabled>🎛️ Play Blended</button>
             </div>
 
-            <div class="blend-controls" id="blend-controls" style="display: none;">
+            <div class="blend-controls hidden" id="blend-controls">
                 <h4 class="section-title">Spectral Blending</h4>
                 <div class="slider-control">
                     <label for="blend-ratio">Blend Ratio (A ← → B): <span id="blend-ratio-value">50</span>%</label>
@@ -350,7 +350,7 @@
             </div>
         </section>
 
-        <section class="visualization comparison-visualization" id="comparison-visualization" style="display: none;">
+        <section class="visualization comparison-visualization hidden" id="comparison-visualization">
             <div class="comparison-viz-grid">
                 <div class="viz-panel">
                     <h3>Substance A - FTIR Spectrum</h3>
@@ -443,7 +443,7 @@
     </footer>
 
     <!-- Loading overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div id="loading-overlay" class="loading-overlay hidden">
         <div class="loading-spinner"></div>
         <div class="loading-text">Loading...</div>
     </div>
@@ -454,13 +454,13 @@
     </div>
 
     <!-- Peak tooltip -->
-    <div id="peak-tooltip" class="peak-tooltip" role="tooltip" style="display: none;">
+    <div id="peak-tooltip" class="peak-tooltip hidden" role="tooltip">
         <div class="tooltip-header"></div>
         <div class="tooltip-content"></div>
     </div>
 
     <!-- Onboarding modal -->
-    <div id="onboarding-modal" class="modal-overlay" style="display: none;" role="dialog" aria-labelledby="onboarding-title" aria-modal="true">
+    <div id="onboarding-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="onboarding-title" aria-modal="true">
         <div class="modal-content onboarding-modal">
             <button class="modal-close" id="onboarding-close" aria-label="Close welcome message">&times;</button>
             <h2 id="onboarding-title">Welcome to Spectral Synthesizer! 🎵</h2>
@@ -524,7 +524,7 @@
     </div>
 
     <!-- Keyboard shortcuts overlay -->
-    <div id="shortcuts-overlay" class="modal-overlay" style="display: none;" role="dialog" aria-labelledby="shortcuts-title" aria-modal="true">
+    <div id="shortcuts-overlay" class="modal-overlay hidden" role="dialog" aria-labelledby="shortcuts-title" aria-modal="true">
         <div class="modal-content shortcuts-modal">
             <button class="modal-close" id="shortcuts-close" aria-label="Close shortcuts">&times;</button>
             <h2 id="shortcuts-title">⌨️ Keyboard Shortcuts</h2>
@@ -556,17 +556,17 @@
                 </div>
             </div>
 
-            <button id="shortcuts-ok" class="primary-button" style="margin-top: 1.5rem;">Got it!</button>
+            <button id="shortcuts-ok" class="primary-button modal-action-button">Got it!</button>
         </div>
     </div>
 
     <!-- Tutorial path selection modal -->
-    <div id="tutorial-path-modal" class="modal-overlay" style="display: none;" role="dialog" aria-labelledby="tutorial-path-title" aria-modal="true">
+    <div id="tutorial-path-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="tutorial-path-title" aria-modal="true">
         <div class="modal-content tutorial-path-modal">
             <button class="modal-close" id="tutorial-path-close" aria-label="Close tutorial selection">&times;</button>
             <h2 id="tutorial-path-title">Choose Your Learning Path 🎓</h2>
             
-            <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
+            <p class="tutorial-intro-text">
                 Select the perspective that interests you most:
             </p>
             
@@ -586,7 +586,7 @@
                 </button>
             </div>
             
-            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+            <p class="tutorial-help-text">
                 You can restart the tutorial anytime from the help menu (press <kbd>?</kbd>)
             </p>
         </div>

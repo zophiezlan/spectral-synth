@@ -341,11 +341,11 @@ const TutorialManager = {
                 position: 'top'
             },
             {
-                target: '.peak-list',
+                target: '#peak-selection-content',
                 title: 'Peak Selection',
-                description: 'You can select individual peaks to hear. Each peak corresponds to a specific molecular vibration frequency.',
+                description: 'You can select individual peaks to hear. Each peak corresponds to a specific molecular vibration frequency. Click peaks directly on the FTIR spectrum above.',
                 action: null,
-                position: 'left'
+                position: 'top'
             },
             {
                 target: '#play',
@@ -427,11 +427,11 @@ const TutorialManager = {
                 position: 'top'
             },
             {
-                target: '.peak-list',
+                target: '#peak-selection-content',
                 title: 'Frequency Selection',
-                description: 'Select specific frequencies to create your own custom scales and harmonies. Very experimental!',
+                description: 'Select specific frequencies to create your own custom scales and harmonies. Click peaks on the canvas to select them. Very experimental!',
                 action: null,
-                position: 'left'
+                position: 'top'
             }
         ]
     },
