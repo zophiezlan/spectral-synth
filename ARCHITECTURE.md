@@ -43,7 +43,17 @@ Spectral Synthesizer is a pure vanilla JavaScript web application that sonifies 
 │  │IR→Audio  │    │Web Audio │    │Canvas    │      │
 │  │mapping   │    │synthesis │    │rendering │      │
 │  │Peak      │    │Effects   │    │FFT viz   │      │
-│  │detection │    │Analyser  │    │Selection │      │
+│  │detection │    │Blending  │    │Selection │      │
+│  └──────────┘    └──────────┘    └──────────┘      │
+│        │                │                │           │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐      │
+│  │  csv-    │    │  jcamp-  │    │mp3/midi  │      │
+│  │importer  │    │importer  │    │exporters │      │
+│  │   .js    │    │   .js    │    │          │      │
+│  │          │    │          │    │          │      │
+│  │CSV parse │    │JCAMP-DX  │    │MP3 encode│      │
+│  │Validate  │    │parser    │    │MIDI notes│      │
+│  │Downsample│    │Metadata  │    │Output    │      │
 │  └──────────┘    └──────────┘    └──────────┘      │
 │        │                │                │           │
 │        └────────────────┼────────────────┘           │
@@ -167,6 +177,63 @@ correction = min(1.0, 1000 / frequency)
 
 Higher frequencies are perceived as louder, so we attenuate them.
 
+## Advanced Features
+
+### 1. Spectral Blending (audio-engine.js)
+
+Weighted combination of two spectra:
+
+```javascript
+For each peak in A and B:
+  frequencyKey = peak.audioFreq.toFixed(2)
+  blendedAbsorbance[frequencyKey] = 
+    peakA.absorbance * (1 - ratio) + 
+    peakB.absorbance * ratio
+```
+
+Where ratio ∈ [0, 1], with 0 = pure A, 1 = pure B.
+
+### 2. JCAMP-DX Import (jcamp-importer.js)
+
+Parses standardized spectroscopy format:
+
+```javascript
+// Parse metadata
+##TITLE=, ##ORIGIN=, ##MOLFORM=, etc.
+
+// Parse spectrum data
+##XYDATA= or ##XYPOINTS=
+  Handles compressed and uncompressed formats
+  Converts absorbance ↔ transmittance
+  Applies XFACTOR and YFACTOR scaling
+```
+
+### 3. MP3 Export (mp3-encoder.js)
+
+Browser-based MP3 encoding using lamejs:
+
+```javascript
+1. Render audio to offline AudioBuffer
+2. Convert Float32 samples to Int16 PCM
+3. Encode with lamejs MP3 encoder
+4. Create downloadable blob
+```
+
+### 4. MIDI Output (midi-output.js)
+
+Maps spectral peaks to MIDI notes:
+
+```javascript
+midiNote = 69 + 12 * log2(audioFreq / 440)
+
+// Send as chord or arpeggio
+For each peak:
+  velocity = peak.absorbance * baseVelocity
+  Send note-on, then note-off after duration
+```
+
+Uses Web MIDI API to communicate with external synthesizers.
+
 ## State Management
 
 ### Global State
@@ -176,6 +243,7 @@ Higher frequencies are perceived as louder, so we attenuate them.
 audioEngine: AudioEngine
 frequencyMapper: FrequencyMapper
 visualizer: Visualizer
+midiOutput: MIDIOutput
 
 // Current data
 currentSpectrum: Array<{wavenumber, transmittance}>
@@ -184,6 +252,7 @@ libraryData: Array<SubstanceData>
 
 // UI state
 comparisonMode: boolean
+blendRatio: number
 currentSearchTerm: string
 currentCategory: string
 ```
