@@ -344,7 +344,9 @@ function handleSubstanceChange() {
         }
         selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
         const defaultMessage = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
-        mappingInfo.innerHTML = defaultMessage;
+        if (mappingInfo) {
+            mappingInfo.innerHTML = defaultMessage;
+        }
         if (mappingInfoModal) {
             mappingInfoModal.innerHTML = defaultMessage;
         }
@@ -411,7 +413,9 @@ function handleSubstanceChange() {
 function updateMappingInfo(data, peaks) {
     if (!peaks || peaks.length === 0) {
         const noPeaksMessage = '<p>No significant peaks detected.</p>';
-        mappingInfo.innerHTML = noPeaksMessage;
+        if (mappingInfo) {
+            mappingInfo.innerHTML = noPeaksMessage;
+        }
         if (mappingInfoModal) {
             mappingInfoModal.innerHTML = noPeaksMessage;
         }
@@ -454,7 +458,9 @@ function updateMappingInfo(data, peaks) {
     html += `${frequencyMapper.AUDIO_MIN}-${frequencyMapper.AUDIO_MAX} Hz (logarithmic scale)`;
     html += `</p>`;
 
-    mappingInfo.innerHTML = html;
+    if (mappingInfo) {
+        mappingInfo.innerHTML = html;
+    }
     if (mappingInfoModal) {
         mappingInfoModal.innerHTML = html;
     }
