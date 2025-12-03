@@ -27,6 +27,24 @@
                 <h1>🎵 Spectral Synthesizer</h1>
                 <p class="tagline">Making molecular fingerprints audible through sonification</p>
             </div>
+            <nav class="header-nav" aria-label="Main navigation">
+                <button id="settings-menu-btn" class="nav-button" aria-label="Open settings" title="Settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-label">Settings</span>
+                </button>
+                <button id="import-export-menu-btn" class="nav-button" aria-label="Import/Export" title="Import/Export">
+                    <span class="nav-icon">📥</span>
+                    <span class="nav-label">Import/Export</span>
+                </button>
+                <button id="midi-menu-btn" class="nav-button" aria-label="MIDI options" title="MIDI">
+                    <span class="nav-icon">🎹</span>
+                    <span class="nav-label">MIDI</span>
+                </button>
+                <button id="help-menu-btn" class="nav-button" aria-label="Help and information" title="Help">
+                    <span class="nav-icon">❓</span>
+                    <span class="nav-label">Help</span>
+                </button>
+            </nav>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle theme">
                 <span class="theme-icon">☀️</span>
             </button>
@@ -130,175 +148,11 @@
             </div>
         </section>
 
-        <section class="controls" id="single-controls-advanced" aria-label="Advanced controls">
-            <div class="collapsible-section audio-effects">
-                <h4 class="section-header collapsible-header" data-section="audio-effects">
-                    <span class="collapse-icon">▼</span>
-                    🎚️ Audio Effects
-                </h4>
-                <div class="collapsible-content" id="audio-effects-content">
-                    <div class="effects-grid">
-                        <div class="slider-control">
-                            <label for="reverb">Reverb: <span id="reverb-value">0</span>%</label>
-                            <input type="range" id="reverb" min="0" max="100" step="1" value="0">
-                        </div>
-                        <div class="slider-control">
-                            <label for="filter-freq">Filter: <span id="filter-freq-value">8000</span> Hz</label>
-                            <input type="range" id="filter-freq" min="100" max="8000" step="100" value="8000">
-                        </div>
-                    </div>
-                    <div class="preset-controls">
-                        <label for="preset-select">Presets:</label>
-                        <select id="preset-select" aria-label="Select audio effect preset">
-                            <option value="">-- Select Preset --</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="collapsible-section adsr-controls" role="group" aria-label="ADSR envelope controls">
-                <h4 class="section-header collapsible-header" data-section="adsr">
-                    <span class="collapse-icon">▼</span>
-                    📊 ADSR Envelope
-                </h4>
-                <div class="collapsible-content" id="adsr-content">
-                    <div class="adsr-grid">
-                        <div class="slider-control">
-                            <label for="attack">Attack: <span id="attack-value">50</span> ms</label>
-                            <input type="range" id="attack" min="1" max="2000" step="1" value="50">
-                        </div>
-                        <div class="slider-control">
-                            <label for="decay">Decay: <span id="decay-value">100</span> ms</label>
-                            <input type="range" id="decay" min="1" max="2000" step="1" value="100">
-                        </div>
-                        <div class="slider-control">
-                            <label for="sustain">Sustain: <span id="sustain-value">70</span>%</label>
-                            <input type="range" id="sustain" min="0" max="100" step="1" value="70">
-                        </div>
-                        <div class="slider-control">
-                            <label for="release">Release: <span id="release-value">100</span> ms</label>
-                            <input type="range" id="release" min="1" max="3000" step="1" value="100">
-                        </div>
-                    </div>
-                    <div class="adsr-curve-controls">
-                        <label for="adsr-curve-select">Curve Type:</label>
-                        <select id="adsr-curve-select" aria-label="Select ADSR curve type">
-                            <!-- Options populated dynamically from config.js -->
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="collapsible-section playback-mode-controls" role="group" aria-label="Playback mode controls">
-                <h4 class="section-header collapsible-header" data-section="playback-mode">
-                    <span class="collapse-icon">▼</span>
-                    🎵 Playback Mode
-                </h4>
-                <div class="collapsible-content" id="playback-mode-content">
-                    <div class="playback-mode-selector">
-                        <label for="playback-mode-select">Mode:</label>
-                        <select id="playback-mode-select" aria-label="Select playback mode">
-                            <!-- Options populated dynamically from config.js -->
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="collapsible-section import-export-controls" role="group" aria-label="Import and export controls">
-                <h4 class="section-header collapsible-header" data-section="import-export">
-                    <span class="collapse-icon">▼</span>
-                    Import & Export
-                </h4>
-                <div class="collapsible-content" id="import-export-content">
-                    <div class="import-export-grid">
-                        <div class="import-section">
-                            <label for="csv-import" class="file-label">
-                                📁 Import CSV
-                            </label>
-                            <input type="file" id="csv-import" accept=".csv" class="hidden" aria-label="Import FTIR data from CSV file">
-                            <label for="jcamp-import" class="file-label">
-                                📊 Import JCAMP-DX
-                            </label>
-                            <input type="file" id="jcamp-import" accept=".jdx,.dx,.jcamp" class="hidden" aria-label="Import FTIR data from JCAMP-DX file">
-                            <button id="download-template" class="secondary-button" aria-label="Download CSV template">
-                                📋 Download Template
-                            </button>
-                        </div>
-                        <div class="export-section">
-                            <button id="export-wav" disabled class="secondary-button" aria-label="Export audio as WAV file">
-                                💾 Export WAV
-                            </button>
-                            <button id="export-mp3" disabled class="secondary-button" aria-label="Export audio as MP3 file">
-                                🎵 Export MP3
-                            </button>
-                        </div>
-                    </div>
-                    <p class="import-export-info">Audio exports (WAV/MP3) use the current Playback Mode setting.</p>
-                </div>
-            </div>
-
-            <div class="collapsible-section midi-output-controls" role="group" aria-label="MIDI output controls">
-                <h4 class="section-header collapsible-header" data-section="midi-output">
-                    <span class="collapse-icon">▼</span>
-                    MIDI Output
-                </h4>
-                <div class="collapsible-content" id="midi-output-content">
-                    <div class="midi-device-selector">
-                        <label for="midi-device-select">MIDI Device:</label>
-                        <select id="midi-device-select" aria-label="Select MIDI output device">
-                            <option value="">-- No MIDI devices found --</option>
-                        </select>
-                        <button id="refresh-midi-devices" class="secondary-button" aria-label="Refresh MIDI device list">
-                            🔄 Refresh Devices
-                        </button>
-                    </div>
-                    <div class="midi-controls">
-                        <button id="send-midi-notes" disabled class="secondary-button" aria-label="Send spectrum as MIDI notes">
-                            🎹 Send to MIDI Device
-                        </button>
-                        <button id="export-midi-file" disabled class="secondary-button" aria-label="Export spectrum as MIDI file">
-                            💾 Export MIDI File
-                        </button>
-                        <div class="slider-control">
-                            <label for="midi-velocity">MIDI Velocity: <span id="midi-velocity-value">80</span></label>
-                            <input type="range" id="midi-velocity" min="1" max="127" step="1" value="80">
-                        </div>
-                        <div class="slider-control">
-                            <label for="midi-note-duration">Note Duration: <span id="midi-note-duration-value">500</span> ms</label>
-                            <input type="range" id="midi-note-duration" min="100" max="2000" step="100" value="500">
-                        </div>
-                        <div class="slider-control">
-                            <label for="midi-tempo">MIDI Tempo: <span id="midi-tempo-value">120</span> BPM</label>
-                            <input type="range" id="midi-tempo" min="40" max="240" step="1" value="120">
-                        </div>
-                    </div>
-                    <p class="midi-info">Send spectral peaks as MIDI notes to external synthesizers or export as Standard MIDI File (.mid). Uses the global Playback Mode setting. Requires Web MIDI API support for device output.</p>
-                </div>
-            </div>
-
-            <div class="collapsible-section peak-selection-controls" role="group" aria-label="Peak selection controls">
-                <h4 class="section-header collapsible-header" data-section="peak-selection">
-                    <span class="collapse-icon">▼</span>
-                    🎯 Peak Selection
-                </h4>
-                <div class="collapsible-content" id="peak-selection-content">
-                    <div class="selection-info" role="status" aria-live="polite">
-                        <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
-                    </div>
-                    <div class="selection-buttons">
-                        <button id="play-selected" class="primary-button" disabled aria-label="Play only selected peaks">▶ Play Selected</button>
-                        <button id="select-all" class="secondary-button" disabled aria-label="Select all peaks">Select All</button>
-                        <button id="clear-selection" class="secondary-button" disabled aria-label="Clear peak selection">Clear Selection</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="smart-suggestions hidden" id="smart-suggestions" role="group" aria-label="Similar substances">
-                <h4 class="section-title">✨ Similar Substances</h4>
-                <p class="suggestions-description">Based on spectral similarity</p>
-                <div class="suggestions-list" id="suggestions-list"></div>
-            </div>
-        </section>
+        <div class="smart-suggestions hidden" id="smart-suggestions" role="group" aria-label="Similar substances">
+            <h4 class="section-title">✨ Similar Substances</h4>
+            <p class="suggestions-description">Based on spectral similarity</p>
+            <div class="suggestions-list" id="suggestions-list"></div>
+        </div>
 
         <section class="controls comparison-controls hidden" id="comparison-controls">
             <div class="comparison-grid">
@@ -372,67 +226,6 @@
             </div>
         </section>
 
-        <section class="info-panel">
-            <h2>Keyboard Shortcuts</h2>
-            <div class="keyboard-shortcuts">
-                <div class="shortcut-grid">
-                    <div class="shortcut-item">
-                        <kbd>Space</kbd>
-                        <span>Play / Stop</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>↑</kbd> / <kbd>↓</kbd>
-                        <span>Navigate substances</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>A</kbd>
-                        <span>Select all peaks</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>C</kbd>
-                        <span>Clear peak selection</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>Esc</kbd>
-                        <span>Clear search/filters</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="info-panel">
-            <h2>Understanding the Mapping</h2>
-            <div id="mapping-info" class="mapping-info">
-                <p>Select a substance to see how infrared frequencies map to audio frequencies.</p>
-            </div>
-        </section>
-
-        <section class="info-panel">
-            <h2>The Science</h2>
-            <div class="science-explanation">
-                <h3>Why molecules absorb infrared light</h3>
-                <p>
-                    Chemical bonds vibrate at specific frequencies. When infrared light matches these
-                    vibrational frequencies, the molecule absorbs that light. Different molecular structures
-                    create different absorption patterns - a unique "fingerprint".
-                </p>
-
-                <h3>The Fourier Transform connection</h3>
-                <p>
-                    Both FTIR and audio analysis use the same mathematical tool: the Fourier Transform.
-                    It decomposes complex signals into individual frequency components. In FTIR, we're
-                    analyzing molecular vibrations (~10¹³ Hz). In audio, we're analyzing sound waves (~100-10000 Hz).
-                </p>
-
-                <h3>The sonification process</h3>
-                <ol>
-                    <li>Extract absorption peaks from FTIR spectrum</li>
-                    <li>Map IR wavenumbers (400-4000 cm⁻¹) to audio frequencies (20-20000 Hz) logarithmically</li>
-                    <li>Create oscillators at mapped frequencies with amplitudes based on absorption intensity</li>
-                    <li>Synthesize the sound and visualize its FFT in real-time</li>
-                </ol>
-            </div>
-        </section>
     </main>
 
     <footer role="contentinfo">
@@ -500,6 +293,16 @@
                     <strong>Same math (Fourier Transform), different data!</strong><br>
                     Left panel: FTIR spectrum | Right panel: Audio FFT
                 </div>
+
+                <div class="onboarding-quick-tips">
+                    <h4>Quick Navigation:</h4>
+                    <ul>
+                        <li>⚙️ <strong>Settings</strong> - Adjust audio effects, ADSR envelope, playback mode</li>
+                        <li>📥 <strong>Import/Export</strong> - Load your own data or save audio</li>
+                        <li>🎹 <strong>MIDI</strong> - Connect to external synthesizers</li>
+                        <li>❓ <strong>Help</strong> - Learn the science and keyboard shortcuts</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="onboarding-suggestions">
@@ -523,40 +326,259 @@
         </div>
     </div>
 
-    <!-- Keyboard shortcuts overlay -->
-    <div id="shortcuts-overlay" class="modal-overlay hidden" role="dialog" aria-labelledby="shortcuts-title" aria-modal="true">
-        <div class="modal-content shortcuts-modal">
-            <button class="modal-close" id="shortcuts-close" aria-label="Close shortcuts">&times;</button>
-            <h2 id="shortcuts-title">⌨️ Keyboard Shortcuts</h2>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="settings-title" aria-modal="true">
+        <div class="modal-content settings-modal">
+            <button class="modal-close" id="settings-close" aria-label="Close settings">&times;</button>
+            <h2 id="settings-title">⚙️ Settings</h2>
 
-            <div class="shortcuts-grid">
-                <div class="shortcut-row">
-                    <kbd>Space</kbd>
-                    <span>Play / Stop</span>
+            <div class="settings-section">
+                <h3>🎚️ Audio Effects</h3>
+                <div class="effects-grid">
+                    <div class="slider-control">
+                        <label for="reverb">Reverb: <span id="reverb-value">0</span>%</label>
+                        <input type="range" id="reverb" min="0" max="100" step="1" value="0">
+                    </div>
+                    <div class="slider-control">
+                        <label for="filter-freq">Filter: <span id="filter-freq-value">8000</span> Hz</label>
+                        <input type="range" id="filter-freq" min="100" max="8000" step="100" value="8000">
+                    </div>
                 </div>
-                <div class="shortcut-row">
-                    <kbd>↑</kbd> / <kbd>↓</kbd>
-                    <span>Navigate substances</span>
-                </div>
-                <div class="shortcut-row">
-                    <kbd>A</kbd>
-                    <span>Select all peaks</span>
-                </div>
-                <div class="shortcut-row">
-                    <kbd>C</kbd>
-                    <span>Clear peak selection</span>
-                </div>
-                <div class="shortcut-row">
-                    <kbd>Esc</kbd>
-                    <span>Clear search/filters</span>
-                </div>
-                <div class="shortcut-row">
-                    <kbd>?</kbd>
-                    <span>Show this help</span>
+                <div class="preset-controls">
+                    <label for="preset-select">Presets:</label>
+                    <select id="preset-select" aria-label="Select audio effect preset">
+                        <option value="">-- Select Preset --</option>
+                    </select>
                 </div>
             </div>
 
-            <button id="shortcuts-ok" class="primary-button modal-action-button">Got it!</button>
+            <div class="settings-section">
+                <h3>📊 ADSR Envelope</h3>
+                <div class="adsr-grid">
+                    <div class="slider-control">
+                        <label for="attack">Attack: <span id="attack-value">50</span> ms</label>
+                        <input type="range" id="attack" min="1" max="2000" step="1" value="50">
+                    </div>
+                    <div class="slider-control">
+                        <label for="decay">Decay: <span id="decay-value">100</span> ms</label>
+                        <input type="range" id="decay" min="1" max="2000" step="1" value="100">
+                    </div>
+                    <div class="slider-control">
+                        <label for="sustain">Sustain: <span id="sustain-value">70</span>%</label>
+                        <input type="range" id="sustain" min="0" max="100" step="1" value="70">
+                    </div>
+                    <div class="slider-control">
+                        <label for="release">Release: <span id="release-value">100</span> ms</label>
+                        <input type="range" id="release" min="1" max="3000" step="1" value="100">
+                    </div>
+                </div>
+                <div class="adsr-curve-controls">
+                    <label for="adsr-curve-select">Curve Type:</label>
+                    <select id="adsr-curve-select" aria-label="Select ADSR curve type">
+                        <!-- Options populated dynamically from config.js -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>🎵 Playback Mode</h3>
+                <div class="playback-mode-selector">
+                    <label for="playback-mode-select">Mode:</label>
+                    <select id="playback-mode-select" aria-label="Select playback mode">
+                        <!-- Options populated dynamically from config.js -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>🎯 Peak Selection</h3>
+                <div class="selection-info" role="status" aria-live="polite">
+                    <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
+                </div>
+                <div class="selection-buttons">
+                    <button id="play-selected" class="primary-button" disabled aria-label="Play only selected peaks">▶ Play Selected</button>
+                    <button id="select-all" class="secondary-button" disabled aria-label="Select all peaks">Select All</button>
+                    <button id="clear-selection" class="secondary-button" disabled aria-label="Clear peak selection">Clear Selection</button>
+                </div>
+            </div>
+
+            <button id="settings-ok" class="primary-button modal-action-button">Done</button>
+        </div>
+    </div>
+
+    <!-- Import/Export Modal -->
+    <div id="import-export-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="import-export-title" aria-modal="true">
+        <div class="modal-content import-export-modal">
+            <button class="modal-close" id="import-export-close" aria-label="Close import/export">&times;</button>
+            <h2 id="import-export-title">📥 Import & Export</h2>
+
+            <div class="import-export-section">
+                <h3>📁 Import Data</h3>
+                <div class="import-buttons">
+                    <label for="csv-import" class="file-label">
+                        📁 Import CSV
+                    </label>
+                    <input type="file" id="csv-import" accept=".csv" class="hidden" aria-label="Import FTIR data from CSV file">
+                    <label for="jcamp-import" class="file-label">
+                        📊 Import JCAMP-DX
+                    </label>
+                    <input type="file" id="jcamp-import" accept=".jdx,.dx,.jcamp" class="hidden" aria-label="Import FTIR data from JCAMP-DX file">
+                    <button id="download-template" class="secondary-button" aria-label="Download CSV template">
+                        📋 Download Template
+                    </button>
+                </div>
+            </div>
+
+            <div class="import-export-section">
+                <h3>💾 Export Audio</h3>
+                <div class="export-buttons">
+                    <button id="export-wav" disabled class="secondary-button" aria-label="Export audio as WAV file">
+                        💾 Export WAV
+                    </button>
+                    <button id="export-mp3" disabled class="secondary-button" aria-label="Export audio as MP3 file">
+                        🎵 Export MP3
+                    </button>
+                </div>
+                <p class="import-export-info">Audio exports (WAV/MP3) use the current Playback Mode setting from Settings.</p>
+            </div>
+
+            <button id="import-export-ok" class="primary-button modal-action-button">Done</button>
+        </div>
+    </div>
+
+    <!-- MIDI Modal -->
+    <div id="midi-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="midi-title" aria-modal="true">
+        <div class="modal-content midi-modal">
+            <button class="modal-close" id="midi-close" aria-label="Close MIDI options">&times;</button>
+            <h2 id="midi-title">🎹 MIDI Output</h2>
+
+            <div class="midi-section">
+                <h3>Device Selection</h3>
+                <div class="midi-device-selector">
+                    <label for="midi-device-select">MIDI Device:</label>
+                    <select id="midi-device-select" aria-label="Select MIDI output device">
+                        <option value="">-- No MIDI devices found --</option>
+                    </select>
+                    <button id="refresh-midi-devices" class="secondary-button" aria-label="Refresh MIDI device list">
+                        🔄 Refresh Devices
+                    </button>
+                </div>
+            </div>
+
+            <div class="midi-section">
+                <h3>Output Controls</h3>
+                <div class="midi-controls">
+                    <div class="slider-control">
+                        <label for="midi-velocity">MIDI Velocity: <span id="midi-velocity-value">80</span></label>
+                        <input type="range" id="midi-velocity" min="1" max="127" step="1" value="80">
+                    </div>
+                    <div class="slider-control">
+                        <label for="midi-note-duration">Note Duration: <span id="midi-note-duration-value">500</span> ms</label>
+                        <input type="range" id="midi-note-duration" min="100" max="2000" step="100" value="500">
+                    </div>
+                    <div class="slider-control">
+                        <label for="midi-tempo">MIDI Tempo: <span id="midi-tempo-value">120</span> BPM</label>
+                        <input type="range" id="midi-tempo" min="40" max="240" step="1" value="120">
+                    </div>
+                </div>
+            </div>
+
+            <div class="midi-section">
+                <h3>Actions</h3>
+                <div class="midi-action-buttons">
+                    <button id="send-midi-notes" disabled class="secondary-button" aria-label="Send spectrum as MIDI notes">
+                        🎹 Send to MIDI Device
+                    </button>
+                    <button id="export-midi-file" disabled class="secondary-button" aria-label="Export spectrum as MIDI file">
+                        💾 Export MIDI File
+                    </button>
+                </div>
+                <p class="midi-info">Send spectral peaks as MIDI notes to external synthesizers or export as Standard MIDI File (.mid). Uses the Playback Mode setting. Requires Web MIDI API support for device output.</p>
+            </div>
+
+            <button id="midi-ok" class="primary-button modal-action-button">Done</button>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="help-title" aria-modal="true">
+        <div class="modal-content help-modal">
+            <button class="modal-close" id="help-close" aria-label="Close help">&times;</button>
+            <h2 id="help-title">❓ Help & Information</h2>
+
+            <div class="help-section">
+                <h3>⌨️ Keyboard Shortcuts</h3>
+                <div class="shortcuts-grid">
+                    <div class="shortcut-row">
+                        <kbd>Space</kbd>
+                        <span>Play / Stop</span>
+                    </div>
+                    <div class="shortcut-row">
+                        <kbd>↑</kbd> / <kbd>↓</kbd>
+                        <span>Navigate substances</span>
+                    </div>
+                    <div class="shortcut-row">
+                        <kbd>A</kbd>
+                        <span>Select all peaks</span>
+                    </div>
+                    <div class="shortcut-row">
+                        <kbd>C</kbd>
+                        <span>Clear peak selection</span>
+                    </div>
+                    <div class="shortcut-row">
+                        <kbd>Esc</kbd>
+                        <span>Clear search/filters</span>
+                    </div>
+                    <div class="shortcut-row">
+                        <kbd>?</kbd>
+                        <span>Show this help</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h3>🎓 Getting Started</h3>
+                <button id="restart-tutorial" class="primary-button">
+                    🎓 Take the Tutorial
+                </button>
+                <p class="help-description">Learn how to use the synthesizer with a guided tour.</p>
+            </div>
+
+            <div class="help-section">
+                <h3>🔬 The Science</h3>
+                <div class="science-explanation">
+                    <h4>Why molecules absorb infrared light</h4>
+                    <p>
+                        Chemical bonds vibrate at specific frequencies. When infrared light matches these
+                        vibrational frequencies, the molecule absorbs that light. Different molecular structures
+                        create different absorption patterns - a unique "fingerprint".
+                    </p>
+
+                    <h4>The Fourier Transform connection</h4>
+                    <p>
+                        Both FTIR and audio analysis use the same mathematical tool: the Fourier Transform.
+                        It decomposes complex signals into individual frequency components. In FTIR, we're
+                        analyzing molecular vibrations (~10¹³ Hz). In audio, we're analyzing sound waves (~100-10000 Hz).
+                    </p>
+
+                    <h4>The sonification process</h4>
+                    <ol>
+                        <li>Extract absorption peaks from FTIR spectrum</li>
+                        <li>Map IR wavenumbers (400-4000 cm⁻¹) to audio frequencies (20-20000 Hz) logarithmically</li>
+                        <li>Create oscillators at mapped frequencies with amplitudes based on absorption intensity</li>
+                        <li>Synthesize the sound and visualize its FFT in real-time</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h3>📊 Understanding the Mapping</h3>
+                <div id="mapping-info-modal" class="mapping-info">
+                    <p>Select a substance to see how infrared frequencies map to audio frequencies.</p>
+                </div>
+            </div>
+
+            <button id="help-ok" class="primary-button modal-action-button">Done</button>
         </div>
     </div>
 
