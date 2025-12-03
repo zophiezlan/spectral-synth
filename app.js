@@ -997,8 +997,6 @@ const categorySelect = document.getElementById('category');
 const resultsCount = document.getElementById('results-count');
 const playButton = document.getElementById('play');
 const stopButton = document.getElementById('stop');
-const playSelectedButton = document.getElementById('play-selected');
-const selectAllButton = document.getElementById('select-all');
 const clearSelectionButton = document.getElementById('clear-selection');
 const selectionCount = document.getElementById('selection-count');
 const durationSlider = document.getElementById('duration');
@@ -1019,6 +1017,7 @@ const releaseSlider = document.getElementById('release');
 const releaseValue = document.getElementById('release-value');
 const adsrCurveSelect = document.getElementById('adsr-curve-select');
 const mappingInfo = document.getElementById('mapping-info');
+const mappingInfoModal = document.getElementById('mapping-info-modal');
 const ftirCanvas = document.getElementById('ftir-canvas');
 const audioCanvas = document.getElementById('audio-canvas');
 
@@ -1106,6 +1105,7 @@ async function init() {
         // Set up onboarding and shortcuts
         setupOnboarding();
         setupShortcutsOverlay();
+        setupMenuModals();
 
         // Set up theme toggle
         setupThemeToggle();
@@ -1227,7 +1227,8 @@ function categorizeSubstance(item) {
  * @returns {Array} Filtered library data
  */
 function getFilteredLibrary() {
-    const showFavoritesOnly = document.getElementById('show-favorites')?.checked || false;
+    const showFavoritesButton = document.getElementById('show-favorites');
+    const showFavoritesOnly = showFavoritesButton?.classList.contains('active') || false;
     const favoritesList = Favorites.getAll();
 
     return libraryData.filter(item => {
@@ -1306,9 +1307,11 @@ function setupEventListeners() {
     // Single mode - Playback controls
     playButton.addEventListener('click', handlePlay);
     stopButton.addEventListener('click', handleStop);
-    playSelectedButton.addEventListener('click', handlePlaySelected);
-    selectAllButton.addEventListener('click', handleSelectAll);
-    clearSelectionButton.addEventListener('click', handleClearSelection);
+
+    // Peak selection
+    if (clearSelectionButton) {
+        clearSelectionButton.addEventListener('click', handleClearSelection);
+    }
 
     // Single mode - Sliders
     durationSlider.addEventListener('input', (e) => {
@@ -1559,10 +1562,12 @@ function setupEventListeners() {
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcut);
 
-    // Favorites toggle
-    const showFavoritesCheckbox = document.getElementById('show-favorites');
-    if (showFavoritesCheckbox) {
-        showFavoritesCheckbox.addEventListener('change', handleFavoritesFilterChange);
+    // Favorites filter buttons
+    const showAllButton = document.getElementById('show-all');
+    const showFavoritesButton = document.getElementById('show-favorites');
+    if (showAllButton && showFavoritesButton) {
+        showAllButton.addEventListener('click', () => handleFavoritesFilterChange(false));
+        showFavoritesButton.addEventListener('click', () => handleFavoritesFilterChange(true));
     }
 
     // Favorite button
@@ -1570,88 +1575,6 @@ function setupEventListeners() {
     if (favoriteToggleButton) {
         favoriteToggleButton.addEventListener('click', handleFavoriteToggle);
     }
-
-    // Setup collapsible sections
-    setupCollapsibleSections();
-}
-
-/**
- * Setup collapsible sections
- * 
- * Makes advanced control sections collapsible to improve UX
- * and prioritize essential features visibility.
- */
-function setupCollapsibleSections() {
-    // Get all collapsible headers
-    const headers = document.querySelectorAll('.collapsible-header');
-    
-    // Load collapsed states from localStorage
-    const collapsedSections = JSON.parse(localStorage.getItem('collapsedSections') || '{}');
-    
-    // Default collapsed sections (start with advanced features collapsed)
-    const defaultCollapsed = ['adsr', 'playback-mode', 'import-export', 'peak-selection'];
-    
-    headers.forEach(header => {
-        const sectionName = header.getAttribute('data-section');
-        const content = header.nextElementSibling;
-        
-        if (!content || !content.classList.contains('collapsible-content')) {
-            return;
-        }
-        
-        // Determine initial state
-        let isCollapsed;
-        if (collapsedSections.hasOwnProperty(sectionName)) {
-            isCollapsed = collapsedSections[sectionName];
-        } else {
-            isCollapsed = defaultCollapsed.includes(sectionName);
-        }
-        
-        // Set initial state
-        if (isCollapsed) {
-            header.classList.add('collapsed');
-            content.classList.add('collapsed');
-        }
-        
-        // Add click handler
-        header.addEventListener('click', () => {
-            const isCurrentlyCollapsed = header.classList.contains('collapsed');
-            
-            // Toggle state
-            header.classList.toggle('collapsed');
-            content.classList.toggle('collapsed');
-            
-            // Save state to localStorage
-            collapsedSections[sectionName] = !isCurrentlyCollapsed;
-            localStorage.setItem('collapsedSections', JSON.stringify(collapsedSections));
-            
-            // Force canvas repaint on touch devices (especially iPad Safari)
-            // after the CSS transition completes
-            const COLLAPSIBLE_TRANSITION_DELAY_MS = 450; // CSS transition time (400ms) + buffer (50ms)
-            if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
-                setTimeout(() => {
-                    // Trigger a repaint by requesting the canvas dimensions
-                    const ftirCanvas = document.getElementById('ftir-canvas');
-                    const audioCanvas = document.getElementById('audio-canvas');
-                    
-                    if (ftirCanvas && window.visualizer) {
-                        // Force redraw of current spectrum if one is loaded
-                        if (window.visualizer.currentSpectrum) {
-                            window.visualizer.drawFTIRSpectrum(
-                                window.visualizer.currentSpectrum,
-                                window.visualizer.currentPeaks || []
-                            );
-                        }
-                    }
-                    
-                    // Also trigger a layout recalculation to ensure visibility
-                    if (audioCanvas) {
-                        void audioCanvas.offsetHeight; // Force reflow (intentional side effect)
-                    }
-                }, COLLAPSIBLE_TRANSITION_DELAY_MS);
-            }
-        });
-    });
 }
 
 /**
@@ -1806,7 +1729,11 @@ function handleSubstanceChange() {
             exportWAV.disabled = true;
         }
         selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
-        mappingInfo.innerHTML = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
+        const defaultMessage = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
+        mappingInfo.innerHTML = defaultMessage;
+        if (mappingInfoModal) {
+            mappingInfoModal.innerHTML = defaultMessage;
+        }
         return;
     }
 
@@ -1869,7 +1796,11 @@ function handleSubstanceChange() {
  */
 function updateMappingInfo(data, peaks) {
     if (!peaks || peaks.length === 0) {
-        mappingInfo.innerHTML = '<p>No significant peaks detected.</p>';
+        const noPeaksMessage = '<p>No significant peaks detected.</p>';
+        mappingInfo.innerHTML = noPeaksMessage;
+        if (mappingInfoModal) {
+            mappingInfoModal.innerHTML = noPeaksMessage;
+        }
         return;
     }
 
@@ -1910,12 +1841,16 @@ function updateMappingInfo(data, peaks) {
     html += `</p>`;
 
     mappingInfo.innerHTML = html;
+    if (mappingInfoModal) {
+        mappingInfoModal.innerHTML = html;
+    }
 }
 
 /**
  * Handle play button click
- * 
+ *
  * Plays audio synthesized from the current FTIR spectrum peaks.
+ * Automatically uses selected peaks if any exist, otherwise uses all peaks.
  * Disables controls during playback to prevent concurrent play operations.
  */
 async function handlePlay() {
@@ -1924,6 +1859,10 @@ async function handlePlay() {
         Toast.warning('No peaks detected for this substance');
         return;
     }
+
+    // Use selected peaks if any exist, otherwise use all peaks
+    const selectedPeaks = visualizer.getSelectedPeaks();
+    const peaksToPlay = (selectedPeaks && selectedPeaks.length > 0) ? selectedPeaks : currentPeaks;
 
     const duration = parseFloat(durationSlider.value);
 
@@ -1946,19 +1885,21 @@ async function handlePlay() {
         // Ensure audio context is active (especially for iOS)
         await iOSAudioHelper.ensureAudioContext(audioEngine);
 
-        // Start audio
-        await audioEngine.play(currentPeaks, duration);
+        // Start audio with selected or all peaks
+        await audioEngine.play(peaksToPlay, duration);
 
         // Start visualization animation
         visualizer.startAudioAnimation();
 
         // Announce to screen reader
         const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
+        const peakCountMsg = (selectedPeaks && selectedPeaks.length > 0) ?
+            `${selectedPeaks.length} selected peaks` : `${currentPeaks.length} peaks`;
         ScreenReader.announce(
-            `Playing ${substanceName}, ${currentPeaks.length} peaks, duration ${duration} seconds`
+            `Playing ${substanceName}, ${peakCountMsg}, duration ${duration} seconds`
         );
 
-        console.log(`Playing ${currentPeaks.length} frequencies for ${duration}s`);
+        console.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
 
         // Re-enable play button after duration
         setTimeout(() => {
@@ -1993,68 +1934,28 @@ function handleStop() {
 
 /**
  * Handle peak selection change
+ * Updates the selection status display and clear button visibility.
+ * The main Play button automatically respects the selection.
  * @param {Array} selectedPeaks - Currently selected peaks
  */
 function handlePeakSelectionChange(selectedPeaks) {
     const count = selectedPeaks.length;
+    const clearBtn = clearSelectionButton;
 
     if (count === 0) {
-        selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
-        playSelectedButton.disabled = true;
+        selectionCount.textContent = 'Click peaks to select specific frequencies';
+        if (clearBtn) clearBtn.classList.add('hidden');
     } else {
         selectionCount.textContent = `${count} peak${count !== 1 ? 's' : ''} selected`;
-        playSelectedButton.disabled = false;
+        if (clearBtn) clearBtn.classList.remove('hidden');
     }
 
     console.log(`Peak selection changed: ${count} peaks selected`);
 }
 
 /**
- * Handle play selected peaks button
- */
-async function handlePlaySelected() {
-    const selectedPeaks = visualizer.getSelectedPeaks();
-
-    if (!selectedPeaks || selectedPeaks.length === 0) {
-        console.warn('No peaks selected');
-        return;
-    }
-
-    const duration = parseFloat(durationSlider.value);
-
-    try {
-        // Disable button during playback
-        playSelectedButton.disabled = true;
-
-        // Start audio with selected peaks only
-        await audioEngine.play(selectedPeaks, duration);
-
-        // Start visualization animation
-        visualizer.startAudioAnimation();
-
-        console.log(`Playing ${selectedPeaks.length} selected frequencies for ${duration}s`);
-
-        // Re-enable button after duration
-        setTimeout(() => {
-            playSelectedButton.disabled = false;
-            visualizer.stopAudioAnimation();
-        }, duration * 1000 + 100);
-
-    } catch (error) {
-        playSelectedButton.disabled = false;
-        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
-    }
-}
-
-/**
- * Handle select all peaks button
- */
-function handleSelectAll() {
-    visualizer.selectAllPeaks();
-}
-
-/**
  * Handle clear selection button
+ * Clears all selected peaks and returns to playing all peaks.
  */
 function handleClearSelection() {
     visualizer.clearSelection();
@@ -2669,6 +2570,119 @@ function setupOnboarding() {
 }
 
 /**
+ * Set up menu modals (Settings, Import/Export, MIDI, Help)
+ */
+function setupMenuModals() {
+    // Settings Modal
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsBtn = document.getElementById('settings-menu-btn');
+    const settingsClose = document.getElementById('settings-close');
+    const settingsOk = document.getElementById('settings-ok');
+
+    if (settingsBtn && settingsModal) {
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+            settingsModal.style.display = 'flex';
+        });
+
+        const closeSettings = () => {
+            settingsModal.classList.add('hidden');
+            settingsModal.style.display = 'none';
+        };
+
+        if (settingsClose) settingsClose.addEventListener('click', closeSettings);
+        if (settingsOk) settingsOk.addEventListener('click', closeSettings);
+
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) closeSettings();
+        });
+    }
+
+    // Import/Export Modal
+    const importExportModal = document.getElementById('import-export-modal');
+    const importExportBtn = document.getElementById('import-export-menu-btn');
+    const importExportClose = document.getElementById('import-export-close');
+    const importExportOk = document.getElementById('import-export-ok');
+
+    if (importExportBtn && importExportModal) {
+        importExportBtn.addEventListener('click', () => {
+            importExportModal.classList.remove('hidden');
+            importExportModal.style.display = 'flex';
+        });
+
+        const closeImportExport = () => {
+            importExportModal.classList.add('hidden');
+            importExportModal.style.display = 'none';
+        };
+
+        if (importExportClose) importExportClose.addEventListener('click', closeImportExport);
+        if (importExportOk) importExportOk.addEventListener('click', closeImportExport);
+
+        importExportModal.addEventListener('click', (e) => {
+            if (e.target === importExportModal) closeImportExport();
+        });
+    }
+
+    // MIDI Modal
+    const midiModal = document.getElementById('midi-modal');
+    const midiBtn = document.getElementById('midi-menu-btn');
+    const midiClose = document.getElementById('midi-close');
+    const midiOk = document.getElementById('midi-ok');
+
+    if (midiBtn && midiModal) {
+        midiBtn.addEventListener('click', () => {
+            midiModal.classList.remove('hidden');
+            midiModal.style.display = 'flex';
+        });
+
+        const closeMidi = () => {
+            midiModal.classList.add('hidden');
+            midiModal.style.display = 'none';
+        };
+
+        if (midiClose) midiClose.addEventListener('click', closeMidi);
+        if (midiOk) midiOk.addEventListener('click', closeMidi);
+
+        midiModal.addEventListener('click', (e) => {
+            if (e.target === midiModal) closeMidi();
+        });
+    }
+
+    // Help Modal
+    const helpModal = document.getElementById('help-modal');
+    const helpBtn = document.getElementById('help-menu-btn');
+    const helpClose = document.getElementById('help-close');
+    const helpOk = document.getElementById('help-ok');
+    const restartTutorial = document.getElementById('restart-tutorial');
+
+    if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+            helpModal.style.display = 'flex';
+        });
+
+        const closeHelp = () => {
+            helpModal.classList.add('hidden');
+            helpModal.style.display = 'none';
+        };
+
+        if (helpClose) helpClose.addEventListener('click', closeHelp);
+        if (helpOk) helpOk.addEventListener('click', closeHelp);
+
+        if (restartTutorial) {
+            restartTutorial.addEventListener('click', () => {
+                closeHelp();
+                startGuidedTour();
+            });
+        }
+
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) closeHelp();
+        });
+    }
+}
+
+/**
  * Check if we should show onboarding
  */
 function checkAndShowOnboarding() {
@@ -2865,8 +2879,27 @@ function setTheme(theme) {
 
 /**
  * Handle favorites filter change
+ * @param {boolean} showFavoritesOnly - Whether to show only favorites
  */
-function handleFavoritesFilterChange() {
+function handleFavoritesFilterChange(showFavoritesOnly) {
+    // Update button states
+    const showAllButton = document.getElementById('show-all');
+    const showFavoritesButton = document.getElementById('show-favorites');
+
+    if (showAllButton && showFavoritesButton) {
+        if (showFavoritesOnly) {
+            showAllButton.classList.remove('active');
+            showAllButton.setAttribute('aria-pressed', 'false');
+            showFavoritesButton.classList.add('active');
+            showFavoritesButton.setAttribute('aria-pressed', 'true');
+        } else {
+            showAllButton.classList.add('active');
+            showAllButton.setAttribute('aria-pressed', 'true');
+            showFavoritesButton.classList.remove('active');
+            showFavoritesButton.setAttribute('aria-pressed', 'false');
+        }
+    }
+
     populateSubstanceSelector();
 }
 

@@ -238,7 +238,7 @@ section {
 
 .filter-controls {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr auto auto;
     gap: 1rem;
     margin-bottom: 1.5rem;
     align-items: end;
@@ -593,45 +593,52 @@ section {
 
 /* Smart Suggestions */
 .smart-suggestions {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--panel-border);
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+}
+
+.smart-suggestions .section-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-primary);
 }
 
 .suggestions-description {
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    text-align: center;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    font-style: italic;
 }
 
 .suggestions-list {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
-    justify-content: center;
 }
 
 .suggestion-item {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    padding: 0.5rem 1rem;
-    background: var(--panel-bg);
-    border: 2px solid var(--accent-primary);
-    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    background: var(--control-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s;
-    font-size: 0.9rem;
+    transition: all 0.2s;
+    font-size: 0.85rem;
     color: var(--text-primary);
 }
 
 .suggestion-item:hover {
     background: var(--accent-primary);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3);
 }
 
 .suggestion-name {
@@ -1131,31 +1138,34 @@ footer p {
 }
 
 /* Favorites filter */
-.favorites-filter {
+.favorites-filter-buttons {
     display: flex;
-    align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem;
-    background: rgba(245, 158, 11, 0.1);
-    border-radius: 5px;
-    border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-.favorites-filter label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #f59e0b;
-    font-weight: bold;
+.filter-button {
+    padding: 0.75rem 1rem;
     font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 5px;
     cursor: pointer;
-    user-select: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
-.favorites-filter input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+.filter-button:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.filter-button.active {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    border-color: var(--accent-primary);
 }
 
 /* Hover effects for better interactivity */
@@ -2205,25 +2215,283 @@ input[type="range"]:hover::-moz-range-thumb {
     transform: translateY(0);
 }
 
+/* Header Navigation */
+.header-nav {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.nav-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--panel-bg);
+    border: 2px solid var(--panel-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    font-size: 0.75rem;
+}
+
+.nav-button:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.nav-icon {
+    font-size: 1.5rem;
+    filter: grayscale(0%);
+}
+
+.nav-label {
+    font-weight: 600;
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+/* Menu Modal Styles */
+.settings-modal,
+.import-export-modal,
+.midi-modal,
+.help-modal {
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.settings-section,
+.import-export-section,
+.midi-section,
+.help-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.settings-section:last-of-type,
+.import-export-section:last-of-type,
+.midi-section:last-of-type,
+.help-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 1rem;
+}
+
+.settings-section h3,
+.import-export-section h3,
+.midi-section h3,
+.help-section h3 {
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.settings-section h4,
+.help-section h4 {
+    color: var(--accent-secondary);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.modal-action-button {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+/* Import/Export specific styles */
+.import-buttons,
+.export-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.import-export-info {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+/* MIDI specific styles */
+.midi-action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+/* Help modal specific styles */
+.help-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.science-explanation p {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+}
+
+.science-explanation ol {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.science-explanation li {
+    margin-bottom: 0.5rem;
+}
+
+.mapping-info {
+    padding: 1rem;
+    background: var(--control-bg);
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+}
+
+/* Onboarding quick tips */
+.onboarding-quick-tips {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+}
+
+.onboarding-quick-tips h4 {
+    color: var(--accent-primary);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.onboarding-quick-tips ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.onboarding-quick-tips li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.onboarding-quick-tips li:last-child {
+    border-bottom: none;
+}
+
+.onboarding-quick-tips strong {
+    color: var(--accent-secondary);
+}
+
+/* Peak Selection Info - integrated with visualization */
+.peak-selection-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.selection-status {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.clear-selection-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.clear-selection-btn:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-1px);
+}
+
+.clear-selection-btn:active {
+    transform: translateY(0);
+}
+
+.clear-selection-btn.hidden {
+    display: none;
+}
+
 /* Responsive adjustments for new elements */
 @media (max-width: 768px) {
     .blend-controls {
         padding: 0.75rem;
     }
-    
+
     .midi-device-selector {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .midi-device-selector select {
         width: 100%;
     }
-    
+
     .file-label {
         display: block;
         text-align: center;
         margin-bottom: 0.5rem;
         margin-right: 0;
+    }
+
+    .header-nav {
+        gap: 0.25rem;
+    }
+
+    .nav-button {
+        padding: 0.4rem 0.5rem;
+    }
+
+    .nav-label {
+        display: none;
+    }
+
+    .nav-icon {
+        font-size: 1.25rem;
+    }
+
+    .settings-modal,
+    .import-export-modal,
+    .midi-modal,
+    .help-modal {
+        padding: 1.5rem;
+        max-width: 95vw;
+    }
+
+    .import-buttons,
+    .export-buttons,
+    .midi-action-buttons {
+        flex-direction: column;
+    }
+
+    .import-buttons .file-label,
+    .import-buttons button,
+    .export-buttons button,
+    .midi-action-buttons button {
+        width: 100%;
     }
 }
