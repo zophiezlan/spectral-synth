@@ -2,7 +2,7 @@
 
 ## Overview
 
-This refactoring effort successfully reduced the size of `app.js` from **3108 lines** to **2045 lines**, achieving a **34% reduction** in file size. The code has been reorganized into focused utility modules for better maintainability and improved AI agent usage.
+This refactoring effort successfully reduced the size of `app.js` from **3108 lines** to **1666 lines**, achieving a **46.4% reduction** in file size. The code has been reorganized into focused utility modules for better maintainability and improved AI agent usage.
 
 ## Motivation
 
@@ -48,6 +48,16 @@ The original `app.js` file was becoming difficult to maintain and understand due
 6. **substance-utilities.js** (67 lines)
    - `categorizeSubstance` - Substance categorization by keywords
    - Chemical class detection (opioids, stimulants, benzodiazepines, psychedelics, cannabinoids, steroids)
+
+7. **dom-elements.js** (62 lines)
+   - Centralized DOM element references
+   - All `getElementById` calls in one place
+   - Eliminates ~48 element declarations from app.js
+
+8. **event-handlers.js** (400 lines)
+   - Organized event listener setup
+   - Breaks down 327-line `setupEventListeners` function
+   - Grouped by logical categories: mode switching, substance selection, playback controls, sliders, ADSR, audio modes, import/export, MIDI, and UI enhancements
 
 ### Updated Files
 
@@ -106,18 +116,20 @@ app.js: 3108 lines
 Total application code: ~6000 lines (including other modules)
 ```
 
-### After Refactoring
+### After Refactoring (Final)
 ```
-app.js: 2045 lines (↓34%)
+app.js: 1666 lines (↓46.4%)
 ui-utilities.js: 208 lines
-visualization-utilities.js: 227 lines
+visualization-utilities.js: 226 lines
 storage-utilities.js: 65 lines
 tutorial-manager.js: 487 lines
 analysis-utilities.js: 58 lines
 substance-utilities.js: 67 lines
+dom-elements.js: 62 lines (NEW)
+event-handlers.js: 400 lines (NEW)
 ---
-Total new utility modules: 1112 lines
-Net reduction in app.js: 1063 lines (34%)
+Total new utility modules: 1573 lines
+Net reduction in app.js: 1442 lines (46.4%)
 ```
 
 ## Module Loading Order
@@ -173,11 +185,12 @@ For developers working with the codebase:
 This refactoring successfully achieves the goal of improving maintainability and AI agent usage while maintaining 100% backward compatibility. The codebase is now more organized, easier to understand, and better positioned for future enhancements.
 
 **Total Impact**: 
-- 34% reduction in app.js size
-- 6 new focused utility modules
+- 46.4% reduction in app.js size (3108 → 1666 lines)
+- 8 new focused utility modules
 - 0 breaking changes
 - 0 security vulnerabilities
 - Improved developer experience
+- Better code organization and maintainability
 
 ---
 

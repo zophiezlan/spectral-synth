@@ -87,7 +87,7 @@ Spectral Synthesizer is a pure vanilla JavaScript web application that sonifies 
 
 ## Modular Architecture (Refactored)
 
-The application has been refactored to improve maintainability and reduce the size of app.js from 3108 lines to 2045 lines (34% reduction).
+The application has been refactored to improve maintainability and reduce the size of app.js from 3108 lines to 1666 lines (46.4% reduction).
 
 ### Utility Modules
 
@@ -101,7 +101,7 @@ The application has been refactored to improve maintainability and reduce the si
 - `MicroInteractions` - UI animations and feedback
 - `TimeFormatter` - Time formatting utilities
 
-**visualization-utilities.js** (231 lines)
+**visualization-utilities.js** (226 lines)
 - `ThumbnailGenerator` - Spectrum thumbnail generation
 - `ColorMapper` - Frequency-to-color mapping
 - `ResponsiveCanvas` - Mobile-optimized canvas sizing
@@ -122,6 +122,16 @@ The application has been refactored to improve maintainability and reduce the si
 - `categorizeSubstance` - Substance categorization by keywords
 - Chemical class detection (opioids, stimulants, benzodiazepines, etc.)
 
+**dom-elements.js** (62 lines)
+- Centralized DOM element references
+- All `getElementById` calls in one place
+- Improves maintainability and reduces duplication
+
+**event-handlers.js** (400 lines)
+- Organized event listener setup
+- Breaks down the monolithic `setupEventListeners` function
+- Grouped by logical categories (mode, substance, playback, sliders, ADSR, MIDI, etc.)
+
 ### Benefits of Refactoring
 
 1. **Better Maintainability**: Each module has a single, clear responsibility
@@ -130,6 +140,8 @@ The application has been refactored to improve maintainability and reduce the si
 4. **Reduced Cognitive Load**: Developers can focus on specific modules
 5. **Better Reusability**: Utilities can be easily reused across the application
 6. **Clearer Dependencies**: Module imports make dependencies explicit
+7. **Centralized DOM Access**: All element references in one location
+8. **Organized Event Handling**: Event listeners grouped logically for better navigation
 
 ## Data Flow
 
