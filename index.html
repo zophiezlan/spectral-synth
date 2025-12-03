@@ -136,6 +136,10 @@
                     <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
                     <span class="axis-label-y">Transmittance (%)</span>
                 </div>
+                <div class="peak-selection-info">
+                    <span id="selection-count" class="selection-status">Click peaks to select specific frequencies</span>
+                    <button id="clear-selection" class="clear-selection-btn hidden" aria-label="Clear peak selection">Clear Selection</button>
+                </div>
             </div>
 
             <div class="viz-panel">
@@ -387,18 +391,6 @@
                     <select id="playback-mode-select" aria-label="Select playback mode">
                         <!-- Options populated dynamically from config.js -->
                     </select>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <h3>🎯 Peak Selection</h3>
-                <div class="selection-info" role="status" aria-live="polite">
-                    <span id="selection-count">Click peaks on the FTIR spectrum to select them</span>
-                </div>
-                <div class="selection-buttons">
-                    <button id="play-selected" class="primary-button" disabled aria-label="Play only selected peaks">▶ Play Selected</button>
-                    <button id="select-all" class="secondary-button" disabled aria-label="Select all peaks">Select All</button>
-                    <button id="clear-selection" class="secondary-button" disabled aria-label="Clear peak selection">Clear Selection</button>
                 </div>
             </div>
 

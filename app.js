@@ -997,8 +997,6 @@ const categorySelect = document.getElementById('category');
 const resultsCount = document.getElementById('results-count');
 const playButton = document.getElementById('play');
 const stopButton = document.getElementById('stop');
-const playSelectedButton = document.getElementById('play-selected');
-const selectAllButton = document.getElementById('select-all');
 const clearSelectionButton = document.getElementById('clear-selection');
 const selectionCount = document.getElementById('selection-count');
 const durationSlider = document.getElementById('duration');
@@ -1308,9 +1306,11 @@ function setupEventListeners() {
     // Single mode - Playback controls
     playButton.addEventListener('click', handlePlay);
     stopButton.addEventListener('click', handleStop);
-    playSelectedButton.addEventListener('click', handlePlaySelected);
-    selectAllButton.addEventListener('click', handleSelectAll);
-    clearSelectionButton.addEventListener('click', handleClearSelection);
+
+    // Peak selection
+    if (clearSelectionButton) {
+        clearSelectionButton.addEventListener('click', handleClearSelection);
+    }
 
     // Single mode - Sliders
     durationSlider.addEventListener('input', (e) => {
@@ -1845,8 +1845,9 @@ function updateMappingInfo(data, peaks) {
 
 /**
  * Handle play button click
- * 
+ *
  * Plays audio synthesized from the current FTIR spectrum peaks.
+ * Automatically uses selected peaks if any exist, otherwise uses all peaks.
  * Disables controls during playback to prevent concurrent play operations.
  */
 async function handlePlay() {
@@ -1855,6 +1856,10 @@ async function handlePlay() {
         Toast.warning('No peaks detected for this substance');
         return;
     }
+
+    // Use selected peaks if any exist, otherwise use all peaks
+    const selectedPeaks = visualizer.getSelectedPeaks();
+    const peaksToPlay = (selectedPeaks && selectedPeaks.length > 0) ? selectedPeaks : currentPeaks;
 
     const duration = parseFloat(durationSlider.value);
 
@@ -1877,19 +1882,21 @@ async function handlePlay() {
         // Ensure audio context is active (especially for iOS)
         await iOSAudioHelper.ensureAudioContext(audioEngine);
 
-        // Start audio
-        await audioEngine.play(currentPeaks, duration);
+        // Start audio with selected or all peaks
+        await audioEngine.play(peaksToPlay, duration);
 
         // Start visualization animation
         visualizer.startAudioAnimation();
 
         // Announce to screen reader
         const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
+        const peakCountMsg = (selectedPeaks && selectedPeaks.length > 0) ?
+            `${selectedPeaks.length} selected peaks` : `${currentPeaks.length} peaks`;
         ScreenReader.announce(
-            `Playing ${substanceName}, ${currentPeaks.length} peaks, duration ${duration} seconds`
+            `Playing ${substanceName}, ${peakCountMsg}, duration ${duration} seconds`
         );
 
-        console.log(`Playing ${currentPeaks.length} frequencies for ${duration}s`);
+        console.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
 
         // Re-enable play button after duration
         setTimeout(() => {
@@ -1924,68 +1931,28 @@ function handleStop() {
 
 /**
  * Handle peak selection change
+ * Updates the selection status display and clear button visibility.
+ * The main Play button automatically respects the selection.
  * @param {Array} selectedPeaks - Currently selected peaks
  */
 function handlePeakSelectionChange(selectedPeaks) {
     const count = selectedPeaks.length;
+    const clearBtn = clearSelectionButton;
 
     if (count === 0) {
-        selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
-        playSelectedButton.disabled = true;
+        selectionCount.textContent = 'Click peaks to select specific frequencies';
+        if (clearBtn) clearBtn.classList.add('hidden');
     } else {
         selectionCount.textContent = `${count} peak${count !== 1 ? 's' : ''} selected`;
-        playSelectedButton.disabled = false;
+        if (clearBtn) clearBtn.classList.remove('hidden');
     }
 
     console.log(`Peak selection changed: ${count} peaks selected`);
 }
 
 /**
- * Handle play selected peaks button
- */
-async function handlePlaySelected() {
-    const selectedPeaks = visualizer.getSelectedPeaks();
-
-    if (!selectedPeaks || selectedPeaks.length === 0) {
-        console.warn('No peaks selected');
-        return;
-    }
-
-    const duration = parseFloat(durationSlider.value);
-
-    try {
-        // Disable button during playback
-        playSelectedButton.disabled = true;
-
-        // Start audio with selected peaks only
-        await audioEngine.play(selectedPeaks, duration);
-
-        // Start visualization animation
-        visualizer.startAudioAnimation();
-
-        console.log(`Playing ${selectedPeaks.length} selected frequencies for ${duration}s`);
-
-        // Re-enable button after duration
-        setTimeout(() => {
-            playSelectedButton.disabled = false;
-            visualizer.stopAudioAnimation();
-        }, duration * 1000 + 100);
-
-    } catch (error) {
-        playSelectedButton.disabled = false;
-        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
-    }
-}
-
-/**
- * Handle select all peaks button
- */
-function handleSelectAll() {
-    visualizer.selectAllPeaks();
-}
-
-/**
  * Handle clear selection button
+ * Clears all selected peaks and returns to playing all peaks.
  */
 function handleClearSelection() {
     visualizer.clearSelection();

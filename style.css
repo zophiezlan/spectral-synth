@@ -2383,6 +2383,49 @@ input[type="range"]:hover::-moz-range-thumb {
     color: var(--accent-secondary);
 }
 
+/* Peak Selection Info - integrated with visualization */
+.peak-selection-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.selection-status {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.clear-selection-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.clear-selection-btn:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-1px);
+}
+
+.clear-selection-btn:active {
+    transform: translateY(0);
+}
+
+.clear-selection-btn.hidden {
+    display: none;
+}
+
 /* Responsive adjustments for new elements */
 @media (max-width: 768px) {
     .blend-controls {
