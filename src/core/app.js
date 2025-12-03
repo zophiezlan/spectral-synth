@@ -8,6 +8,46 @@
  * loaded from separate files for better maintainability.
  */
 
+// Import configuration
+import { CONFIG } from '../config/config.js';
+import { CONSTANTS } from '../config/constants.js';
+import * as DOMElements from '../config/dom-elements.js';
+
+// Import utilities
+import { LoadingOverlay, Toast, ErrorHandler, BrowserCompatibility, ScreenReader, MicroInteractions } from '../utils/ui-utilities.js';
+import { ResponsiveCanvas } from '../utils/visualization-utilities.js';
+import { DataLoader } from '../utils/data-loader.js';
+import { Favorites } from '../utils/storage-utilities.js';
+import { categorizeSubstance } from '../utils/substance-utilities.js';
+import { calculateSpectralSimilarity } from '../utils/analysis-utilities.js';
+import { debounce, throttle } from '../utils/performance-utilities.js';
+import { PerformanceMonitor } from '../utils/performance-monitor.js';
+
+// Import core classes
+import { AudioEngine } from './audio-engine.js';
+import { Visualizer } from './visualizer.js';
+import { FrequencyMapper } from './frequency-mapper.js';
+import { MIDIOutput } from './midi-output.js';
+
+// Import importers
+import { CSVImporter } from '../importers/csv-importer.js';
+import { JCAMPImporter } from '../importers/jcamp-importer.js';
+
+// Import encoders
+import { MP3Encoder } from '../encoders/mp3-encoder.js';
+
+// Destructure DOM elements
+const {
+    singleControls, substanceSelect, searchInput, categorySelect, resultsCount,
+    playButton, stopButton, clearSelectionButton, selectionCount,
+    durationSlider, durationValue, volumeSlider, volumeValue,
+    reverbSlider, reverbValue, filterFreqSlider, filterFreqValue,
+    attackSlider, attackValue, decaySlider, decayValue,
+    sustainSlider, sustainValue, releaseSlider, releaseValue,
+    adsrCurveSelect, mappingInfo, mappingInfoModal,
+    ftirCanvas, audioCanvas, selectAllButton, playSelectedButton
+} = DOMElements;
+
 // Global instances
 let audioEngine;
 let visualizer;

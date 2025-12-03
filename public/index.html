@@ -554,39 +554,10 @@
         </div>
     </div>
 
-    <!-- Configuration and constants must be loaded first -->
-    <script src="../src/config/config.js"></script>
-    <script src="../src/config/constants.js"></script>
+    <!-- Main application as ES6 module -->
+    <script type="module" src="../src/core/app.js"></script>
 
-    <!-- Utility modules -->
-    <script src="../src/utils/ui-utilities.js"></script>
-    <script src="../src/utils/visualization-utilities.js"></script>
-    <script src="../src/utils/storage-utilities.js"></script>
-    <script src="../src/utils/data-loader.js"></script>
-    <script src="../src/utils/tutorial-manager.js"></script>
-    <script src="../src/utils/analysis-utilities.js"></script>
-    <script src="../src/utils/substance-utilities.js"></script>
-    <script src="../src/utils/performance-utilities.js"></script>
-
-    <!-- Core modules -->
-    <script src="../src/core/frequency-mapper.js"></script>
-    <script src="../src/core/audio-engine.js"></script>
-    <script src="../src/core/visualizer.js"></script>
-    <script src="../src/importers/csv-importer.js"></script>
-    <script src="../src/importers/jcamp-importer.js"></script>
-    <script src="../src/encoders/mp3-encoder.js"></script>
-    <script src="../src/core/midi-output.js"></script>
-
-    <!-- DOM and event handling -->
-    <script src="../src/config/dom-elements.js"></script>
-    <script src="../src/handlers/event-handlers.js"></script>
-    <script src="../src/handlers/handlers-import-export.js"></script>
-    <script src="../src/handlers/handlers-midi.js"></script>
-
-    <!-- Main application -->
-    <script src="../src/core/app.js"></script>
-
-    <!-- Service Worker Registration -->
+    <!-- Service Worker Registration (non-module for compatibility) -->
     <script src="../src/pwa/sw-register.js"></script>
 </body>
 </html>
