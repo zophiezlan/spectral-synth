@@ -107,7 +107,10 @@ async function init() {
         }
 
         // Create visualizer for single mode
-        visualizer = new Visualizer(ftirCanvas, audioCanvas);
+        // Get canvas elements directly (not from destructured imports) to ensure DOM is ready
+        const ftirCanvasElement = document.getElementById('ftir-canvas');
+        const audioCanvasElement = document.getElementById('audio-canvas');
+        visualizer = new Visualizer(ftirCanvasElement, audioCanvasElement);
         visualizer.setAudioEngine(audioEngine);
         visualizer.onPeakSelectionChange = handlePeakSelectionChange;
 

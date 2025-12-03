@@ -142,16 +142,6 @@ export const ResponsiveCanvas = {
                     visualizer.audioStaticCached = false;
                     visualizer.stopAudioAnimation(); // Redraws with cleared cache
                 }
-            },
-            'ftir-canvas-a': () => {
-                if (typeof visualizerA !== 'undefined' && visualizerA.currentSpectrum) {
-                    visualizerA.drawFTIRSpectrum(visualizerA.currentSpectrum, visualizerA.currentPeaks || []);
-                }
-            },
-            'ftir-canvas-b': () => {
-                if (typeof visualizerB !== 'undefined' && visualizerB.currentSpectrum) {
-                    visualizerB.drawFTIRSpectrum(visualizerB.currentSpectrum, visualizerB.currentPeaks || []);
-                }
             }
         };
 
@@ -215,12 +205,8 @@ export const ResponsiveCanvas = {
     setupAllCanvases() {
         const ftirCanvas = document.getElementById('ftir-canvas');
         const audioCanvas = document.getElementById('audio-canvas');
-        const ftirCanvasA = document.getElementById('ftir-canvas-a');
-        const ftirCanvasB = document.getElementById('ftir-canvas-b');
 
         this.setupCanvas(ftirCanvas, 2);
         this.setupCanvas(audioCanvas, 2);
-        this.setupCanvas(ftirCanvasA, 2);
-        this.setupCanvas(ftirCanvasB, 2);
     }
 };
