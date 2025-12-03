@@ -28,7 +28,7 @@ function categorizeSubstance(item) {
                                'mephedrone', 'caffeine', 'methylphenidate', 'cathinone',
                                'methcathinone', 'ecstasy', 'speed', 'crystal',
                                'ethylone', 'methylone', 'butylone', 'pentedrone',
-                               'ephidrine', 'pseudoephedrine', 'benzoylecgonine'];
+                               'ephedrine', 'pseudoephedrine', 'benzoylecgonine'];
     if (stimulantKeywords.some(keyword => name.includes(keyword))) {
         return 'stimulants';
     }

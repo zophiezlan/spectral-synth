@@ -53,12 +53,7 @@ const ThumbnailGenerator = {
         spectrum.forEach((point, i) => {
             const x = ((point.wavenumber - minWavenumber) / (maxWavenumber - minWavenumber)) * width;
             const y = height - ((point.transmittance - minTrans) / (maxTrans - minTrans)) * height;
-
-            if (i === 0) {
-                ctx.lineTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-            }
+            ctx.lineTo(x, y);
         });
 
         ctx.lineTo(width, height);
