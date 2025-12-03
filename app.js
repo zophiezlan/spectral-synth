@@ -200,67 +200,7 @@ async function loadLibrary() {
     }
 }
 
-/**
- * Categorize substance based on name and chemical properties
- * @param {Object} item - Substance data object
- * @returns {string} Category name
- */
-function categorizeSubstance(item) {
-    const name = item.name.toLowerCase();
-    const formula = (item.formula || '').toLowerCase();
-
-    // Opioids
-    const opioidKeywords = ['morphine', 'heroin', 'codeine', 'fentanyl', 'oxycodone',
-                            'hydrocodone', 'buprenorphine', 'methadone', 'tramadol',
-                            'diacetylmorphine', 'acetylmorphine', 'alfentanil', 'sufentanil',
-                            'remifentanil', 'carfentanil', 'acetylfentanyl', 'furanylfentanyl',
-                            'acrylfentanyl', 'butyrfentanyl', 'valerylfentanyl'];
-    if (opioidKeywords.some(keyword => name.includes(keyword))) {
-        return 'opioids';
-    }
-
-    // Stimulants
-    const stimulantKeywords = ['cocaine', 'amphetamine', 'methamphetamine', 'mdma',
-                               'mephedrone', 'caffeine', 'methylphenidate', 'cathinone',
-                               'methcathinone', 'ecstasy', 'speed', 'crystal',
-                               'ethylone', 'methylone', 'butylone', 'pentedrone',
-                               'ephidrine', 'pseudoephedrine', 'benzoylecgonine'];
-    if (stimulantKeywords.some(keyword => name.includes(keyword))) {
-        return 'stimulants';
-    }
-
-    // Benzodiazepines
-    const benzoKeywords = ['diazepam', 'alprazolam', 'clonazepam', 'lorazepam',
-                          'temazepam', 'oxazepam', 'nitrazepam', 'flunitrazepam',
-                          'bromazepam', 'lormetazepam', 'etizolam', 'flubromazolam'];
-    if (benzoKeywords.some(keyword => name.includes(keyword))) {
-        return 'benzodiazepines';
-    }
-
-    // Psychedelics
-    const psychedelicKeywords = ['lsd', 'lysergic', 'psilocybin', 'dmt', 'mescaline',
-                                 '2c-b', '2c-i', '2c-e', 'nbome', 'dom', 'doi'];
-    if (psychedelicKeywords.some(keyword => name.includes(keyword))) {
-        return 'psychedelics';
-    }
-
-    // Cannabinoids
-    const cannabinoidKeywords = ['thc', 'cbd', 'cannabinol', 'cannabidiol', 'cannabis',
-                                 'jwh', 'am-2201', 'cp-47', 'hu-210'];
-    if (cannabinoidKeywords.some(keyword => name.includes(keyword))) {
-        return 'cannabinoids';
-    }
-
-    // Steroids
-    const steroidKeywords = ['testosterone', 'stanozolol', 'nandrolone', 'methandienone',
-                            'boldenone', 'trenbolone', 'oxandrolone', 'methenolone',
-                            'drostanolone', 'mesterolone'];
-    if (steroidKeywords.some(keyword => name.includes(keyword))) {
-        return 'steroids';
-    }
-
-    return 'other';
-}
+// categorizeSubstance is now loaded from substance-utilities.js
 
 /**
  * Get filtered library based on search term and category
@@ -2035,50 +1975,7 @@ function updateFavoriteButton(isFavorite) {
  * @param {Array} spectrum2 - Second spectrum data
  * @returns {number} Similarity score (0-1)
  */
-function calculateSpectralSimilarity(spectrum1, spectrum2) {
-    // Convert spectra to fixed-length vectors for comparison
-    const minWavenumber = 400;
-    const maxWavenumber = 4000;
-    const bins = 100;
-    const binSize = (maxWavenumber - minWavenumber) / bins;
-
-    const vector1 = new Array(bins).fill(0);
-    const vector2 = new Array(bins).fill(0);
-
-    // Bin spectrum1
-    spectrum1.forEach(point => {
-        const binIndex = Math.floor((point.wavenumber - minWavenumber) / binSize);
-        if (binIndex >= 0 && binIndex < bins) {
-            vector1[binIndex] += (100 - point.transmittance) / 100; // Convert to absorbance
-        }
-    });
-
-    // Bin spectrum2
-    spectrum2.forEach(point => {
-        const binIndex = Math.floor((point.wavenumber - minWavenumber) / binSize);
-        if (binIndex >= 0 && binIndex < bins) {
-            vector2[binIndex] += (100 - point.transmittance) / 100;
-        }
-    });
-
-    // Calculate cosine similarity
-    let dotProduct = 0;
-    let magnitude1 = 0;
-    let magnitude2 = 0;
-
-    for (let i = 0; i < bins; i++) {
-        dotProduct += vector1[i] * vector2[i];
-        magnitude1 += vector1[i] * vector1[i];
-        magnitude2 += vector2[i] * vector2[i];
-    }
-
-    magnitude1 = Math.sqrt(magnitude1);
-    magnitude2 = Math.sqrt(magnitude2);
-
-    if (magnitude1 === 0 || magnitude2 === 0) return 0;
-
-    return dotProduct / (magnitude1 * magnitude2);
-}
+// calculateSpectralSimilarity is now loaded from analysis-utilities.js
 
 /**
  * Show smart substance suggestions
