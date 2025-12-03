@@ -274,6 +274,11 @@ The application features comprehensive mobile enhancements:
 - **WAV Export**: Export synthesized audio as high-quality WAV files
   - Preserves all current effect settings
   - Automatic filename generation
+  - **Zero dependencies** - works entirely in the browser
+- **MP3 Export** (Optional): Export as MP3 format
+  - Requires [lamejs](https://github.com/zhuker/lamejs) library
+  - To enable: Download lamejs and add `<script src="lame.min.js"></script>` before other scripts
+  - WAV export is recommended for zero-dependency operation
 
 ### Audio Effect Presets
 Six curated presets for different sonic characteristics:

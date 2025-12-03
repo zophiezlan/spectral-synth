@@ -8,17 +8,7 @@
  * being available in the global scope or passed as parameters.
  */
 
-/**
- * Setup mode switching event listeners
- */
-function setupModeListeners() {
-    if (singleModeButton) {
-        singleModeButton.addEventListener('click', () => switchMode(false));
-    }
-    if (comparisonModeButton) {
-        comparisonModeButton.addEventListener('click', () => switchMode(true));
-    }
-}
+
 
 /**
  * Setup substance selection and filtering listeners
@@ -35,14 +25,6 @@ function setupSubstanceListeners() {
     }
     if (categorySelect) {
         categorySelect.addEventListener('change', handleCategoryChange);
-    }
-
-    // Comparison mode substance selection
-    if (substanceSelectA) {
-        substanceSelectA.addEventListener('change', () => handleComparisonSubstanceChange('A'));
-    }
-    if (substanceSelectB) {
-        substanceSelectB.addEventListener('change', () => handleComparisonSubstanceChange('B'));
     }
 }
 
@@ -61,23 +43,6 @@ function setupPlaybackListeners() {
     // Peak selection
     if (clearSelectionButton) {
         clearSelectionButton.addEventListener('click', handleClearSelection);
-    }
-
-    // Comparison mode playback
-    if (playAButton) {
-        playAButton.addEventListener('click', () => handleComparisonPlay('A'));
-    }
-    if (playBButton) {
-        playBButton.addEventListener('click', () => handleComparisonPlay('B'));
-    }
-    if (playBothSeqButton) {
-        playBothSeqButton.addEventListener('click', handleComparisonPlaySequential);
-    }
-    if (playBothSimButton) {
-        playBothSimButton.addEventListener('click', handleComparisonPlaySimultaneous);
-    }
-    if (playBlendButton) {
-        playBlendButton.addEventListener('click', handlePlayBlend);
     }
 }
 
@@ -119,20 +84,6 @@ function setupSliderListeners() {
         });
     }
 
-    // Blend ratio slider
-    if (blendRatioSlider && blendRatioValue) {
-        blendRatioSlider.addEventListener('input', (e) => {
-            blendRatio = parseInt(e.target.value) / 100;
-            blendRatioValue.textContent = e.target.value;
-        });
-    }
-
-    // Comparison duration slider
-    if (comparisonDurationSlider && comparisonDurationValue) {
-        comparisonDurationSlider.addEventListener('input', (e) => {
-            comparisonDurationValue.textContent = parseFloat(e.target.value).toFixed(1);
-        });
-    }
 }
 
 /**
@@ -384,11 +335,79 @@ function setupUIEnhancementListeners() {
 }
 
 /**
+ * Setup sidebar navigation listeners
+ */
+function setupSidebarListeners() {
+    const burgerBtn = document.getElementById('burger-menu-btn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const sidebarClose = document.getElementById('sidebar-close');
+
+    function openSidebar() {
+        sidebar?.classList.remove('hidden');
+        sidebar?.classList.add('visible');
+        sidebarOverlay?.classList.remove('hidden');
+        sidebarOverlay?.classList.add('visible');
+        burgerBtn?.classList.add('active');
+        burgerBtn?.setAttribute('aria-expanded', 'true');
+        sidebar?.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSidebar() {
+        sidebar?.classList.remove('visible');
+        sidebarOverlay?.classList.remove('visible');
+        burgerBtn?.classList.remove('active');
+        burgerBtn?.setAttribute('aria-expanded', 'false');
+        sidebar?.setAttribute('aria-hidden', 'true');
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+            sidebar?.classList.add('hidden');
+            sidebarOverlay?.classList.add('hidden');
+        }, 300);
+    }
+
+    if (burgerBtn) {
+        burgerBtn.addEventListener('click', () => {
+            const isOpen = sidebar?.classList.contains('visible');
+            if (isOpen) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+    }
+
+    if (sidebarClose) {
+        sidebarClose.addEventListener('click', closeSidebar);
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    // Close sidebar when escape key is pressed
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar?.classList.contains('visible')) {
+            closeSidebar();
+        }
+    });
+
+    // Close sidebar when any menu button is clicked
+    const menuButtons = document.querySelectorAll('.sidebar-button');
+    menuButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Small delay to let the modal open before closing sidebar
+            setTimeout(closeSidebar, 100);
+        });
+    });
+}
+
+/**
  * Main function to setup all event listeners
  * Replaces the monolithic setupEventListeners function
  */
 function setupEventListeners() {
-    setupModeListeners();
+    setupSidebarListeners();
     setupSubstanceListeners();
     setupPlaybackListeners();
     setupSliderListeners();

@@ -20,7 +20,7 @@ async function handleCSVImport(e, context) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const { libraryData, substanceSelect, populateSubstanceSelector, populateComparisonSelectors, handleSubstanceChange } = context;
+    const { libraryData, substanceSelect, populateSubstanceSelector, handleSubstanceChange } = context;
 
     try {
         LoadingOverlay.show(`Importing ${file.name}...`);
@@ -31,9 +31,8 @@ async function handleCSVImport(e, context) {
         // Add to library
         libraryData.push(data);
 
-        // Repopulate selectors
+        // Repopulate selector
         populateSubstanceSelector();
-        populateComparisonSelectors();
 
         // Auto-select the imported substance
         substanceSelect.value = libraryData.length - 1;
@@ -68,7 +67,7 @@ async function handleJCAMPImport(e, context) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const { libraryData, substanceSelect, populateSubstanceSelector, populateComparisonSelectors, handleSubstanceChange } = context;
+    const { libraryData, substanceSelect, populateSubstanceSelector, handleSubstanceChange } = context;
 
     try {
         LoadingOverlay.show(`Importing ${file.name}...`);
@@ -79,9 +78,8 @@ async function handleJCAMPImport(e, context) {
         // Add to library
         libraryData.push(data);
 
-        // Repopulate selectors
+        // Repopulate selector
         populateSubstanceSelector();
-        populateComparisonSelectors();
 
         // Auto-select the imported substance
         substanceSelect.value = libraryData.length - 1;
