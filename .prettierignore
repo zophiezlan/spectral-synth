@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+_site/
+
+# Coverage
+coverage/
+
+# Data files
+data/
+*.json
+
+# Documentation
+docs/
+
+# Git
+.git/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Public assets
+public/styles/style.css
