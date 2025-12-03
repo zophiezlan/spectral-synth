@@ -110,6 +110,12 @@ async function init() {
         // Get canvas elements directly (not from destructured imports) to ensure DOM is ready
         const ftirCanvasElement = document.getElementById('ftir-canvas');
         const audioCanvasElement = document.getElementById('audio-canvas');
+
+        // Verify canvas elements exist before creating visualizer
+        if (!ftirCanvasElement || !audioCanvasElement) {
+            throw new Error('Canvas elements not found in DOM. Required: ftir-canvas and audio-canvas');
+        }
+
         visualizer = new Visualizer(ftirCanvasElement, audioCanvasElement);
         visualizer.setAudioEngine(audioEngine);
         visualizer.onPeakSelectionChange = handlePeakSelectionChange;
