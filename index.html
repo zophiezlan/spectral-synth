@@ -131,7 +131,12 @@
 
         <section class="visualization single-visualization" aria-label="Visualization">
             <div class="viz-panel">
-                <h3>FTIR Spectrum (Infrared)</h3>
+                <div class="viz-header">
+                    <h3>FTIR Spectrum (Infrared)</h3>
+                    <button id="mapping-info-btn" class="info-icon-btn" aria-label="Understanding the mapping" title="Understanding the mapping">
+                        <span class="info-icon">ℹ️</span>
+                    </button>
+                </div>
                 <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualization"></canvas>
                 <div class="axis-labels">
                     <span class="axis-label-x">Wavenumber (cm⁻¹)</span>

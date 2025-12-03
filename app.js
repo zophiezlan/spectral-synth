@@ -1049,20 +1049,23 @@ function setupMenuModals() {
     // Help Modal
     const helpModal = document.getElementById('help-modal');
     const helpBtn = document.getElementById('help-menu-btn');
+    const mappingInfoBtn = document.getElementById('mapping-info-btn');
     const helpClose = document.getElementById('help-close');
     const helpOk = document.getElementById('help-ok');
     const restartTutorial = document.getElementById('restart-tutorial');
 
-    if (helpBtn && helpModal) {
-        helpBtn.addEventListener('click', () => {
-            helpModal.classList.remove('hidden');
-            helpModal.style.display = 'flex';
-        });
+    const openHelp = () => {
+        helpModal.classList.remove('hidden');
+        helpModal.style.display = 'flex';
+    };
 
-        const closeHelp = () => {
-            helpModal.classList.add('hidden');
-            helpModal.style.display = 'none';
-        };
+    const closeHelp = () => {
+        helpModal.classList.add('hidden');
+        helpModal.style.display = 'none';
+    };
+
+    if (helpBtn && helpModal) {
+        helpBtn.addEventListener('click', openHelp);
 
         if (helpClose) helpClose.addEventListener('click', closeHelp);
         if (helpOk) helpOk.addEventListener('click', closeHelp);
@@ -1077,6 +1080,11 @@ function setupMenuModals() {
         helpModal.addEventListener('click', (e) => {
             if (e.target === helpModal) closeHelp();
         });
+    }
+
+    // Mapping info button (opens help modal)
+    if (mappingInfoBtn && helpModal) {
+        mappingInfoBtn.addEventListener('click', openHelp);
     }
 }
 
