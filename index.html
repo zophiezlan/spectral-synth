@@ -233,6 +233,7 @@
                             </button>
                         </div>
                     </div>
+                    <p class="import-export-info">Audio exports (WAV/MP3) use the current Playback Mode setting.</p>
                 </div>
             </div>
 
@@ -255,6 +256,9 @@
                         <button id="send-midi-notes" disabled class="secondary-button" aria-label="Send spectrum as MIDI notes">
                             🎹 Send to MIDI Device
                         </button>
+                        <button id="export-midi-file" disabled class="secondary-button" aria-label="Export spectrum as MIDI file">
+                            💾 Export MIDI File
+                        </button>
                         <div class="slider-control">
                             <label for="midi-velocity">MIDI Velocity: <span id="midi-velocity-value">80</span></label>
                             <input type="range" id="midi-velocity" min="1" max="127" step="1" value="80">
@@ -263,8 +267,12 @@
                             <label for="midi-note-duration">Note Duration: <span id="midi-note-duration-value">500</span> ms</label>
                             <input type="range" id="midi-note-duration" min="100" max="2000" step="100" value="500">
                         </div>
+                        <div class="slider-control">
+                            <label for="midi-tempo">MIDI Tempo: <span id="midi-tempo-value">120</span> BPM</label>
+                            <input type="range" id="midi-tempo" min="40" max="240" step="1" value="120">
+                        </div>
                     </div>
-                    <p class="midi-info">Send spectral peaks as MIDI notes to external synthesizers. Requires Web MIDI API support.</p>
+                    <p class="midi-info">Send spectral peaks as MIDI notes to external synthesizers or export as Standard MIDI File (.mid). Uses the global Playback Mode setting. Requires Web MIDI API support for device output.</p>
                 </div>
             </div>
 

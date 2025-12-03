@@ -517,6 +517,16 @@ section {
     gap: 0.5rem;
 }
 
+.import-export-info {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-left: 3px solid var(--primary);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
 .file-label {
     display: inline-block;
     padding: 0.75rem 1.5rem;

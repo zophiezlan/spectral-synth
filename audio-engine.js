@@ -20,7 +20,7 @@ class AudioEngine {
         this.filterFrequency = CONFIG.frequency.AUDIO_MAX;  // Hz
         
         // Playback mode
-        this.playbackMode = 'chord';  // Default to chord mode
+        this.playbackMode = 'sequential';  // Default to sequential mode (order by intensity)
         
         // ADSR envelope parameters
         this.attackTime = CONFIG.adsr.DEFAULT_ATTACK;
@@ -754,9 +754,109 @@ class AudioEngine {
     }
 
     /**
+     * Create oscillators in offline context based on playback mode
+     * 
+     * @param {OfflineAudioContext} offlineContext - Offline audio context
+     * @param {Array} peaks - Array of peak objects
+     * @param {AudioNode} masterGain - Master gain node to connect to
+     * @param {number} duration - Total duration in seconds
+     * @private
+     */
+    createOfflineOscillators(offlineContext, peaks, masterGain, duration) {
+        if (this.playbackMode === 'chord') {
+            // Chord mode: all peaks play simultaneously
+            peaks.forEach((peak, idx) => {
+                const osc = offlineContext.createOscillator();
+                const gain = offlineContext.createGain();
+
+                osc.frequency.value = peak.audioFreq;
+                
+                const waveforms = ['sine', 'triangle', 'square'];
+                const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
+                osc.type = waveforms[waveformIndex];
+
+                const baseGain = (peak.absorbance * 0.8) / peaks.length;
+                const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
+                const peakGain = baseGain * freqCorrection;
+                const sustainGain = peakGain * this.sustainLevel;
+
+                // Apply ADSR envelope
+                this.applyADSREnvelope(gain, 0, duration, peakGain, sustainGain);
+
+                osc.connect(gain);
+                gain.connect(masterGain);
+
+                osc.start(0);
+                osc.stop(duration);
+            });
+        } else {
+            // Arpeggio/sequential modes: peaks play in sequence
+            let orderedPeaks = [...peaks];
+            
+            // Sort based on playback mode
+            switch (this.playbackMode) {
+                case 'arpeggio-up':
+                    orderedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
+                    break;
+                case 'arpeggio-down':
+                    orderedPeaks.sort((a, b) => b.audioFreq - a.audioFreq);
+                    break;
+                case 'arpeggio-updown':
+                    orderedPeaks.sort((a, b) => a.audioFreq - b.audioFreq);
+                    orderedPeaks = [...orderedPeaks, ...orderedPeaks.slice(0, -1).reverse()];
+                    break;
+                case 'sequential':
+                    orderedPeaks.sort((a, b) => b.absorbance - a.absorbance);
+                    break;
+                case 'random':
+                    for (let i = orderedPeaks.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [orderedPeaks[i], orderedPeaks[j]] = [orderedPeaks[j], orderedPeaks[i]];
+                    }
+                    break;
+            }
+
+            // Calculate timing
+            const noteCount = orderedPeaks.length;
+            const noteDuration = duration / noteCount;
+            const noteOverlap = 0.1;
+            const actualNoteDuration = Math.min(noteDuration + noteOverlap, 0.5);
+
+            orderedPeaks.forEach((peak, idx) => {
+                const osc = offlineContext.createOscillator();
+                const gain = offlineContext.createGain();
+                
+                const startTime = idx * noteDuration;
+                const endTime = startTime + actualNoteDuration;
+
+                osc.frequency.value = peak.audioFreq;
+
+                const waveforms = ['sine', 'triangle', 'square'];
+                const waveformIndex = idx % 3;
+                osc.type = waveforms[waveformIndex];
+
+                const baseGain = peak.absorbance * 0.5;
+                const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
+                const peakGain = baseGain * freqCorrection;
+                const sustainGain = peakGain * this.sustainLevel;
+
+                // Apply ADSR envelope
+                this.applyADSREnvelope(gain, startTime, actualNoteDuration, peakGain, sustainGain);
+
+                osc.connect(gain);
+                gain.connect(masterGain);
+
+                osc.start(startTime);
+                osc.stop(endTime);
+            });
+        }
+    }
+
+    /**
      * Export audio as WAV file
      * 
      * Renders the synthesized audio to a buffer and exports it as a downloadable WAV file.
+     * Uses the currently selected playback mode for rendering.
      * 
      * @param {Array} peaks - Array of {wavenumber, absorbance, audioFreq} objects
      * @param {number} [duration=2.0] - Duration in seconds
@@ -815,31 +915,8 @@ class AudioEngine {
         convolver.connect(wetGain);
         wetGain.connect(offlineContext.destination);
 
-        // Create oscillators for each peak
-        peaks.forEach((peak, idx) => {
-            const osc = offlineContext.createOscillator();
-            const gain = offlineContext.createGain();
-
-            osc.frequency.value = peak.audioFreq;
-            
-            const waveforms = ['sine', 'triangle', 'square'];
-            const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
-            osc.type = waveforms[waveformIndex];
-
-            const baseGain = (peak.absorbance * 0.8) / peaks.length;
-            const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
-            const peakGain = baseGain * freqCorrection;
-            const sustainGain = peakGain * this.sustainLevel;
-
-            // Apply ADSR envelope
-            this.applyADSREnvelope(gain, 0, duration, peakGain, sustainGain);
-
-            osc.connect(gain);
-            gain.connect(masterGain);
-
-            osc.start(0);
-            osc.stop(duration);
-        });
+        // Create oscillators based on playback mode
+        this.createOfflineOscillators(offlineContext, peaks, masterGain, duration);
 
         // Render audio
         const renderedBuffer = await offlineContext.startRendering();
@@ -990,31 +1067,8 @@ class AudioEngine {
         convolver.connect(wetGain);
         wetGain.connect(offlineContext.destination);
 
-        // Create oscillators for each peak
-        peaks.forEach((peak, idx) => {
-            const osc = offlineContext.createOscillator();
-            const gain = offlineContext.createGain();
-
-            osc.frequency.value = peak.audioFreq;
-            
-            const waveforms = ['sine', 'triangle', 'square'];
-            const waveformIndex = idx % 3 === 2 ? 2 : (idx % 2);
-            osc.type = waveforms[waveformIndex];
-
-            const baseGain = (peak.absorbance * 0.8) / peaks.length;
-            const freqCorrection = Math.min(1.0, 1000 / peak.audioFreq);
-            const peakGain = baseGain * freqCorrection;
-            const sustainGain = peakGain * this.sustainLevel;
-
-            // Apply ADSR envelope
-            this.applyADSREnvelope(gain, 0, duration, peakGain, sustainGain);
-
-            osc.connect(gain);
-            gain.connect(masterGain);
-
-            osc.start(0);
-            osc.stop(duration);
-        });
+        // Create oscillators based on playback mode
+        this.createOfflineOscillators(offlineContext, peaks, masterGain, duration);
 
         // Render audio
         const renderedBuffer = await offlineContext.startRendering();

@@ -1543,6 +1543,19 @@ function setupEventListeners() {
         });
     }
 
+    const exportMIDIButton = document.getElementById('export-midi-file');
+    if (exportMIDIButton) {
+        exportMIDIButton.addEventListener('click', handleExportMIDIFile);
+    }
+
+    const midiTempoSlider = document.getElementById('midi-tempo');
+    const midiTempoValue = document.getElementById('midi-tempo-value');
+    if (midiTempoSlider) {
+        midiTempoSlider.addEventListener('input', (e) => {
+            midiTempoValue.textContent = e.target.value;
+        });
+    }
+
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcut);
 
@@ -2521,9 +2534,16 @@ async function refreshMIDIDevices() {
  */
 function updateMIDISendButton() {
     const sendButton = document.getElementById('send-midi-notes');
-    if (!sendButton) return;
-
-    sendButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput || !midiOutput.hasSelectedDevice();
+    const exportButton = document.getElementById('export-midi-file');
+    
+    if (sendButton) {
+        sendButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput || !midiOutput.hasSelectedDevice();
+    }
+    
+    // MIDI file export doesn't require a device
+    if (exportButton) {
+        exportButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput;
+    }
 }
 
 /**
@@ -2557,6 +2577,49 @@ async function handleSendMIDI() {
         const sendButton = document.getElementById('send-midi-notes');
         sendButton.disabled = false;
         ErrorHandler.handle(error, `Failed to send MIDI notes: ${error.message}`);
+    }
+}
+
+/**
+ * Handle export MIDI file
+ */
+async function handleExportMIDIFile() {
+    if (!currentPeaks || currentPeaks.length === 0) {
+        Toast.warning('Please select a substance first');
+        return;
+    }
+
+    if (!midiOutput) {
+        Toast.error('MIDI output not available');
+        return;
+    }
+
+    try {
+        const exportButton = document.getElementById('export-midi-file');
+        const tempoSlider = document.getElementById('midi-tempo');
+        
+        exportButton.disabled = true;
+        exportButton.textContent = '⏳ Exporting...';
+
+        // Use the global playback mode from audio engine
+        const mode = audioEngine.getPlaybackMode();
+        const tempo = tempoSlider ? parseInt(tempoSlider.value) : 120;
+        const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
+        const filename = `${substanceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${mode}.mid`;
+
+        midiOutput.exportMIDIFile(currentPeaks, mode, tempo, filename);
+
+        exportButton.disabled = false;
+        exportButton.textContent = '💾 Export MIDI File';
+
+        Toast.success(`Exported MIDI file: ${filename}`, 3000);
+        MicroInteractions.celebrate(`First MIDI export! Successfully exported: ${filename}`);
+    } catch (error) {
+        const exportButton = document.getElementById('export-midi-file');
+        exportButton.disabled = false;
+        exportButton.textContent = '💾 Export MIDI File';
+
+        ErrorHandler.handle(error, `Failed to export MIDI file: ${error.message}`);
     }
 }
 
