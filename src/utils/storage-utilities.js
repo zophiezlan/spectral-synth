@@ -5,6 +5,8 @@
  * - Favorites management
  */
 
+import { Toast } from './ui-utilities.js';
+
 // Utility: Favorites manager using localStorage
 export const Favorites = {
     STORAGE_KEY: 'spectral-synth-favorites',

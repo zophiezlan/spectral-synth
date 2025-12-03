@@ -5,21 +5,27 @@
  */
 
 import { jest } from '@jest/globals';
-import { Favorites } from '../../src/utils/storage-utilities.js';
 
-// Mock Toast since Favorites uses it
-global.Toast = {
-    success: jest.fn(),
-    error: jest.fn(),
-    info: jest.fn()
-};
+// Mock Toast module before importing Favorites
+jest.unstable_mockModule('../../src/utils/ui-utilities.js', () => ({
+    Toast: {
+        success: jest.fn(),
+        error: jest.fn(),
+        info: jest.fn()
+    }
+}));
+
+// Import Favorites after mocking dependencies
+const { Favorites } = await import('../../src/utils/storage-utilities.js');
+const { Toast } = await import('../../src/utils/ui-utilities.js');
 
 describe('Favorites', () => {
     let getItemSpy, setItemSpy, mockStorage;
 
     beforeEach(() => {
-        // Clear all mocks before each test
+        // Clear and restore all mocks before each test
         jest.clearAllMocks();
+        jest.restoreAllMocks();
         
         // Create mock storage
         mockStorage = {};
@@ -35,8 +41,7 @@ describe('Favorites', () => {
 
     afterEach(() => {
         // Restore original implementations
-        getItemSpy.mockRestore();
-        setItemSpy.mockRestore();
+        jest.restoreAllMocks();
     });
 
     describe('load', () => {
