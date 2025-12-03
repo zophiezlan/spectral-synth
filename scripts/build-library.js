@@ -13,9 +13,9 @@
  * - Extracts metadata (name, formula, molecular weight, etc.)
  * 
  * Usage:
- *   1. Download ENFSI library and extract to enfsi_data/ directory
- *   2. Run: node build-library.js
- *   3. Output: ftir-library.json (ready for web app)
+ *   1. Download ENFSI library and extract to enfsi_data/ directory (in scripts/)
+ *   2. Run: node scripts/build-library.js (from project root)
+ *   3. Output: data/ftir-library.json (ready for web app)
  */
 
 const fs = require('fs');
@@ -161,7 +161,7 @@ function downsample(spectrum, targetPoints = 500) {
  */
 function buildLibrary() {
     const enfsiDir = path.join(__dirname, 'enfsi_data');
-    const outputFile = path.join(__dirname, 'ftir-library.json');
+    const outputFile = path.join(__dirname, '..', 'data', 'ftir-library.json');
 
     // Curated list of interesting substances
     const curatedSubstances = [

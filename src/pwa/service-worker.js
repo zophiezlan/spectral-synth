@@ -11,20 +11,36 @@ const CACHE_VERSION = '1.0.0';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/style.css',
-    '/config.js',
-    '/app.js',
-    '/audio-engine.js',
-    '/frequency-mapper.js',
-    '/visualizer.js',
-    '/csv-importer.js',
-    '/manifest.json'
+    '/styles/style.css',
+    '/manifest.json',
+    '../src/config/config.js',
+    '../src/config/constants.js',
+    '../src/config/dom-elements.js',
+    '../src/core/app.js',
+    '../src/core/audio-engine.js',
+    '../src/core/frequency-mapper.js',
+    '../src/core/visualizer.js',
+    '../src/core/midi-output.js',
+    '../src/importers/csv-importer.js',
+    '../src/importers/jcamp-importer.js',
+    '../src/encoders/mp3-encoder.js',
+    '../src/utils/ui-utilities.js',
+    '../src/utils/visualization-utilities.js',
+    '../src/utils/storage-utilities.js',
+    '../src/utils/tutorial-manager.js',
+    '../src/utils/analysis-utilities.js',
+    '../src/utils/substance-utilities.js',
+    '../src/utils/performance-utilities.js',
+    '../src/handlers/event-handlers.js',
+    '../src/handlers/handlers-import-export.js',
+    '../src/handlers/handlers-midi.js',
+    '../src/pwa/sw-register.js'
 ];
 
 // Large files that can be cached on demand
 const DYNAMIC_CACHE = 'spectral-synth-dynamic-v1';
 const LARGE_FILES = [
-    '/ftir-library.json'
+    '../data/ftir-library.json'
 ];
 
 /**

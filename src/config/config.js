@@ -93,7 +93,7 @@ const CONFIG = {
     
     // Library parameters
     library: {
-        LIBRARY_FILE: 'ftir-library.json',  // Path to FTIR library JSON file
+        LIBRARY_FILE: '../data/ftir-library.json',  // Path to FTIR library JSON file
     },
     
     // Effect presets
