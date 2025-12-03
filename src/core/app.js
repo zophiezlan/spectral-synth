@@ -961,6 +961,172 @@ async function handleExportMIDIFile() {
 }
 
 /**
+ * Setup all event listeners
+ * Consolidated event listener setup for the application
+ */
+function setupEventListeners() {
+    // Substance selection and search
+    if (substanceSelect) {
+        substanceSelect.addEventListener('change', handleSubstanceChange);
+    }
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
+    if (categorySelect) {
+        categorySelect.addEventListener('change', handleCategoryChange);
+    }
+
+    // Playback controls
+    if (playButton) {
+        playButton.addEventListener('click', handlePlay);
+    }
+    if (stopButton) {
+        stopButton.addEventListener('click', handleStop);
+    }
+    if (clearSelectionButton) {
+        clearSelectionButton.addEventListener('click', handleClearSelection);
+    }
+    if (selectAllButton) {
+        selectAllButton.addEventListener('click', () => {
+            if (visualizer) {
+                visualizer.selectAllPeaks();
+            }
+        });
+    }
+    if (playSelectedButton) {
+        playSelectedButton.addEventListener('click', handlePlay);
+    }
+
+    // Volume and duration sliders
+    if (durationSlider && durationValue) {
+        durationSlider.addEventListener('input', (e) => {
+            durationValue.textContent = parseFloat(e.target.value).toFixed(1);
+        });
+    }
+    if (volumeSlider && volumeValue) {
+        volumeSlider.addEventListener('input', (e) => {
+            volumeValue.textContent = parseInt(e.target.value);
+            if (audioEngine) {
+                audioEngine.setVolume(parseInt(e.target.value) / 100);
+            }
+        });
+    }
+
+    // Effects sliders
+    if (reverbSlider && reverbValue) {
+        reverbSlider.addEventListener('input', (e) => {
+            reverbValue.textContent = parseInt(e.target.value);
+            if (audioEngine) {
+                audioEngine.setReverbMix(parseInt(e.target.value) / 100);
+            }
+        });
+    }
+    if (filterFreqSlider && filterFreqValue) {
+        filterFreqSlider.addEventListener('input', (e) => {
+            const freq = parseInt(e.target.value);
+            filterFreqValue.textContent = freq >= 1000 ? `${(freq/1000).toFixed(1)}k` : freq;
+            if (audioEngine) {
+                audioEngine.setFilterFrequency(freq);
+            }
+        });
+    }
+
+    // ADSR sliders
+    if (attackSlider && attackValue) {
+        attackSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            attackValue.textContent = val.toFixed(2);
+            if (audioEngine) {
+                audioEngine.setAttackTime(val);
+            }
+        });
+    }
+    if (decaySlider && decayValue) {
+        decaySlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            decayValue.textContent = val.toFixed(2);
+            if (audioEngine) {
+                audioEngine.setDecayTime(val);
+            }
+        });
+    }
+    if (sustainSlider && sustainValue) {
+        sustainSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            sustainValue.textContent = val.toFixed(2);
+            if (audioEngine) {
+                audioEngine.setSustainLevel(val);
+            }
+        });
+    }
+    if (releaseSlider && releaseValue) {
+        releaseSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            releaseValue.textContent = val.toFixed(2);
+            if (audioEngine) {
+                audioEngine.setReleaseTime(val);
+            }
+        });
+    }
+    if (adsrCurveSelect) {
+        adsrCurveSelect.addEventListener('change', (e) => {
+            if (audioEngine) {
+                audioEngine.setADSRCurve(e.target.value);
+            }
+        });
+    }
+
+    // Import/Export buttons
+    const importCSV = document.getElementById('import-csv');
+    if (importCSV) {
+        const fileInput = document.getElementById('csv-file-input');
+        if (fileInput) {
+            fileInput.addEventListener('change', handleCSVImport);
+        }
+        importCSV.addEventListener('click', () => {
+            if (fileInput) fileInput.click();
+        });
+    }
+
+    const importJCAMP = document.getElementById('import-jcamp');
+    if (importJCAMP) {
+        const jcampInput = document.getElementById('jcamp-file-input');
+        if (jcampInput) {
+            jcampInput.addEventListener('change', handleJCAMPImport);
+        }
+        importJCAMP.addEventListener('click', () => {
+            if (jcampInput) jcampInput.click();
+        });
+    }
+
+    const exportWAV = document.getElementById('export-wav');
+    if (exportWAV) {
+        exportWAV.addEventListener('click', handleExportWAV);
+    }
+
+    const exportMP3 = document.getElementById('export-mp3');
+    if (exportMP3) {
+        exportMP3.addEventListener('click', handleExportMP3);
+    }
+
+    // MIDI buttons
+    const sendMIDI = document.getElementById('send-midi');
+    if (sendMIDI) {
+        sendMIDI.addEventListener('click', handleSendMIDI);
+    }
+
+    const exportMIDI = document.getElementById('export-midi');
+    if (exportMIDI) {
+        exportMIDI.addEventListener('click', handleExportMIDIFile);
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcut);
+
+    console.log('✓ Event listeners setup complete');
+}
+
+/**
  * Set up onboarding modal
  */
 function setupOnboarding() {

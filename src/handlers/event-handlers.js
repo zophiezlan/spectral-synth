@@ -4,11 +4,31 @@
  * Centralizes event listener setup for better organization and maintainability.
  * Breaks down the monolithic setupEventListeners into logical groups.
  * 
- * Note: This module depends on DOM elements, audioEngine, and handler functions
- * being available in the global scope or passed as parameters.
+ * This module exports a function that accepts all dependencies (DOM elements and handlers)
+ * to avoid relying on global scope.
  */
 
-
+/**
+ * Initialize event listeners with dependencies
+ * @param {Object} deps - Dependencies object containing DOM elements and handler functions
+ * @returns {Function} setupEventListeners function
+ */
+export function createEventListeners(deps) {
+    const {
+        // DOM elements
+        substanceSelect, searchInput, categorySelect,
+        playButton, stopButton, clearSelectionButton,
+        durationSlider, durationValue, volumeSlider, volumeValue,
+        reverbSlider, reverbValue, filterFreqSlider, filterFreqValue,
+        attackSlider, attackValue, decaySlider, decayValue,
+        sustainSlider, sustainValue, releaseSlider, releaseValue,
+        adsrCurveSelect, selectAllButton, playSelectedButton,
+        // Handler functions
+        handleSubstanceChange, handleSearch, handleCategoryChange,
+        handlePlay, handleStop, handleClearSelection,
+        // Other dependencies as needed
+        audioEngine, visualizer
+    } = deps;
 
 /**
  * Setup substance selection and filtering listeners
@@ -416,4 +436,8 @@ function setupEventListeners() {
     setupImportExportListeners();
     setupMIDIListeners();
     setupUIEnhancementListeners();
+}
+
+    // Return the main setup function
+    return setupEventListeners;
 }
