@@ -1,5 +1,6 @@
 export default {
     testEnvironment: 'jsdom',
+    injectGlobals: true,
     testMatch: [
         '**/tests/**/*.test.js',
         '**/tests/**/*.spec.js'

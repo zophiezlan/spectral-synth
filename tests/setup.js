@@ -118,16 +118,18 @@ HTMLCanvasElement.prototype.getContext = function() {
 
 // Mock localStorage
 const localStorageMock = {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
-    clear: jest.fn()
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+    clear: () => {}
 };
 global.localStorage = localStorageMock;
 
 // Suppress console warnings in tests
+const originalWarn = console.warn;
+const originalError = console.error;
 global.console = {
     ...console,
-    warn: jest.fn(),
-    error: jest.fn()
+    warn: (...args) => {}, // Suppress warnings
+    error: (...args) => {} // Suppress errors
 };
