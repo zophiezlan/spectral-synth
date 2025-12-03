@@ -11,19 +11,11 @@
 // Global instances
 let audioEngine;
 let visualizer;
-let visualizerA;
-let visualizerB;
 let frequencyMapper;
 let midiOutput;
 let currentSpectrum = null;
 let currentPeaks = null;
 let libraryData = null;
-
-// Comparison mode state
-let comparisonMode = false;
-let substanceA = { spectrum: null, peaks: null, data: null };
-let substanceB = { spectrum: null, peaks: null, data: null };
-let blendRatio = 0.5; // 0 = pure A, 1 = pure B
 
 // DOM elements are now loaded from dom-elements.js
 
@@ -74,15 +66,10 @@ async function init() {
             console.log('MIDI Output not loaded');
         }
 
-        // Create visualizers for single mode
+        // Create visualizer for single mode
         visualizer = new Visualizer(ftirCanvas, audioCanvas);
         visualizer.setAudioEngine(audioEngine);
         visualizer.onPeakSelectionChange = handlePeakSelectionChange;
-
-        // Create visualizers for comparison mode
-        // Note: audio canvas not used in comparison mode
-        visualizerA = new Visualizer(ftirCanvasA, document.createElement('canvas'));
-        visualizerB = new Visualizer(ftirCanvasB, document.createElement('canvas'));
 
         // Load FTIR library
         await loadLibrary();
@@ -136,9 +123,8 @@ async function loadLibrary() {
 
         console.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
 
-        // Populate substance selectors
+        // Populate substance selector
         populateSubstanceSelector();
-        populateComparisonSelectors();
     } catch (error) {
         ErrorHandler.handle(
             error,
@@ -200,22 +186,7 @@ function populateSubstanceSelector() {
     resultsCount.textContent = `${filteredData.length} substance${filteredData.length !== 1 ? 's' : ''}`;
 }
 
-/**
- * Populate comparison substance selectors
- */
-function populateComparisonSelectors() {
-    // Populate both A and B selectors with all substances
-    [substanceSelectA, substanceSelectB].forEach(select => {
-        select.innerHTML = '<option value="">-- Select --</option>';
 
-        libraryData.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.name;
-            select.appendChild(option);
-        });
-    });
-}
 
 /**
  * Set up event listeners
@@ -245,45 +216,43 @@ function handleKeyboardShortcut(e) {
         e.preventDefault();
     }
 
-    // Single mode shortcuts
-    if (!comparisonMode) {
-        switch (e.key) {
-            case ' ': // Spacebar - Play/Stop
-                if (!playButton.disabled) {
-                    if (audioEngine.getIsPlaying()) {
-                        handleStop();
-                    } else {
-                        handlePlay();
-                    }
+    // Keyboard shortcuts
+    switch (e.key) {
+        case ' ': // Spacebar - Play/Stop
+            if (!playButton.disabled) {
+                if (audioEngine.getIsPlaying()) {
+                    handleStop();
+                } else {
+                    handlePlay();
                 }
-                break;
+            }
+            break;
 
-            case 'ArrowUp': // Navigate to previous substance
-                navigateSubstance(-1);
-                break;
+        case 'ArrowUp': // Navigate to previous substance
+            navigateSubstance(-1);
+            break;
 
-            case 'ArrowDown': // Navigate to next substance
-                navigateSubstance(1);
-                break;
+        case 'ArrowDown': // Navigate to next substance
+            navigateSubstance(1);
+            break;
 
-            case 'a': // Select all peaks
-                if (!selectAllButton.disabled) {
-                    handleSelectAll();
-                }
-                break;
+        case 'a': // Select all peaks
+            if (!selectAllButton.disabled) {
+                handleSelectAll();
+            }
+            break;
 
-            case 'c': // Clear selection
-                if (!clearSelectionButton.disabled) {
-                    handleClearSelection();
-                }
-                break;
+        case 'c': // Clear selection
+            if (!clearSelectionButton.disabled) {
+                handleClearSelection();
+            }
+            break;
 
-            case 'Escape': // Clear search/filters
-                searchInput.value = '';
-                categorySelect.value = 'all';
-                handleSearch();
-                break;
-        }
+        case 'Escape': // Clear search/filters
+            searchInput.value = '';
+            categorySelect.value = 'all';
+            handleSearch();
+            break;
     }
 }
 
@@ -606,216 +575,7 @@ function handleClearSelection() {
     visualizer.clearSelection();
 }
 
-/**
- * Switch between single and comparison mode
- * 
- * @param {boolean} isComparison - True for comparison mode, false for single mode
- */
-function switchMode(isComparison) {
-    comparisonMode = isComparison;
 
-    if (isComparison) {
-        // Switch to comparison mode
-        singleModeButton.classList.remove('active');
-        comparisonModeButton.classList.add('active');
-        
-        // Update ARIA attributes for accessibility
-        singleModeButton.setAttribute('aria-pressed', 'false');
-        comparisonModeButton.setAttribute('aria-pressed', 'true');
-
-        singleControls.style.display = 'none';
-        document.querySelector('.single-visualization').style.display = 'none';
-
-        comparisonControls.style.display = 'block';
-        comparisonVisualization.style.display = 'block';
-
-        console.log('Switched to comparison mode');
-    } else {
-        // Switch to single mode
-        comparisonModeButton.classList.remove('active');
-        singleModeButton.classList.add('active');
-        
-        // Update ARIA attributes for accessibility
-        comparisonModeButton.setAttribute('aria-pressed', 'false');
-        singleModeButton.setAttribute('aria-pressed', 'true');
-
-        comparisonControls.style.display = 'none';
-        comparisonVisualization.style.display = 'none';
-
-        singleControls.style.display = 'block';
-        document.querySelector('.single-visualization').style.display = 'grid';
-
-        console.log('Switched to single mode');
-    }
-}
-
-/**
- * Handle comparison mode substance selection
- * @param {string} side - 'A' or 'B'
- */
-function handleComparisonSubstanceChange(side) {
-    const select = side === 'A' ? substanceSelectA : substanceSelectB;
-    const substanceId = select.value;
-    const substance = side === 'A' ? substanceA : substanceB;
-    const visualizer = side === 'A' ? visualizerA : visualizerB;
-    const playButton = side === 'A' ? playAButton : playBButton;
-
-    if (!substanceId) {
-        substance.spectrum = null;
-        substance.peaks = null;
-        substance.data = null;
-        visualizer.clear();
-        playButton.disabled = true;
-        updateComparisonButtons();
-        return;
-    }
-
-    // Find spectrum in library
-    const data = libraryData.find(item => item.id === substanceId);
-    if (!data) {
-        console.error('Spectrum not found:', substanceId);
-        return;
-    }
-
-    // Store data
-    substance.spectrum = data.spectrum;
-    substance.peaks = frequencyMapper.extractPeaks(data.spectrum);
-    substance.data = data;
-
-    // Update visualization
-    visualizer.drawFTIRSpectrum(substance.spectrum, substance.peaks);
-
-    // Enable play button
-    playButton.disabled = false;
-
-    // Update combined play buttons
-    updateComparisonButtons();
-
-    console.log(`Loaded substance ${side}: ${data.name}`);
-}
-
-/**
- * Update comparison combined play buttons
- */
-function updateComparisonButtons() {
-    const bothLoaded = substanceA.peaks && substanceB.peaks;
-    playBothSeqButton.disabled = !bothLoaded;
-    playBothSimButton.disabled = !bothLoaded;
-    
-    if (playBlendButton) {
-        playBlendButton.disabled = !bothLoaded;
-    }
-    
-    // Show/hide blend controls
-    if (blendControls) {
-        blendControls.style.display = bothLoaded ? 'block' : 'none';
-    }
-}
-
-/**
- * Handle comparison mode play individual substance
- * @param {string} side - 'A' or 'B'
- */
-async function handleComparisonPlay(side) {
-    const substance = side === 'A' ? substanceA : substanceB;
-    const button = side === 'A' ? playAButton : playBButton;
-
-    if (!substance.peaks || substance.peaks.length === 0) {
-        console.warn(`No peaks to play for substance ${side}`);
-        return;
-    }
-
-    const duration = parseFloat(comparisonDurationSlider.value);
-
-    try {
-        button.disabled = true;
-
-        await audioEngine.play(substance.peaks, duration);
-
-        console.log(`Playing substance ${side}: ${substance.data.name}`);
-
-        setTimeout(() => {
-            button.disabled = false;
-        }, duration * 1000 + 100);
-
-    } catch (error) {
-        button.disabled = false;
-        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
-    }
-}
-
-/**
- * Handle comparison play both substances sequentially
- */
-async function handleComparisonPlaySequential() {
-    if (!substanceA.peaks || !substanceB.peaks) {
-        console.warn('Both substances must be loaded');
-        return;
-    }
-
-    const duration = parseFloat(comparisonDurationSlider.value);
-
-    try {
-        playBothSeqButton.disabled = true;
-        playBothSimButton.disabled = true;
-
-        // Play A
-        await audioEngine.play(substanceA.peaks, duration);
-        console.log(`Playing A: ${substanceA.data.name}`);
-
-        // Wait for A to finish
-        await new Promise(resolve => setTimeout(resolve, duration * 1000));
-
-        // Play B
-        await audioEngine.play(substanceB.peaks, duration);
-        console.log(`Playing B: ${substanceB.data.name}`);
-
-        // Wait for B to finish
-        setTimeout(() => {
-            playBothSeqButton.disabled = false;
-            playBothSimButton.disabled = false;
-        }, duration * 1000 + 100);
-
-    } catch (error) {
-        playBothSeqButton.disabled = false;
-        playBothSimButton.disabled = false;
-        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
-    }
-}
-
-/**
- * Handle comparison play both substances simultaneously
- */
-async function handleComparisonPlaySimultaneous() {
-    if (!substanceA.peaks || !substanceB.peaks) {
-        console.warn('Both substances must be loaded');
-        return;
-    }
-
-    const duration = parseFloat(comparisonDurationSlider.value);
-
-    try {
-        playBothSeqButton.disabled = true;
-        playBothSimButton.disabled = true;
-
-        // Combine peaks from both substances
-        const combinedPeaks = [...substanceA.peaks, ...substanceB.peaks];
-
-        await audioEngine.play(combinedPeaks, duration);
-
-        console.log(`Playing A + B simultaneously: ${substanceA.data.name} + ${substanceB.data.name}`);
-
-        setTimeout(() => {
-            playBothSeqButton.disabled = false;
-            playBothSimButton.disabled = false;
-        }, duration * 1000 + 100);
-
-    } catch (error) {
-        playBothSeqButton.disabled = false;
-        playBothSimButton.disabled = false;
-        ErrorHandler.handle(error, 'Error playing audio. Please try again.');
-    }
-}
 
 /**
  * Handle CSV import
@@ -834,9 +594,8 @@ async function handleCSVImport(e) {
         // Add to library
         libraryData.push(data);
 
-        // Repopulate selectors
+        // Repopulate selector
         populateSubstanceSelector();
-        populateComparisonSelectors();
 
         // Auto-select the imported substance
         substanceSelect.value = libraryData.length - 1;
@@ -917,9 +676,8 @@ async function handleJCAMPImport(e) {
         data.id = libraryData.length.toString();
         libraryData.push(data);
 
-        // Repopulate selectors
+        // Repopulate selector
         populateSubstanceSelector();
-        populateComparisonSelectors();
 
         // Auto-select the imported substance
         substanceSelect.value = data.id;
@@ -988,44 +746,7 @@ async function handleExportMP3() {
     }
 }
 
-/**
- * Handle play blend button (spectral blending)
- */
-async function handlePlayBlend() {
-    if (!substanceA.peaks || !substanceB.peaks) {
-        Toast.warning('Please select both substances first');
-        return;
-    }
 
-    const duration = parseFloat(comparisonDurationSlider.value);
-
-    try {
-        playBlendButton.disabled = true;
-        playBothSeqButton.disabled = true;
-        playBothSimButton.disabled = true;
-
-        // Blend the peaks based on ratio
-        const blendedPeaks = audioEngine.blendPeaks(substanceA.peaks, substanceB.peaks, blendRatio);
-
-        await audioEngine.play(blendedPeaks, duration);
-
-        const percentA = Math.round((1 - blendRatio) * 100);
-        const percentB = Math.round(blendRatio * 100);
-        console.log(`Playing blended spectrum: ${percentA}% ${substanceA.data.name} + ${percentB}% ${substanceB.data.name}`);
-
-        setTimeout(() => {
-            playBlendButton.disabled = false;
-            playBothSeqButton.disabled = false;
-            playBothSimButton.disabled = false;
-        }, duration * 1000 + 100);
-
-    } catch (error) {
-        playBlendButton.disabled = false;
-        playBothSeqButton.disabled = false;
-        playBothSimButton.disabled = false;
-        ErrorHandler.handle(error, 'Error playing blended audio. Please try again.');
-    }
-}
 
 /**
  * Refresh MIDI device list
@@ -1655,12 +1376,7 @@ if (document.readyState === 'loading') {
 window.spectralSynth = {
     audioEngine,
     visualizer,
-    visualizerA,
-    visualizerB,
     frequencyMapper,
     getCurrentPeaks: () => currentPeaks,
-    getCurrentSpectrum: () => currentSpectrum,
-    getComparisonMode: () => comparisonMode,
-    getSubstanceA: () => substanceA,
-    getSubstanceB: () => substanceB
+    getCurrentSpectrum: () => currentSpectrum
 };

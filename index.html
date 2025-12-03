@@ -23,40 +23,57 @@
 <body data-theme="dark">
     <header role="banner">
         <div class="header-content">
+            <button id="burger-menu-btn" class="burger-menu" aria-label="Open menu" aria-expanded="false">
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+                <span class="burger-line"></span>
+            </button>
             <div class="header-title">
                 <h1>🎵 Spectral Synthesizer</h1>
                 <p class="tagline">Making molecular fingerprints audible through sonification</p>
             </div>
-            <nav class="header-nav" aria-label="Main navigation">
-                <button id="settings-menu-btn" class="nav-button" aria-label="Open settings" title="Settings">
-                    <span class="nav-icon">⚙️</span>
-                    <span class="nav-label">Settings</span>
-                </button>
-                <button id="import-export-menu-btn" class="nav-button" aria-label="Import/Export" title="Import/Export">
-                    <span class="nav-icon">📥</span>
-                    <span class="nav-label">Import/Export</span>
-                </button>
-                <button id="midi-menu-btn" class="nav-button" aria-label="MIDI options" title="MIDI">
-                    <span class="nav-icon">🎹</span>
-                    <span class="nav-label">MIDI</span>
-                </button>
-                <button id="help-menu-btn" class="nav-button" aria-label="Help and information" title="Help">
-                    <span class="nav-icon">❓</span>
-                    <span class="nav-label">Help</span>
-                </button>
-            </nav>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle theme">
                 <span class="theme-icon">☀️</span>
             </button>
         </div>
     </header>
 
-    <main role="main">
-        <section class="mode-selector" role="group" aria-label="View mode selection">
-            <button id="single-mode" class="mode-button active" aria-pressed="true">Single View</button>
-            <button id="comparison-mode" class="mode-button" aria-pressed="false">Comparison Mode</button>
-        </section>
+    <!-- Sidebar Navigation -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden" aria-hidden="true"></div>
+    <nav id="sidebar" class="sidebar hidden" aria-label="Main navigation">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+            <button id="sidebar-close" class="sidebar-close" aria-label="Close menu">&times;</button>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <button id="settings-menu-btn" class="sidebar-button" aria-label="Open settings">
+                    <span class="sidebar-icon">⚙️</span>
+                    <span class="sidebar-label">Settings</span>
+                </button>
+            </li>
+            <li>
+                <button id="import-export-menu-btn" class="sidebar-button" aria-label="Import/Export">
+                    <span class="sidebar-icon">📥</span>
+                    <span class="sidebar-label">Import/Export</span>
+                </button>
+            </li>
+            <li>
+                <button id="midi-menu-btn" class="sidebar-button" aria-label="MIDI options">
+                    <span class="sidebar-icon">🎹</span>
+                    <span class="sidebar-label">MIDI</span>
+                </button>
+            </li>
+            <li>
+                <button id="help-menu-btn" class="sidebar-button" aria-label="Help and information">
+                    <span class="sidebar-icon">❓</span>
+                    <span class="sidebar-label">Help</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
 
+    <main role="main">
         <section class="controls" id="single-controls" aria-label="Playback controls">
             <div class="filter-controls" role="group" aria-label="Substance filters">
                 <div class="search-box">
@@ -141,78 +158,6 @@
             <p class="suggestions-description">Based on spectral similarity</p>
             <div class="suggestions-list" id="suggestions-list"></div>
         </div>
-
-        <section class="controls comparison-controls hidden" id="comparison-controls">
-            <div class="comparison-grid">
-                <div class="comparison-side">
-                    <h3 class="comparison-title">Substance A</h3>
-                    <div class="substance-selector">
-                        <label for="substance-a">Select substance:</label>
-                        <select id="substance-a">
-                            <option value="">-- Select --</option>
-                        </select>
-                    </div>
-                    <div class="comparison-playback">
-                        <button id="play-a" class="primary-button" disabled>▶ Play A</button>
-                    </div>
-                </div>
-
-                <div class="comparison-side">
-                    <h3 class="comparison-title">Substance B</h3>
-                    <div class="substance-selector">
-                        <label for="substance-b">Select substance:</label>
-                        <select id="substance-b">
-                            <option value="">-- Select --</option>
-                        </select>
-                    </div>
-                    <div class="comparison-playback">
-                        <button id="play-b" class="primary-button" disabled>▶ Play B</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="comparison-combined">
-                <button id="play-both-sequential" class="primary-button" disabled>▶ Play A → B (Sequential)</button>
-                <button id="play-both-simultaneous" class="primary-button" disabled>▶ Play A + B (Simultaneous)</button>
-                <button id="play-blend" class="primary-button" disabled>🎛️ Play Blended</button>
-            </div>
-
-            <div class="blend-controls hidden" id="blend-controls">
-                <h4 class="section-title">Spectral Blending</h4>
-                <div class="slider-control">
-                    <label for="blend-ratio">Blend Ratio (A ← → B): <span id="blend-ratio-value">50</span>%</label>
-                    <input type="range" id="blend-ratio" min="0" max="100" step="1" value="50">
-                    <p class="blend-description">Adjust the mix between substances A and B. 0% = pure A, 100% = pure B</p>
-                </div>
-            </div>
-
-            <div class="slider-control">
-                <label for="comparison-duration">Duration: <span id="comparison-duration-value">2.0</span>s</label>
-                <input type="range" id="comparison-duration" min="0.5" max="5" step="0.1" value="2">
-            </div>
-        </section>
-
-        <section class="visualization comparison-visualization hidden" id="comparison-visualization">
-            <div class="comparison-viz-grid">
-                <div class="viz-panel">
-                    <h3>Substance A - FTIR Spectrum</h3>
-                    <canvas id="ftir-canvas-a" width="600" height="300"></canvas>
-                    <div class="axis-labels">
-                        <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
-                        <span class="axis-label-y">Transmittance (%)</span>
-                    </div>
-                </div>
-
-                <div class="viz-panel">
-                    <h3>Substance B - FTIR Spectrum</h3>
-                    <canvas id="ftir-canvas-b" width="600" height="300"></canvas>
-                    <div class="axis-labels">
-                        <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
-                        <span class="axis-label-y">Transmittance (%)</span>
-                    </div>
-                </div>
-            </div>
-        </section>
 
     </main>
 
