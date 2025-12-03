@@ -238,7 +238,7 @@ section {
 
 .filter-controls {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr auto auto;
     gap: 1rem;
     margin-bottom: 1.5rem;
     align-items: end;
@@ -593,45 +593,52 @@ section {
 
 /* Smart Suggestions */
 .smart-suggestions {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--panel-border);
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+}
+
+.smart-suggestions .section-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-primary);
 }
 
 .suggestions-description {
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    text-align: center;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    font-style: italic;
 }
 
 .suggestions-list {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
-    justify-content: center;
 }
 
 .suggestion-item {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    padding: 0.5rem 1rem;
-    background: var(--panel-bg);
-    border: 2px solid var(--accent-primary);
-    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    background: var(--control-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s;
-    font-size: 0.9rem;
+    transition: all 0.2s;
+    font-size: 0.85rem;
     color: var(--text-primary);
 }
 
 .suggestion-item:hover {
     background: var(--accent-primary);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3);
 }
 
 .suggestion-name {
@@ -1131,31 +1138,34 @@ footer p {
 }
 
 /* Favorites filter */
-.favorites-filter {
+.favorites-filter-buttons {
     display: flex;
-    align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem;
-    background: rgba(245, 158, 11, 0.1);
-    border-radius: 5px;
-    border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-.favorites-filter label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #f59e0b;
-    font-weight: bold;
+.filter-button {
+    padding: 0.75rem 1rem;
     font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 5px;
     cursor: pointer;
-    user-select: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
-.favorites-filter input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+.filter-button:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.filter-button.active {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    border-color: var(--accent-primary);
 }
 
 /* Hover effects for better interactivity */

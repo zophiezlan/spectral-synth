@@ -52,20 +52,6 @@
     </header>
 
     <main role="main">
-        <section class="info-panel" aria-label="Introduction">
-            <h2>The Connection</h2>
-            <p>
-                FTIR spectroscopy and audio both use <strong>Fourier transforms</strong> to decompose signals
-                into frequency components. This tool maps infrared absorption spectra (molecular vibrations)
-                down to audible frequencies, revealing what molecules "sound like".
-            </p>
-            <p class="info-highlight">
-                <strong>Now using real data!</strong> This version includes 381 authentic FTIR spectra from the
-                <a href="https://enfsi.eu/" target="_blank" class="info-link">ENFSI DWG IR Library</a>
-                (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints.
-            </p>
-        </section>
-
         <section class="mode-selector" role="group" aria-label="View mode selection">
             <button id="single-mode" class="mode-button active" aria-pressed="true">Single View</button>
             <button id="comparison-mode" class="mode-button" aria-pressed="false">Comparison Mode</button>
@@ -92,16 +78,14 @@
                     </select>
                 </div>
 
+                <div class="favorites-filter-buttons">
+                    <button id="show-all" class="filter-button active" aria-pressed="true">All</button>
+                    <button id="show-favorites" class="filter-button" aria-pressed="false">⭐ Favorites</button>
+                </div>
+
                 <div class="results-count">
                     <span id="results-count">381 substances</span>
                 </div>
-            </div>
-
-            <div class="favorites-filter">
-                <label for="show-favorites">
-                    <input type="checkbox" id="show-favorites">
-                    ⭐ Show Favorites Only
-                </label>
             </div>
 
             <div class="substance-selector">
@@ -497,6 +481,20 @@
         <div class="modal-content help-modal">
             <button class="modal-close" id="help-close" aria-label="Close help">&times;</button>
             <h2 id="help-title">❓ Help & Information</h2>
+
+            <div class="help-section">
+                <h3>🔬 About This Tool</h3>
+                <p>
+                    FTIR spectroscopy and audio both use <strong>Fourier transforms</strong> to decompose signals
+                    into frequency components. This tool maps infrared absorption spectra (molecular vibrations)
+                    down to audible frequencies, revealing what molecules "sound like".
+                </p>
+                <p class="info-highlight" style="margin-top: 1rem; padding: 0.75rem; background: rgba(139, 92, 246, 0.1); border-radius: 6px; border-left: 3px solid var(--accent-primary);">
+                    <strong>Now using real data!</strong> This version includes 381 authentic FTIR spectra from the
+                    <a href="https://enfsi.eu/" target="_blank" style="color: var(--accent-secondary); text-decoration: underline;">ENFSI DWG IR Library</a>
+                    (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints.
+                </p>
+            </div>
 
             <div class="help-section">
                 <h3>⌨️ Keyboard Shortcuts</h3>

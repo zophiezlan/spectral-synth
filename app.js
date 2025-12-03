@@ -1227,7 +1227,8 @@ function categorizeSubstance(item) {
  * @returns {Array} Filtered library data
  */
 function getFilteredLibrary() {
-    const showFavoritesOnly = document.getElementById('show-favorites')?.checked || false;
+    const showFavoritesButton = document.getElementById('show-favorites');
+    const showFavoritesOnly = showFavoritesButton?.classList.contains('active') || false;
     const favoritesList = Favorites.getAll();
 
     return libraryData.filter(item => {
@@ -1561,10 +1562,12 @@ function setupEventListeners() {
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcut);
 
-    // Favorites toggle
-    const showFavoritesCheckbox = document.getElementById('show-favorites');
-    if (showFavoritesCheckbox) {
-        showFavoritesCheckbox.addEventListener('change', handleFavoritesFilterChange);
+    // Favorites filter buttons
+    const showAllButton = document.getElementById('show-all');
+    const showFavoritesButton = document.getElementById('show-favorites');
+    if (showAllButton && showFavoritesButton) {
+        showAllButton.addEventListener('click', () => handleFavoritesFilterChange(false));
+        showFavoritesButton.addEventListener('click', () => handleFavoritesFilterChange(true));
     }
 
     // Favorite button
@@ -2876,8 +2879,27 @@ function setTheme(theme) {
 
 /**
  * Handle favorites filter change
+ * @param {boolean} showFavoritesOnly - Whether to show only favorites
  */
-function handleFavoritesFilterChange() {
+function handleFavoritesFilterChange(showFavoritesOnly) {
+    // Update button states
+    const showAllButton = document.getElementById('show-all');
+    const showFavoritesButton = document.getElementById('show-favorites');
+
+    if (showAllButton && showFavoritesButton) {
+        if (showFavoritesOnly) {
+            showAllButton.classList.remove('active');
+            showAllButton.setAttribute('aria-pressed', 'false');
+            showFavoritesButton.classList.add('active');
+            showFavoritesButton.setAttribute('aria-pressed', 'true');
+        } else {
+            showAllButton.classList.add('active');
+            showAllButton.setAttribute('aria-pressed', 'true');
+            showFavoritesButton.classList.remove('active');
+            showFavoritesButton.setAttribute('aria-pressed', 'false');
+        }
+    }
+
     populateSubstanceSelector();
 }
 
