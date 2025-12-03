@@ -34,6 +34,7 @@ export default [
                 AnalysisUtilities: 'readonly',
                 SubstanceUtilities: 'readonly',
                 PerformanceUtilities: 'readonly',
+                PerformanceMonitor: 'readonly',
                 EventHandlers: 'readonly',
                 ImportExportHandlers: 'readonly',
                 MIDIHandlers: 'readonly'
