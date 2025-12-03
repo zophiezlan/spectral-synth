@@ -34,36 +34,32 @@ Spectral Synthesizer is a pure vanilla JavaScript web application that sonifies 
 │  │  - Easy customization point                  │   │
 │  └──────────────────────────────────────────────┘   │
 │                         │                            │
-│        ┌────────────────┼────────────────┐           │
-│        ▼                ▼                ▼           │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐      │
-│  │frequency-│    │  audio-  │    │visualizer│      │
-│  │mapper.js │    │engine.js │    │   .js    │      │
-│  │          │    │          │    │          │      │
-│  │IR→Audio  │    │Web Audio │    │Canvas    │      │
-│  │mapping   │    │synthesis │    │rendering │      │
-│  │Peak      │    │Effects   │    │FFT viz   │      │
-│  │detection │    │Blending  │    │Selection │      │
-│  └──────────┘    └──────────┘    └──────────┘      │
-│        │                │                │           │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐      │
-│  │  csv-    │    │  jcamp-  │    │mp3/midi  │      │
-│  │importer  │    │importer  │    │exporters │      │
-│  │   .js    │    │   .js    │    │          │      │
-│  │          │    │          │    │          │      │
-│  │CSV parse │    │JCAMP-DX  │    │MP3 encode│      │
-│  │Validate  │    │parser    │    │MIDI notes│      │
-│  │Downsample│    │Metadata  │    │Output    │      │
-│  └──────────┘    └──────────┘    └──────────┘      │
-│        │                │                │           │
-│        └────────────────┼────────────────┘           │
+│        ┌────────────────┴────────────────┐           │
+│        ▼                                 ▼           │
+│  ┌──────────────────┐        ┌──────────────────┐   │
+│  │ Utility Modules  │        │   Core Modules   │   │
+│  │                  │        │                  │   │
+│  │ • ui-utilities   │        │ • frequency-     │   │
+│  │ • visualization- │        │   mapper         │   │
+│  │   utilities      │        │ • audio-engine   │   │
+│  │ • storage-       │        │ • visualizer     │   │
+│  │   utilities      │        │ • csv-importer   │   │
+│  │ • tutorial-      │        │ • jcamp-importer │   │
+│  │   manager        │        │ • mp3-encoder    │   │
+│  │ • analysis-      │        │ • midi-output    │   │
+│  │   utilities      │        │                  │   │
+│  │ • substance-     │        │                  │   │
+│  │   utilities      │        │                  │   │
+│  └──────────────────┘        └──────────────────┘   │
+│        │                                 │           │
+│        └────────────────┬────────────────┘           │
 │                         ▼                            │
 │  ┌──────────────────────────────────────────────┐   │
 │  │         app.js (Application Layer)           │   │
-│  │  - Orchestrates all modules                  │   │
+│  │  - Orchestrates all modules (reduced 34%)    │   │
 │  │  - Event handling                            │   │
 │  │  - State management                          │   │
-│  │  - Error recovery                            │   │
+│  │  - Business logic coordination               │   │
 │  └──────────────────────────────────────────────┘   │
 │                         │                            │
 │                         ▼                            │
@@ -88,6 +84,52 @@ Spectral Synthesizer is a pure vanilla JavaScript web application that sonifies 
 │  └──────────────────────────────────────────────┘    │
 └───────────────────────────────────────────────────────┘
 ```
+
+## Modular Architecture (Refactored)
+
+The application has been refactored to improve maintainability and reduce the size of app.js from 3108 lines to 2045 lines (34% reduction).
+
+### Utility Modules
+
+**ui-utilities.js** (208 lines)
+- `LoadingOverlay` - Loading state management
+- `Toast` - Notification system
+- `ScreenReader` - Accessibility announcements
+- `ErrorHandler` - Centralized error handling
+- `iOSAudioHelper` - iOS Safari audio context fixes
+- `BrowserCompatibility` - Feature detection
+- `MicroInteractions` - UI animations and feedback
+- `TimeFormatter` - Time formatting utilities
+
+**visualization-utilities.js** (231 lines)
+- `ThumbnailGenerator` - Spectrum thumbnail generation
+- `ColorMapper` - Frequency-to-color mapping
+- `ResponsiveCanvas` - Mobile-optimized canvas sizing
+
+**storage-utilities.js** (65 lines)
+- `Favorites` - localStorage-based favorites management
+
+**tutorial-manager.js** (487 lines)
+- `TutorialManager` - Interactive onboarding system
+- Tutorial paths for chemistry and music users
+- Spotlight and tooltip management
+
+**analysis-utilities.js** (58 lines)
+- `calculateSpectralSimilarity` - Cosine similarity calculation
+- Used for smart substance suggestions
+
+**substance-utilities.js** (67 lines)
+- `categorizeSubstance` - Substance categorization by keywords
+- Chemical class detection (opioids, stimulants, benzodiazepines, etc.)
+
+### Benefits of Refactoring
+
+1. **Better Maintainability**: Each module has a single, clear responsibility
+2. **Easier AI Agent Usage**: Smaller, focused files are easier to understand and modify
+3. **Improved Code Organization**: Related functionality is grouped together
+4. **Reduced Cognitive Load**: Developers can focus on specific modules
+5. **Better Reusability**: Utilities can be easily reused across the application
+6. **Clearer Dependencies**: Module imports make dependencies explicit
 
 ## Data Flow
 
