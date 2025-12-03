@@ -5,6 +5,8 @@
  * Supports interactive peak selection for custom sonification.
  */
 
+import { CONFIG } from '../config/config.js';
+
 export class Visualizer {
     /**
      * Create a new Visualizer instance

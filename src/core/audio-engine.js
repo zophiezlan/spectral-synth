@@ -5,6 +5,8 @@
  * Each absorption peak becomes an oscillator at the mapped audio frequency
  */
 
+import { CONFIG } from '../config/config.js';
+
 export class AudioEngine {
     constructor() {
         this.audioContext = null;

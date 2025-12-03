@@ -7,6 +7,8 @@
  * We use logarithmic mapping to preserve perceptual relationships
  */
 
+import { CONFIG } from '../config/config.js';
+
 export class FrequencyMapper {
     constructor() {
         // Load configuration from global CONFIG object
