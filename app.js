@@ -1294,19 +1294,33 @@ function populateComparisonSelectors() {
  */
 function setupEventListeners() {
     // Mode switching
-    singleModeButton.addEventListener('click', () => switchMode(false));
-    comparisonModeButton.addEventListener('click', () => switchMode(true));
+    if (singleModeButton) {
+        singleModeButton.addEventListener('click', () => switchMode(false));
+    }
+    if (comparisonModeButton) {
+        comparisonModeButton.addEventListener('click', () => switchMode(true));
+    }
 
     // Single mode - Substance selection
-    substanceSelect.addEventListener('change', handleSubstanceChange);
+    if (substanceSelect) {
+        substanceSelect.addEventListener('change', handleSubstanceChange);
+    }
 
     // Single mode - Search and filter
-    searchInput.addEventListener('input', handleSearch);
-    categorySelect.addEventListener('change', handleCategoryChange);
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
+    if (categorySelect) {
+        categorySelect.addEventListener('change', handleCategoryChange);
+    }
 
     // Single mode - Playback controls
-    playButton.addEventListener('click', handlePlay);
-    stopButton.addEventListener('click', handleStop);
+    if (playButton) {
+        playButton.addEventListener('click', handlePlay);
+    }
+    if (stopButton) {
+        stopButton.addEventListener('click', handleStop);
+    }
 
     // Peak selection
     if (clearSelectionButton) {
@@ -1314,56 +1328,72 @@ function setupEventListeners() {
     }
 
     // Single mode - Sliders
-    durationSlider.addEventListener('input', (e) => {
-        durationValue.textContent = parseFloat(e.target.value).toFixed(1);
-    });
+    if (durationSlider && durationValue) {
+        durationSlider.addEventListener('input', (e) => {
+            durationValue.textContent = parseFloat(e.target.value).toFixed(1);
+        });
+    }
 
-    volumeSlider.addEventListener('input', (e) => {
-        const volume = parseInt(e.target.value) / 100;
-        volumeValue.textContent = e.target.value;
-        audioEngine.setVolume(volume);
-    });
+    if (volumeSlider && volumeValue) {
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = parseInt(e.target.value) / 100;
+            volumeValue.textContent = e.target.value;
+            audioEngine.setVolume(volume);
+        });
+    }
 
     // Audio effects
-    reverbSlider.addEventListener('input', (e) => {
-        const reverb = parseInt(e.target.value) / 100;
-        reverbValue.textContent = e.target.value;
-        audioEngine.setReverb(reverb);
-    });
+    if (reverbSlider && reverbValue) {
+        reverbSlider.addEventListener('input', (e) => {
+            const reverb = parseInt(e.target.value) / 100;
+            reverbValue.textContent = e.target.value;
+            audioEngine.setReverb(reverb);
+        });
+    }
 
-    filterFreqSlider.addEventListener('input', (e) => {
-        const freq = parseInt(e.target.value);
-        filterFreqValue.textContent = freq;
-        audioEngine.setFilterFrequency(freq);
-    });
+    if (filterFreqSlider && filterFreqValue) {
+        filterFreqSlider.addEventListener('input', (e) => {
+            const freq = parseInt(e.target.value);
+            filterFreqValue.textContent = freq;
+            audioEngine.setFilterFrequency(freq);
+        });
+    }
 
     // ADSR controls
-    attackSlider.addEventListener('input', (e) => {
-        const timeMs = parseInt(e.target.value);
-        const timeSec = timeMs / 1000;
-        attackValue.textContent = timeMs;
-        audioEngine.setAttackTime(timeSec);
-    });
+    if (attackSlider && attackValue) {
+        attackSlider.addEventListener('input', (e) => {
+            const timeMs = parseInt(e.target.value);
+            const timeSec = timeMs / 1000;
+            attackValue.textContent = timeMs;
+            audioEngine.setAttackTime(timeSec);
+        });
+    }
 
-    decaySlider.addEventListener('input', (e) => {
-        const timeMs = parseInt(e.target.value);
-        const timeSec = timeMs / 1000;
-        decayValue.textContent = timeMs;
-        audioEngine.setDecayTime(timeSec);
-    });
+    if (decaySlider && decayValue) {
+        decaySlider.addEventListener('input', (e) => {
+            const timeMs = parseInt(e.target.value);
+            const timeSec = timeMs / 1000;
+            decayValue.textContent = timeMs;
+            audioEngine.setDecayTime(timeSec);
+        });
+    }
 
-    sustainSlider.addEventListener('input', (e) => {
-        const level = parseInt(e.target.value) / 100;
-        sustainValue.textContent = e.target.value;
-        audioEngine.setSustainLevel(level);
-    });
+    if (sustainSlider && sustainValue) {
+        sustainSlider.addEventListener('input', (e) => {
+            const level = parseInt(e.target.value) / 100;
+            sustainValue.textContent = e.target.value;
+            audioEngine.setSustainLevel(level);
+        });
+    }
 
-    releaseSlider.addEventListener('input', (e) => {
-        const timeMs = parseInt(e.target.value);
-        const timeSec = timeMs / 1000;
-        releaseValue.textContent = timeMs;
-        audioEngine.setReleaseTime(timeSec);
-    });
+    if (releaseSlider && releaseValue) {
+        releaseSlider.addEventListener('input', (e) => {
+            const timeMs = parseInt(e.target.value);
+            const timeSec = timeMs / 1000;
+            releaseValue.textContent = timeMs;
+            audioEngine.setReleaseTime(timeSec);
+        });
+    }
 
     // ADSR curve selector
     if (adsrCurveSelect) {
@@ -1476,20 +1506,32 @@ function setupEventListeners() {
     }
 
     // Comparison mode - Substance selection
-    substanceSelectA.addEventListener('change', () => handleComparisonSubstanceChange('A'));
-    substanceSelectB.addEventListener('change', () => handleComparisonSubstanceChange('B'));
+    if (substanceSelectA) {
+        substanceSelectA.addEventListener('change', () => handleComparisonSubstanceChange('A'));
+    }
+    if (substanceSelectB) {
+        substanceSelectB.addEventListener('change', () => handleComparisonSubstanceChange('B'));
+    }
 
     // Comparison mode - Playback controls
-    playAButton.addEventListener('click', () => handleComparisonPlay('A'));
-    playBButton.addEventListener('click', () => handleComparisonPlay('B'));
-    playBothSeqButton.addEventListener('click', handleComparisonPlaySequential);
-    playBothSimButton.addEventListener('click', handleComparisonPlaySimultaneous);
+    if (playAButton) {
+        playAButton.addEventListener('click', () => handleComparisonPlay('A'));
+    }
+    if (playBButton) {
+        playBButton.addEventListener('click', () => handleComparisonPlay('B'));
+    }
+    if (playBothSeqButton) {
+        playBothSeqButton.addEventListener('click', handleComparisonPlaySequential);
+    }
+    if (playBothSimButton) {
+        playBothSimButton.addEventListener('click', handleComparisonPlaySimultaneous);
+    }
     if (playBlendButton) {
         playBlendButton.addEventListener('click', handlePlayBlend);
     }
 
     // Blend controls
-    if (blendRatioSlider) {
+    if (blendRatioSlider && blendRatioValue) {
         blendRatioSlider.addEventListener('input', (e) => {
             blendRatio = parseInt(e.target.value) / 100;
             blendRatioValue.textContent = e.target.value;
@@ -1497,9 +1539,11 @@ function setupEventListeners() {
     }
 
     // Comparison mode - Duration slider
-    comparisonDurationSlider.addEventListener('input', (e) => {
-        comparisonDurationValue.textContent = parseFloat(e.target.value).toFixed(1);
-    });
+    if (comparisonDurationSlider && comparisonDurationValue) {
+        comparisonDurationSlider.addEventListener('input', (e) => {
+            comparisonDurationValue.textContent = parseFloat(e.target.value).toFixed(1);
+        });
+    }
 
     // MIDI controls
     const refreshMIDIButton = document.getElementById('refresh-midi-devices');
@@ -2534,6 +2578,10 @@ function setupOnboarding() {
     const skipTourButton = document.getElementById('skip-tour');
     const dontShowCheckbox = document.getElementById('dont-show-again');
 
+    if (!onboardingModal || !closeButton || !startTourButton || !skipTourButton || !dontShowCheckbox) {
+        return;
+    }
+
     // Close modal handlers
     const closeModal = () => {
         if (dontShowCheckbox.checked) {
@@ -2806,6 +2854,11 @@ function setupShortcutsOverlay() {
     const closeButton = document.getElementById('shortcuts-close');
     const okButton = document.getElementById('shortcuts-ok');
 
+    // Early return if elements don't exist (feature may have been removed)
+    if (!shortcutsOverlay || !closeButton || !okButton) {
+        return;
+    }
+
     const closeModal = () => {
         shortcutsOverlay.style.display = 'none';
     };
@@ -2833,7 +2886,9 @@ function setupShortcutsOverlay() {
  */
 function showShortcutsOverlay() {
     const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-    shortcutsOverlay.style.display = 'flex';
+    if (shortcutsOverlay) {
+        shortcutsOverlay.style.display = 'flex';
+    }
 }
 
 /**
@@ -2841,6 +2896,11 @@ function showShortcutsOverlay() {
  */
 function setupThemeToggle() {
     const themeToggle = document.getElementById('theme-toggle');
+
+    if (!themeToggle) {
+        return;
+    }
+
     const themeIcon = themeToggle.querySelector('.theme-icon');
 
     // Load saved theme or default to dark
