@@ -85,6 +85,9 @@ async function init() {
         // Set up theme toggle
         setupThemeToggle();
 
+        // Check if MP3 export is available
+        checkMP3ExportAvailability();
+
         LoadingOverlay.hide();
         Toast.success('Spectral Synthesizer ready! 🎵');
         console.log('🎵 Spectral Synthesizer initialized');
@@ -98,6 +101,25 @@ async function init() {
             'Failed to initialize the application. Please refresh the page and try again.',
             { rethrow: true }
         );
+    }
+}
+
+/**
+ * Check if MP3 export is available (requires lamejs library)
+ * If not available, disable/hide the MP3 export button
+ */
+function checkMP3ExportAvailability() {
+    const exportMP3 = document.getElementById('export-mp3');
+    if (exportMP3) {
+        if (typeof lamejs === 'undefined') {
+            // Disable MP3 export if lamejs isn't loaded
+            exportMP3.disabled = true;
+            exportMP3.title = 'MP3 export requires lamejs library (not loaded). WAV export is available.';
+            exportMP3.style.opacity = '0.5';
+            console.log('⚠️ MP3 export disabled: lamejs library not loaded. Use WAV export instead.');
+        } else {
+            console.log('✓ MP3 export available');
+        }
     }
 }
 
