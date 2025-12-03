@@ -2117,3 +2117,103 @@ input[type="range"]:hover::-moz-range-thumb {
         padding: 0.4rem 0.8rem;
     }
 }
+
+/* Blend controls */
+.blend-controls {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.blend-controls .section-title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+.blend-description {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* MIDI controls */
+.midi-device-selector {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.midi-device-selector label {
+    flex-shrink: 0;
+}
+
+.midi-device-selector select {
+    flex-grow: 1;
+}
+
+.midi-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.midi-info {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-left: 3px solid var(--primary);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* File label buttons */
+.file-label {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--button-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    margin-right: 0.5rem;
+}
+
+.file-label:hover {
+    background: var(--button-hover);
+    transform: translateY(-1px);
+}
+
+.file-label:active {
+    transform: translateY(0);
+}
+
+/* Responsive adjustments for new elements */
+@media (max-width: 768px) {
+    .blend-controls {
+        padding: 0.75rem;
+    }
+    
+    .midi-device-selector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .midi-device-selector select {
+        width: 100%;
+    }
+    
+    .file-label {
+        display: block;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        margin-right: 0;
+    }
+}

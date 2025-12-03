@@ -974,6 +974,7 @@ let visualizer;
 let visualizerA;
 let visualizerB;
 let frequencyMapper;
+let midiOutput;
 let currentSpectrum = null;
 let currentPeaks = null;
 let libraryData = null;
@@ -982,6 +983,7 @@ let libraryData = null;
 let comparisonMode = false;
 let substanceA = { spectrum: null, peaks: null, data: null };
 let substanceB = { spectrum: null, peaks: null, data: null };
+let blendRatio = 0.5; // 0 = pure A, 1 = pure B
 
 // DOM elements - Mode selector
 const singleModeButton = document.getElementById('single-mode');
@@ -1029,6 +1031,10 @@ const playAButton = document.getElementById('play-a');
 const playBButton = document.getElementById('play-b');
 const playBothSeqButton = document.getElementById('play-both-sequential');
 const playBothSimButton = document.getElementById('play-both-simultaneous');
+const playBlendButton = document.getElementById('play-blend');
+const blendRatioSlider = document.getElementById('blend-ratio');
+const blendRatioValue = document.getElementById('blend-ratio-value');
+const blendControls = document.getElementById('blend-controls');
 const comparisonDurationSlider = document.getElementById('comparison-duration');
 const comparisonDurationValue = document.getElementById('comparison-duration-value');
 const ftirCanvasA = document.getElementById('ftir-canvas-a');
@@ -1064,6 +1070,22 @@ async function init() {
         // Create instances
         audioEngine = new AudioEngine();
         frequencyMapper = new FrequencyMapper();
+
+        // Create MIDI output instance (optional, may not be supported)
+        try {
+            if (typeof MIDIOutput !== 'undefined') {
+                midiOutput = new MIDIOutput();
+                // Try to initialize MIDI (don't fail if not supported)
+                try {
+                    await midiOutput.init();
+                    refreshMIDIDevices();
+                } catch (midiError) {
+                    console.log('MIDI not available:', midiError.message);
+                }
+            }
+        } catch (error) {
+            console.log('MIDI Output not loaded');
+        }
 
         // Create visualizers for single mode
         visualizer = new Visualizer(ftirCanvas, audioCanvas);
@@ -1401,6 +1423,12 @@ function setupEventListeners() {
         csvImport.addEventListener('change', handleCSVImport);
     }
 
+    // JCAMP-DX Import
+    const jcampImport = document.getElementById('jcamp-import');
+    if (jcampImport) {
+        jcampImport.addEventListener('change', handleJCAMPImport);
+    }
+
     // Download Template
     const downloadTemplate = document.getElementById('download-template');
     if (downloadTemplate) {
@@ -1413,6 +1441,12 @@ function setupEventListeners() {
     const exportWAV = document.getElementById('export-wav');
     if (exportWAV) {
         exportWAV.addEventListener('click', handleExportWAV);
+    }
+
+    // Export MP3
+    const exportMP3 = document.getElementById('export-mp3');
+    if (exportMP3) {
+        exportMP3.addEventListener('click', handleExportMP3);
     }
 
     // Playback mode selector
@@ -1447,11 +1481,67 @@ function setupEventListeners() {
     playBButton.addEventListener('click', () => handleComparisonPlay('B'));
     playBothSeqButton.addEventListener('click', handleComparisonPlaySequential);
     playBothSimButton.addEventListener('click', handleComparisonPlaySimultaneous);
+    if (playBlendButton) {
+        playBlendButton.addEventListener('click', handlePlayBlend);
+    }
+
+    // Blend controls
+    if (blendRatioSlider) {
+        blendRatioSlider.addEventListener('input', (e) => {
+            blendRatio = parseInt(e.target.value) / 100;
+            blendRatioValue.textContent = e.target.value;
+        });
+    }
 
     // Comparison mode - Duration slider
     comparisonDurationSlider.addEventListener('input', (e) => {
         comparisonDurationValue.textContent = parseFloat(e.target.value).toFixed(1);
     });
+
+    // MIDI controls
+    const refreshMIDIButton = document.getElementById('refresh-midi-devices');
+    if (refreshMIDIButton) {
+        refreshMIDIButton.addEventListener('click', refreshMIDIDevices);
+    }
+
+    const midiDeviceSelect = document.getElementById('midi-device-select');
+    if (midiDeviceSelect) {
+        midiDeviceSelect.addEventListener('change', (e) => {
+            if (midiOutput && e.target.value) {
+                midiOutput.selectOutput(e.target.value);
+                updateMIDISendButton();
+            }
+        });
+    }
+
+    const sendMIDIButton = document.getElementById('send-midi-notes');
+    if (sendMIDIButton) {
+        sendMIDIButton.addEventListener('click', handleSendMIDI);
+    }
+
+    const midiVelocitySlider = document.getElementById('midi-velocity');
+    const midiVelocityValue = document.getElementById('midi-velocity-value');
+    if (midiVelocitySlider) {
+        midiVelocitySlider.addEventListener('input', (e) => {
+            const velocity = parseInt(e.target.value);
+            midiVelocityValue.textContent = velocity;
+            if (midiOutput) {
+                midiOutput.setVelocity(velocity);
+            }
+        });
+    }
+
+    const midiNoteDurationSlider = document.getElementById('midi-note-duration');
+    const midiNoteDurationValue = document.getElementById('midi-note-duration-value');
+    if (midiNoteDurationSlider) {
+        midiNoteDurationSlider.addEventListener('input', (e) => {
+            const duration = parseInt(e.target.value);
+            midiNoteDurationValue.textContent = duration;
+            if (midiOutput) {
+                midiOutput.setNoteDuration(duration);
+            }
+        });
+    }
 
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcut);
@@ -1736,11 +1826,18 @@ function handleSubstanceChange() {
     selectAllButton.disabled = false;
     clearSelectionButton.disabled = false;
 
-    // Enable export button
+    // Enable export buttons
     const exportWAV = document.getElementById('export-wav');
+    const exportMP3 = document.getElementById('export-mp3');
     if (exportWAV) {
         exportWAV.disabled = false;
     }
+    if (exportMP3) {
+        exportMP3.disabled = false;
+    }
+
+    // Update MIDI send button
+    updateMIDISendButton();
 
     // Update favorite button
     const favoriteButton = document.getElementById('favorite-toggle');
@@ -2045,6 +2142,15 @@ function updateComparisonButtons() {
     const bothLoaded = substanceA.peaks && substanceB.peaks;
     playBothSeqButton.disabled = !bothLoaded;
     playBothSimButton.disabled = !bothLoaded;
+    
+    if (playBlendButton) {
+        playBlendButton.disabled = !bothLoaded;
+    }
+    
+    // Show/hide blend controls
+    if (blendControls) {
+        blendControls.style.display = bothLoaded ? 'block' : 'none';
+    }
 }
 
 /**
@@ -2231,6 +2337,226 @@ async function handleExportWAV() {
         exportButton.textContent = '💾 Export WAV';
 
         ErrorHandler.handle(error, `Failed to export audio: ${error.message}`);
+    }
+}
+
+/**
+ * Handle JCAMP-DX import
+ * @param {Event} e - File input change event
+ */
+async function handleJCAMPImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        LoadingOverlay.show(`Importing JCAMP-DX: ${file.name}...`);
+
+        const data = await JCAMPImporter.parseJCAMP(file);
+        JCAMPImporter.validate(data);
+
+        // Add to library
+        data.id = libraryData.length.toString();
+        libraryData.push(data);
+
+        // Repopulate selectors
+        populateSubstanceSelector();
+        populateComparisonSelectors();
+
+        // Auto-select the imported substance
+        substanceSelect.value = data.id;
+        handleSubstanceChange();
+
+        // Enable export buttons
+        const exportWAV = document.getElementById('export-wav');
+        const exportMP3 = document.getElementById('export-mp3');
+        if (exportWAV) exportWAV.disabled = false;
+        if (exportMP3) exportMP3.disabled = false;
+
+        LoadingOverlay.hide();
+        Toast.success(`Successfully imported JCAMP-DX: ${data.name} (${data.metadata.finalPoints} data points)`);
+    } catch (error) {
+        LoadingOverlay.hide();
+        ErrorHandler.handle(
+            error,
+            `Failed to import JCAMP-DX: ${error.message}\n\nPlease ensure your file is a valid JCAMP-DX format (.jdx, .dx, or .jcamp).`
+        );
+    }
+
+    // Clear the file input
+    e.target.value = '';
+}
+
+/**
+ * Handle MP3 export
+ */
+async function handleExportMP3() {
+    if (!currentPeaks || currentPeaks.length === 0) {
+        Toast.warning('Please select a substance first');
+        return;
+    }
+
+    // Check if lamejs is loaded
+    if (typeof lamejs === 'undefined') {
+        Toast.error('MP3 export requires the lamejs library. Please ensure the library is loaded.', 5000);
+        return;
+    }
+
+    const duration = parseFloat(durationSlider.value);
+    const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
+    const filename = `${substanceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${duration}s.mp3`;
+
+    try {
+        const exportButton = document.getElementById('export-mp3');
+        exportButton.disabled = true;
+        exportButton.textContent = '⏳ Encoding MP3...';
+
+        LoadingOverlay.show(`Encoding MP3: ${filename}`);
+
+        await audioEngine.exportMP3(currentPeaks, duration, filename, 128);
+
+        LoadingOverlay.hide();
+        exportButton.disabled = false;
+        exportButton.textContent = '🎵 Export MP3';
+
+        MicroInteractions.celebrate(`First MP3 export! Successfully exported: ${filename}`);
+    } catch (error) {
+        LoadingOverlay.hide();
+        const exportButton = document.getElementById('export-mp3');
+        exportButton.disabled = false;
+        exportButton.textContent = '🎵 Export MP3';
+
+        ErrorHandler.handle(error, `Failed to export MP3: ${error.message}`);
+    }
+}
+
+/**
+ * Handle play blend button (spectral blending)
+ */
+async function handlePlayBlend() {
+    if (!substanceA.peaks || !substanceB.peaks) {
+        Toast.warning('Please select both substances first');
+        return;
+    }
+
+    const duration = parseFloat(comparisonDurationSlider.value);
+
+    try {
+        playBlendButton.disabled = true;
+        playBothSeqButton.disabled = true;
+        playBothSimButton.disabled = true;
+
+        // Blend the peaks based on ratio
+        const blendedPeaks = audioEngine.blendPeaks(substanceA.peaks, substanceB.peaks, blendRatio);
+
+        await audioEngine.play(blendedPeaks, duration);
+
+        const percentA = Math.round((1 - blendRatio) * 100);
+        const percentB = Math.round(blendRatio * 100);
+        console.log(`Playing blended spectrum: ${percentA}% ${substanceA.data.name} + ${percentB}% ${substanceB.data.name}`);
+
+        setTimeout(() => {
+            playBlendButton.disabled = false;
+            playBothSeqButton.disabled = false;
+            playBothSimButton.disabled = false;
+        }, duration * 1000 + 100);
+
+    } catch (error) {
+        playBlendButton.disabled = false;
+        playBothSeqButton.disabled = false;
+        playBothSimButton.disabled = false;
+        ErrorHandler.handle(error, 'Error playing blended audio. Please try again.');
+    }
+}
+
+/**
+ * Refresh MIDI device list
+ */
+async function refreshMIDIDevices() {
+    const midiDeviceSelect = document.getElementById('midi-device-select');
+    if (!midiDeviceSelect) return;
+
+    if (!midiOutput || !midiOutput.isSupported()) {
+        Toast.warning('Web MIDI API is not supported in your browser', 4000);
+        return;
+    }
+
+    try {
+        // Re-initialize MIDI to refresh device list
+        if (!midiOutput.midiAccess) {
+            await midiOutput.init();
+        }
+
+        const devices = midiOutput.getOutputDevices();
+        
+        midiDeviceSelect.innerHTML = '';
+        
+        if (devices.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = '-- No MIDI devices found --';
+            midiDeviceSelect.appendChild(option);
+            Toast.info('No MIDI output devices found. Connect a MIDI device and refresh.', 3000);
+        } else {
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = '-- Select MIDI Device --';
+            midiDeviceSelect.appendChild(placeholderOption);
+
+            devices.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device.id;
+                option.textContent = `${device.name} (${device.manufacturer})`;
+                midiDeviceSelect.appendChild(option);
+            });
+
+            Toast.success(`Found ${devices.length} MIDI device(s)`, 2000);
+        }
+    } catch (error) {
+        ErrorHandler.handle(error, `Failed to access MIDI devices: ${error.message}`);
+    }
+}
+
+/**
+ * Update MIDI send button state
+ */
+function updateMIDISendButton() {
+    const sendButton = document.getElementById('send-midi-notes');
+    if (!sendButton) return;
+
+    sendButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput || !midiOutput.hasSelectedDevice();
+}
+
+/**
+ * Handle send MIDI notes
+ */
+async function handleSendMIDI() {
+    if (!midiOutput || !midiOutput.hasSelectedDevice()) {
+        Toast.warning('Please select a MIDI output device first');
+        return;
+    }
+
+    if (!currentPeaks || currentPeaks.length === 0) {
+        Toast.warning('Please select a substance first');
+        return;
+    }
+
+    try {
+        const sendButton = document.getElementById('send-midi-notes');
+        sendButton.disabled = true;
+
+        // Send peaks as chord (all notes simultaneously)
+        await midiOutput.sendPeaks(currentPeaks, 'chord');
+
+        Toast.success(`Sent ${currentPeaks.length} MIDI notes to device`, 2000);
+
+        setTimeout(() => {
+            sendButton.disabled = false;
+        }, midiOutput.noteDuration + 100);
+
+    } catch (error) {
+        const sendButton = document.getElementById('send-midi-notes');
+        sendButton.disabled = false;
+        ErrorHandler.handle(error, `Failed to send MIDI notes: ${error.message}`);
     }
 }
 
