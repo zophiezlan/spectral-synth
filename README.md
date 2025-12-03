@@ -297,21 +297,26 @@ Six different ways to experience molecular fingerprints:
 
 Arpeggiation creates melodic sequences from spectral data, offering a completely different musical perspective on molecular structure!
 
-## Future Ideas
+## Roadmap
 
-Potential enhancements:
-- [x] Import custom FTIR data (CSV) ✅
-- [x] Export audio files (WAV) ✅
-- [x] Audio effect presets ✅
-- [x] Arpeggiation and playback modes ✅
-- [x] Mobile-optimized touch interface ✅
-- [ ] Mix multiple substances (spectral blending)
-- [ ] JCAMP-DX file import
-- [ ] MP3 audio export
-- [ ] MIDI output for external synths
-- [ ] 3D visualization (spectrogram waterfall)
-- [ ] Real-time spectrometer input
-- [ ] Machine learning substance classification
+### Completed Features ✅
+- Import custom FTIR data (CSV)
+- Export audio files (WAV)
+- Audio effect presets
+- Arpeggiation and playback modes
+- Mobile-optimized touch interface
+
+### Future Enhancements
+
+**Near-term** (practical improvements):
+- Mix multiple substances (spectral blending)
+- JCAMP-DX file import (standardized spectroscopy format) for direct use of spectroscopy data
+- MP3 audio export for broader compatibility
+
+**Long-term** (if there's community interest):
+- MIDI output for external synthesizers
+- Enhanced 3D visualizations
+- Real-time spectrometer integration
 
 ## License
 
