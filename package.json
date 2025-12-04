@@ -1,0 +1,26 @@
+{
+  "name": "spectral-synth",
+  "version": "1.0.0",
+  "description": "Making molecular fingerprints audible through sonification of FTIR spectroscopy data",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose"
+  },
+  "keywords": [
+    "ftir",
+    "spectroscopy",
+    "sonification",
+    "web-audio",
+    "chemistry",
+    "audio-synthesis"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
