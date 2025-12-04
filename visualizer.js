@@ -679,10 +679,116 @@ class Visualizer {
     clear() {
         this.stopAudioAnimation();
 
-        [this.ftirCtx, this.audioCtx].forEach((ctx) => {
-            const canvas = ctx.canvas;
-            ctx.fillStyle = '#0a0a0a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        });
+        // Draw empty state instead of blank canvas
+        this.drawEmptyStateFTIR();
+        this.drawEmptyStateAudio();
+    }
+
+    /**
+     * Draw helpful empty state for FTIR canvas
+     */
+    drawEmptyStateFTIR() {
+        const ctx = this.ftirCtx;
+        const width = this.ftirCanvas.width;
+        const height = this.ftirCanvas.height;
+
+        // Clear canvas
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, width, height);
+
+        // Draw subtle grid
+        this.drawGrid(ctx, width, height);
+
+        // Draw example spectrum shape (dashed line)
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+
+        // Create a realistic-looking FTIR spectrum shape
+        const padding = 40;
+        const plotWidth = width - padding * 2;
+        const plotHeight = height - padding * 2;
+
+        ctx.moveTo(padding, padding + 20);
+
+        // Draw curved path with dips (peaks)
+        for (let i = 0; i <= 100; i++) {
+            const x = padding + (plotWidth * i / 100);
+            let y = padding + 20;
+
+            // Add some characteristic peaks
+            if (i > 15 && i < 25) {
+                y += Math.sin((i - 15) * Math.PI / 10) * 60;
+            } else if (i > 45 && i < 55) {
+                y += Math.sin((i - 45) * Math.PI / 10) * 80;
+            } else if (i > 70 && i < 80) {
+                y += Math.sin((i - 70) * Math.PI / 10) * 50;
+            }
+
+            ctx.lineTo(x, y);
+        }
+
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw helpful text with arrow
+        ctx.font = 'bold 24px "Segoe UI"';
+        ctx.fillStyle = 'rgba(167, 139, 250, 0.9)';
+        ctx.textAlign = 'center';
+
+        const centerY = height / 2 + 60;
+        ctx.fillText('Select a substance above ↑', width / 2, centerY);
+
+        // Draw subtitle
+        ctx.font = '16px "Segoe UI"';
+        ctx.fillStyle = 'rgba(167, 139, 250, 0.6)';
+        ctx.fillText('to see its molecular fingerprint', width / 2, centerY + 30);
+    }
+
+    /**
+     * Draw helpful empty state for Audio canvas
+     */
+    drawEmptyStateAudio() {
+        const ctx = this.audioCtx;
+        const width = this.audioCanvas.width;
+        const height = this.audioCanvas.height;
+
+        // Clear canvas
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, width, height);
+
+        // Draw subtle grid
+        this.drawGrid(ctx, width, height);
+
+        // Draw example frequency bars (dashed)
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.2)';
+        const barCount = 50;
+        const padding = 40;
+        const plotWidth = width - padding * 2;
+        const barWidth = plotWidth / barCount;
+
+        for (let i = 0; i < barCount; i++) {
+            // Create random-ish heights for visual interest
+            const heightFactor = Math.sin(i * 0.3) * 0.5 + 0.5;
+            const barHeight = (height - padding * 2) * heightFactor * 0.4;
+            const x = padding + i * barWidth;
+            const y = height - padding - barHeight;
+
+            ctx.fillRect(x, y, barWidth - 2, barHeight);
+        }
+
+        // Draw helpful text
+        ctx.font = 'bold 24px "Segoe UI"';
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.9)';
+        ctx.textAlign = 'center';
+
+        const centerY = height / 2 + 60;
+        ctx.fillText('Real-time audio FFT', width / 2, centerY);
+
+        // Draw subtitle
+        ctx.font = '16px "Segoe UI"';
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.6)';
+        ctx.fillText('will appear here when you play', width / 2, centerY + 30);
     }
 }

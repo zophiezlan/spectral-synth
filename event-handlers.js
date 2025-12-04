@@ -86,6 +86,9 @@ function setupSliderListeners() {
             const volume = parseInt(e.target.value) / 100;
             volumeValue.textContent = e.target.value;
             audioEngine.setVolume(volume);
+
+            // Visual feedback
+            showSliderFeedback(volumeSlider, volumeValue);
         });
     }
 
@@ -95,6 +98,9 @@ function setupSliderListeners() {
             const reverb = parseInt(e.target.value) / 100;
             reverbValue.textContent = e.target.value;
             audioEngine.setReverb(reverb);
+
+            // Visual feedback
+            showSliderFeedback(reverbSlider, reverbValue);
         });
     }
 
@@ -104,6 +110,9 @@ function setupSliderListeners() {
             const freq = parseInt(e.target.value);
             filterFreqValue.textContent = freq;
             audioEngine.setFilterFrequency(freq);
+
+            // Visual feedback
+            showSliderFeedback(filterFreqSlider, filterFreqValue);
         });
     }
 
@@ -205,6 +214,13 @@ function setupAudioModeListeners() {
                     reverbValue.textContent = reverbSlider.value;
                     filterFreqSlider.value = audioEngine.getFilterFrequency();
                     filterFreqValue.textContent = filterFreqSlider.value;
+
+                    // Visual feedback
+                    const presets = audioEngine.getPresets();
+                    const preset = presets[e.target.value];
+                    if (preset) {
+                        Toast.success(`Preset applied: ${preset.name}`, 2000);
+                    }
                 } catch (error) {
                     ErrorHandler.handle(error, 'Failed to apply preset');
                 }
@@ -439,4 +455,26 @@ function setupEventListeners() {
     setupImportExportListeners();
     setupMIDIListeners();
     setupUIEnhancementListeners();
+}
+
+/**
+ * Show visual feedback when slider value changes
+ * @param {HTMLElement} slider - The slider element
+ * @param {HTMLElement} valueDisplay - The value display element
+ */
+function showSliderFeedback(slider, valueDisplay) {
+    // Add flash class to value display
+    valueDisplay.classList.add('value-flash');
+
+    // Remove after animation completes
+    setTimeout(() => {
+        valueDisplay.classList.remove('value-flash');
+    }, 300);
+
+    // Add brief highlight to slider
+    slider.classList.add('slider-changed');
+
+    setTimeout(() => {
+        slider.classList.remove('slider-changed');
+    }, 200);
 }

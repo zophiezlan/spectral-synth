@@ -37,11 +37,11 @@ const TutorialManager = {
                 position: 'top'
             },
             {
-                target: '#peak-selection-content',
+                target: '.peak-selection-info',
                 title: 'Peak Selection',
                 description: 'You can select individual peaks to hear. Each peak corresponds to a specific molecular vibration frequency. Click peaks directly on the FTIR spectrum above.',
                 action: null,
-                position: 'top'
+                position: 'bottom'
             },
             {
                 target: '#play',
@@ -65,11 +65,11 @@ const TutorialManager = {
                 position: 'top'
             },
             {
-                target: '#audio-effects-content',
-                title: 'Audio Effects',
-                description: 'Experiment with reverb, filters, and ADSR envelope controls to shape the sound. Make chemistry musical!',
+                target: '#settings-menu-btn',
+                title: 'Audio Effects & Settings',
+                description: 'Open Settings to experiment with reverb, filters, and ADSR envelope controls to shape the sound. Make chemistry musical!',
                 action: null,
-                position: 'top'
+                position: 'right'
             }
         ],
         music: [
@@ -123,11 +123,11 @@ const TutorialManager = {
                 position: 'top'
             },
             {
-                target: '#peak-selection-content',
+                target: '.peak-selection-info',
                 title: 'Frequency Selection',
                 description: 'Select specific frequencies to create your own custom scales and harmonies. Click peaks on the canvas to select them. Very experimental!',
                 action: null,
-                position: 'top'
+                position: 'bottom'
             }
         ]
     },
