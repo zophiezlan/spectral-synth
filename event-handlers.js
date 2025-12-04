@@ -60,9 +60,14 @@ function setupPlaybackListeners() {
         playButton.addEventListener('click', handlePlay);
     }
 
-    // Peak selection
+    // Peak selection - clear selection
     if (clearSelectionButton) {
         clearSelectionButton.addEventListener('click', handleClearSelection);
+    }
+
+    // Peak selection - select all
+    if (selectAllButton) {
+        selectAllButton.addEventListener('click', handleSelectAll);
     }
 }
 
