@@ -1,8 +1,31 @@
 /**
  * Storage Utilities Module
- * 
- * Provides localStorage-based utilities:
- * - Favorites management
+ *
+ * Purpose: Provides localStorage-based utilities for persistent data
+ *
+ * Dependencies:
+ * - Logger (for error logging)
+ * - Toast (for user notifications)
+ *
+ * Exports:
+ * - Favorites object with methods for managing favorite substances
+ *
+ * Usage:
+ * ```javascript
+ * // Add a favorite
+ * Favorites.add('MDMA');
+ *
+ * // Check if favorite
+ * if (Favorites.isFavorite('Cocaine')) { ... }
+ *
+ * // Get all favorites
+ * const all = Favorites.getAll(); // Returns array of strings
+ * ```
+ *
+ * Storage:
+ * - Uses localStorage with key 'spectral-synth-favorites'
+ * - Data is JSON-serialized array of substance names
+ * - Handles storage errors gracefully
  */
 
 // Utility: Favorites manager using localStorage

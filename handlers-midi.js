@@ -1,12 +1,36 @@
 /**
  * MIDI Handlers Module
- * 
- * Handles all MIDI-related operations:
- * - Device refresh and selection
- * - MIDI note sending
- * - MIDI file export
- * 
- * Dependencies: midiOutput, Toast, ErrorHandler, LoadingOverlay
+ *
+ * Purpose: Handles all MIDI-related operations for external synthesis
+ *
+ * Dependencies:
+ * - midiOutput (MIDIOutput class instance)
+ * - audioEngine (for playback mode)
+ * - frequencyMapper (for peak data)
+ * - Toast (for user notifications)
+ * - ErrorHandler (for error handling)
+ * - LoadingOverlay (for progress indication)
+ *
+ * Exports:
+ * - refreshMIDIDevices(context) - Populate MIDI device dropdown
+ * - handleMIDIDeviceSelect(context) - Handle device selection
+ * - handleSendMIDINotes(context) - Send peaks as MIDI notes
+ * - handleExportMIDIFile(context) - Export Standard MIDI File
+ *
+ * MIDI Features:
+ * - Real-time note output to hardware/software synthesizers
+ * - Standard MIDI File (.mid) export
+ * - Velocity scaling based on peak intensity
+ * - Multiple playback modes (chord, arpeggio, sequential, random)
+ * - Configurable tempo and note duration
+ *
+ * Requirements:
+ * - Web MIDI API support (Chrome, Edge, Opera)
+ * - MIDI output device (hardware or virtual)
+ *
+ * Usage:
+ * These handlers are wired to MIDI modal controls during initialization.
+ * MIDI functionality gracefully degrades if Web MIDI API is unavailable.
  */
 
 /**

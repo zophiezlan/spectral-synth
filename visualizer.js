@@ -1,8 +1,57 @@
 /**
- * Visualizer - Canvas-based visualization for FTIR and audio FFT
- * 
- * Handles rendering of FTIR spectra and real-time audio FFT visualization.
- * Supports interactive peak selection for custom sonification.
+ * Visualizer Module
+ *
+ * Purpose: Canvas-based visualization for FTIR spectra and real-time audio FFT
+ *
+ * Dependencies:
+ * - CONFIG (for visualization parameters)
+ * - Canvas API (browser built-in)
+ *
+ * Exports:
+ * - Visualizer class - Dual-canvas spectrum and FFT visualizer
+ *
+ * Core Features:
+ * - FTIR spectrum rendering with transmittance/absorbance display
+ * - Real-time audio FFT visualization (synced with audio playback)
+ * - Interactive peak selection (click/touch to select individual peaks)
+ * - Peak tooltips showing wavenumber and functional group
+ * - Mobile touch support with proper event handling
+ *
+ * Usage:
+ * ```javascript
+ * const viz = new Visualizer(ftirCanvas, audioCanvas);
+ * viz.setAudioEngine(audioEngine);
+ *
+ * // Draw FTIR spectrum with detected peaks
+ * viz.drawFTIRSpectrum(spectrum, peaks);
+ *
+ * // Start real-time audio visualization
+ * viz.startAudioVisualization();
+ * viz.stopAudioVisualization();
+ *
+ * // Handle peak selection
+ * viz.onPeakSelectionChange = (selectedPeaks) => {
+ *     console.log('Selected:', selectedPeaks.length, 'peaks');
+ * };
+ * ```
+ *
+ * Visualization Details:
+ * - FTIR: Line plot with axes, gridlines, and peak markers
+ * - Audio FFT: Bar chart with frequency bins (20-20kHz range)
+ * - Color scheme: Theme-aware (dark/light mode support)
+ * - DPI-aware rendering for retina displays
+ *
+ * Interaction:
+ * - Click/tap peaks to toggle selection
+ * - Hover for tooltips with functional group info
+ * - Visual feedback with color changes
+ * - Mobile-optimized touch targets
+ *
+ * Performance:
+ * - Efficient canvas clearing and redrawing
+ * - Cached static elements
+ * - RequestAnimationFrame for smooth animations
+ * - Automatic cleanup to prevent memory leaks
  */
 
 class Visualizer {

@@ -1,10 +1,36 @@
 /**
  * Visualization Utilities Module
- * 
- * Provides visualization-related utilities:
- * - Thumbnail generation
- * - Color mapping
- * - Responsive canvas management
+ *
+ * Purpose: Provides visualization-related utilities for canvas rendering
+ *
+ * Dependencies:
+ * - None (uses Canvas API)
+ *
+ * Exports:
+ * - ThumbnailGenerator object - Generate spectrum thumbnails
+ * - ResponsiveCanvas object - Handle DPI-aware canvas sizing
+ *
+ * Usage:
+ * ```javascript
+ * // Generate a spectrum thumbnail
+ * const thumbnail = ThumbnailGenerator.generateSpectrumThumbnail(spectrum, 80, 40);
+ * container.appendChild(thumbnail);
+ *
+ * // Setup responsive canvas
+ * ResponsiveCanvas.setupCanvas(canvas, container);
+ * ResponsiveCanvas.setupAllCanvases(); // Setup all canvases on page
+ * ```
+ *
+ * Features:
+ * - DPI-aware rendering (handles retina displays)
+ * - Automatic resize handling
+ * - Theme-aware colors (dark/light mode)
+ * - Mobile optimizations
+ *
+ * Performance:
+ * - Thumbnails use efficient single-pass rendering
+ * - Canvas sizing uses device pixel ratio for crisp output
+ * - Debounced resize handlers prevent excessive redraws
  */
 
 // Utility: Waveform thumbnail generator

@@ -1,11 +1,44 @@
 /**
  * UI Utilities Module
- * 
- * Provides common UI utilities for the Spectral Synthesizer application:
- * - Loading overlay management
- * - Toast notifications
- * - Screen reader announcements
- * - Error handling
+ *
+ * Purpose: Provides common UI utilities for user feedback and error handling
+ *
+ * Dependencies:
+ * - Logger (for error logging)
+ *
+ * Exports:
+ * - LoadingOverlay object - Show/hide loading spinner
+ * - Toast object - Show temporary notifications
+ * - ScreenReader object - Announce messages to screen readers
+ * - ErrorHandler object - Centralized error handling
+ * - iOSAudioHelper object - iOS Safari audio context workarounds
+ * - BrowserCompatibility object - Feature detection and warnings
+ *
+ * Usage:
+ * ```javascript
+ * // Show loading
+ * LoadingOverlay.show('Processing data...');
+ * LoadingOverlay.hide();
+ *
+ * // Show toast notification
+ * Toast.success('File saved!');
+ * Toast.error('Failed to load', 5000);
+ *
+ * // Screen reader announcement
+ * ScreenReader.announce('Playback started');
+ *
+ * // Handle errors
+ * ErrorHandler.handle(error, 'User-friendly message', { severity: 'warning' });
+ * ```
+ *
+ * Toast Types:
+ * - info: Blue, 3 seconds (default)
+ * - success: Green, 3 seconds
+ * - warning: Yellow, 4 seconds
+ * - error: Red, 5 seconds
+ *
+ * Accessibility:
+ * All UI utilities support screen readers with proper ARIA attributes
  */
 
 // Utility: Loading overlay

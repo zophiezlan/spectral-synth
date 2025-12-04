@@ -1,11 +1,34 @@
 /**
  * Event Handlers Module
- * 
- * Centralizes event listener setup for better organization and maintainability.
- * Breaks down the monolithic setupEventListeners into logical groups.
- * 
- * Note: This module depends on DOM elements, audioEngine, and handler functions
- * being available in the global scope or passed as parameters.
+ *
+ * Purpose: Centralizes event listener setup for better organization
+ *
+ * Dependencies:
+ * - DOM elements (from dom-elements.js)
+ * - audioEngine (global)
+ * - CONFIG (for default values)
+ * - ErrorHandler (for error handling)
+ * - Logger (for debugging)
+ *
+ * Exports:
+ * - setupSubstanceListeners() - Substance selection and filtering
+ * - setupPlaybackListeners() - Play/stop controls
+ * - setupSliderListeners() - Volume, duration, reverb, filter sliders
+ * - setupADSRListeners() - ADSR envelope controls
+ * - setupEffectPresetListeners() - Audio effect preset dropdown
+ * - setupPlaybackModeListeners() - Playback mode selection
+ * - setupImportExportListeners() - File import/export handlers
+ * - setupMIDIListeners() - MIDI device and output handlers
+ * - setupFavoritesListeners() - Favorite toggle functionality
+ * - setupEventListeners() - Master function that calls all above
+ *
+ * Usage:
+ * Called once during app initialization to wire up all UI interactions.
+ * Individual setup functions can be called separately if needed.
+ *
+ * Pattern:
+ * Each function checks for element existence before adding listeners
+ * to prevent errors when elements are not present in the DOM.
  */
 
 

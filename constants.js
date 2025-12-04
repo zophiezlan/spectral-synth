@@ -1,8 +1,35 @@
 /**
- * Application Constants
- * 
- * Centralized constants for the Spectral Synthesizer application.
- * Reduces magic numbers and improves maintainability.
+ * Application Constants Module
+ *
+ * Purpose: Centralized constants for the Spectral Synthesizer application
+ *
+ * Dependencies:
+ * - None
+ *
+ * Exports:
+ * - CONSTANTS object (frozen) containing all application constants
+ *
+ * Usage:
+ * ```javascript
+ * const maxDuration = CONSTANTS.AUDIO.MAX_DURATION;
+ * const toastTime = CONSTANTS.TIMING.TOAST_DEFAULT;
+ * ```
+ *
+ * Categories:
+ * - TIMING: Debounce delays, toast durations, animations
+ * - UI: Breakpoints, canvas sizes, touch targets
+ * - FILE_LIMITS: Max file sizes for imports
+ * - VALIDATION: Data validation ranges
+ * - AUDIO: Audio parameters and limits
+ * - MIDI: MIDI note and velocity ranges
+ * - PERFORMANCE: RAF throttling, cache sizes
+ * - CATEGORIES: Substance category identifiers
+ * - STORAGE_KEYS: LocalStorage key names
+ * - ERRORS: Standard error messages
+ * - FEATURES: Feature flags
+ *
+ * Note: All values are frozen to prevent accidental modification.
+ * This object reduces magic numbers and improves maintainability.
  */
 
 const CONSTANTS = Object.freeze({

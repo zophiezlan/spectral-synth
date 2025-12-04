@@ -1,7 +1,32 @@
 /**
  * Substance Utilities Module
- * 
- * Provides substance categorization and filtering utilities
+ *
+ * Purpose: Provides substance categorization and filtering utilities
+ *
+ * Dependencies:
+ * - None
+ *
+ * Exports:
+ * - categorizeSubstance(item) - Categorizes a substance based on name/formula
+ *
+ * Usage:
+ * ```javascript
+ * const category = categorizeSubstance({ name: 'Morphine', formula: 'C17H19NO3' });
+ * // Returns: 'opioids'
+ * ```
+ *
+ * Categories:
+ * - opioids: Morphine, fentanyl, heroin, etc.
+ * - stimulants: Amphetamines, cocaine, caffeine, etc.
+ * - benzodiazepines: Diazepam, alprazolam, etc.
+ * - psychedelics: LSD, psilocybin, DMT, etc.
+ * - cannabinoids: THC, CBD, synthetic cannabinoids
+ * - steroids: Testosterone and derivatives
+ * - other: Everything else
+ *
+ * Categorization Method:
+ * Uses keyword matching on substance name and chemical formula.
+ * Case-insensitive matching with comprehensive keyword lists.
  */
 
 /**

@@ -1,8 +1,58 @@
 /**
- * Audio Engine - Web Audio API synthesizer for FTIR sonification
+ * Audio Engine Module
  *
- * Creates audio from FTIR peaks using additive synthesis:
- * Each absorption peak becomes an oscillator at the mapped audio frequency
+ * Purpose: Web Audio API synthesizer for FTIR spectral sonification
+ *
+ * Dependencies:
+ * - CONFIG (for default audio parameters)
+ * - Web Audio API (browser built-in)
+ *
+ * Exports:
+ * - AudioEngine class - Main audio synthesis engine
+ *
+ * Core Concept:
+ * Converts FTIR spectral peaks into audible sound using additive synthesis.
+ * Each infrared absorption peak becomes an oscillator at a mapped audio frequency,
+ * with amplitude proportional to absorption intensity.
+ *
+ * Usage:
+ * ```javascript
+ * const engine = new AudioEngine();
+ * await engine.init();
+ *
+ * // Play spectrum peaks
+ * await engine.play(peaks, 2.0); // peaks array, 2 second duration
+ *
+ * // Configure audio
+ * engine.setVolume(0.5);
+ * engine.setReverb(0.3);
+ * engine.setFilterFrequency(4000);
+ *
+ * // Configure ADSR envelope
+ * engine.setAttackTime(0.1);
+ * engine.setReleaseTime(0.2);
+ *
+ * // Stop playback
+ * engine.stop();
+ * ```
+ *
+ * Features:
+ * - Additive synthesis with mixed waveforms (sine, triangle, square)
+ * - ADSR envelope control (Attack, Decay, Sustain, Release)
+ * - Audio effects (reverb, low-pass filter)
+ * - Multiple playback modes (chord, arpeggio, sequential, random)
+ * - Real-time FFT analysis for visualization
+ * - Frequency-dependent amplitude correction (equal loudness)
+ *
+ * Audio Graph:
+ * oscillators[] → masterGain → filter → [dryGain, wetGain] → analyser → destination
+ *                                         ↓
+ *                                      convolver (reverb)
+ *
+ * Performance:
+ * - Supports up to 20 simultaneous oscillators
+ * - Cleanup after playback to prevent memory leaks
+ * - Automatic context resumption on iOS/Safari
  */
 
 class AudioEngine {

@@ -1,10 +1,56 @@
 /**
- * Frequency Mapper - Converts IR wavenumbers to audio frequencies
+ * Frequency Mapper Module
  *
- * FTIR measures wavenumbers in cm⁻¹ (typically 400-4000 cm⁻¹)
- * Audio frequencies range from 20 Hz to 20,000 Hz
+ * Purpose: Converts IR wavenumbers to audio frequencies for sonification
  *
- * We use logarithmic mapping to preserve perceptual relationships
+ * Dependencies:
+ * - CONFIG (for frequency ranges and peak detection parameters)
+ *
+ * Exports:
+ * - FrequencyMapper class - IR-to-audio mapping and peak detection
+ *
+ * Core Concept:
+ * FTIR spectra use wavenumbers (cm⁻¹, typically 400-4000) while audio uses
+ * frequencies (Hz, typically 20-20,000). This class maps between these domains
+ * using logarithmic scaling to preserve perceptual relationships.
+ *
+ * Usage:
+ * ```javascript
+ * const mapper = new FrequencyMapper();
+ *
+ * // Map single wavenumber to audio frequency
+ * const audioFreq = mapper.irToAudio(1650); // C=O peak → ~2000 Hz
+ *
+ * // Extract peaks from spectrum
+ * const peaks = mapper.extractPeaks(spectrum, 0.15, 20);
+ * // Returns: [{wavenumber, absorbance, audioFreq}, ...]
+ *
+ * // Get functional group info
+ * const group = mapper.getFunctionalGroup(2950); // "C-H stretch"
+ *
+ * // Get mapping summary
+ * const info = mapper.getMappingInfo(peaks);
+ * console.log(info);
+ * ```
+ *
+ * Mapping Details:
+ * - Algorithm: Logarithmic scaling (preserves octave relationships)
+ * - IR Range: 400-4000 cm⁻¹
+ * - Audio Range: 20-8000 Hz (musical range)
+ * - Higher IR wavenumber → Higher audio frequency
+ *
+ * Peak Detection:
+ * - Finds local maxima in absorbance data
+ * - Threshold-based filtering (default 0.15)
+ * - Returns top N peaks sorted by intensity
+ * - Includes functional group annotations
+ *
+ * Functional Groups:
+ * Provides chemical interpretation for common IR peaks:
+ * - O-H stretch (3500-3700 cm⁻¹): Alcohols, phenols
+ * - C=O stretch (1650-1750 cm⁻¹): Carbonyls
+ * - C-H stretch (2850-3100 cm⁻¹): Aliphatic, aromatic
+ * - And more...
  */
 
 class FrequencyMapper {
