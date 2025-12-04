@@ -57,7 +57,7 @@
 class Visualizer {
     /**
      * Create a new Visualizer instance
-     * 
+     *
      * @param {HTMLCanvasElement} ftirCanvas - Canvas for FTIR spectrum display
      * @param {HTMLCanvasElement} audioCanvas - Canvas for audio FFT display
      * @throws {Error} If canvases are invalid
@@ -95,13 +95,23 @@ class Visualizer {
         this.audioStaticCanvas = null;
         this.audioStaticCached = false;
 
+        // Bound event handlers for cleanup
+        this._boundHandlers = {
+            click: null,
+            touchend: null,
+            mousemove: null,
+            touchmove: null,
+            mouseleave: null,
+            touchcancel: null
+        };
+
         // Set up click handler
         this.setupClickHandler();
     }
 
     /**
      * Set up click handler for peak selection
-     * 
+     *
      * Enables interactive peak selection by clicking on the FTIR spectrum.
      * Also changes cursor to pointer when hovering over peaks.
      * Includes full touch support for mobile devices.
@@ -148,27 +158,6 @@ class Visualizer {
             }
         };
 
-        // Mouse click handler
-        this.ftirCanvas.addEventListener('click', (e) => {
-            handleInteraction(e.clientX, e.clientY);
-        });
-
-        // Touch handler for mobile devices
-        this.ftirCanvas.addEventListener('touchend', (e) => {
-            // Prevent default to avoid triggering click event as well
-            e.preventDefault();
-            
-            if (e.changedTouches && e.changedTouches.length > 0) {
-                const touch = e.changedTouches[0];
-                handleInteraction(touch.clientX, touch.clientY);
-            }
-            
-            // Always redraw to ensure spectrum stays visible
-            if (this.currentSpectrum) {
-                this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks || []);
-            }
-        });
-
         // Helper function to handle hover/touch move
         const handleHover = (clientX, clientY) => {
             if (!this.currentPeaks || this.currentPeaks.length === 0) {
@@ -196,10 +185,24 @@ class Visualizer {
             return closestIndex;
         };
 
-        // Change cursor to pointer and show tooltip when hovering over peaks
-        this.ftirCanvas.addEventListener('mousemove', (e) => {
+        // Create bound handlers for proper cleanup
+        this._boundHandlers.click = (e) => {
+            handleInteraction(e.clientX, e.clientY);
+        };
+
+        this._boundHandlers.touchend = (e) => {
+            e.preventDefault();
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                const touch = e.changedTouches[0];
+                handleInteraction(touch.clientX, touch.clientY);
+            }
+            if (this.currentSpectrum) {
+                this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks || []);
+            }
+        };
+
+        this._boundHandlers.mousemove = (e) => {
             const closestIndex = handleHover(e.clientX, e.clientY);
-            
             if (closestIndex !== -1) {
                 this.ftirCanvas.style.cursor = 'pointer';
                 this.showTooltip(this.currentPeaks[closestIndex], e.clientX, e.clientY, closestIndex);
@@ -207,36 +210,38 @@ class Visualizer {
                 this.ftirCanvas.style.cursor = 'default';
                 this.hideTooltip();
             }
-        });
+        };
 
-        // Touch move handler for showing tooltips on touch devices
-        this.ftirCanvas.addEventListener('touchmove', (e) => {
-            // Don't prevent default here to allow scrolling
+        this._boundHandlers.touchmove = (e) => {
             if (e.touches && e.touches.length > 0) {
                 const touch = e.touches[0];
                 const closestIndex = handleHover(touch.clientX, touch.clientY);
-                
                 if (closestIndex !== -1) {
                     this.showTooltip(this.currentPeaks[closestIndex], touch.clientX, touch.clientY, closestIndex);
                 } else {
                     this.hideTooltip();
                 }
             }
-        });
+        };
 
-        // Hide tooltip when mouse leaves canvas
-        this.ftirCanvas.addEventListener('mouseleave', () => {
+        this._boundHandlers.mouseleave = () => {
             this.hideTooltip();
-        });
+        };
 
-        // Hide tooltip when touch is cancelled or leaves canvas
-        this.ftirCanvas.addEventListener('touchcancel', () => {
+        this._boundHandlers.touchcancel = () => {
             this.hideTooltip();
-            // Ensure spectrum remains visible
             if (this.currentSpectrum) {
                 this.drawFTIRSpectrum(this.currentSpectrum, this.currentPeaks || []);
             }
-        });
+        };
+
+        // Attach event listeners
+        this.ftirCanvas.addEventListener('click', this._boundHandlers.click);
+        this.ftirCanvas.addEventListener('touchend', this._boundHandlers.touchend);
+        this.ftirCanvas.addEventListener('mousemove', this._boundHandlers.mousemove);
+        this.ftirCanvas.addEventListener('touchmove', this._boundHandlers.touchmove);
+        this.ftirCanvas.addEventListener('mouseleave', this._boundHandlers.mouseleave);
+        this.ftirCanvas.addEventListener('touchcancel', this._boundHandlers.touchcancel);
     }
 
     /**
@@ -794,5 +799,54 @@ class Visualizer {
         ctx.font = '16px "Segoe UI"';
         ctx.fillStyle = 'rgba(236, 72, 153, 0.6)';
         ctx.fillText('will appear here when you play', width / 2, centerY + 30);
+    }
+
+    /**
+     * Clean up all event listeners and resources
+     *
+     * Call this method before discarding a Visualizer instance to prevent
+     * memory leaks from accumulated event listeners.
+     */
+    destroy() {
+        // Stop any running animations
+        this.stopAudioAnimation();
+
+        // Remove all event listeners from FTIR canvas
+        if (this._boundHandlers) {
+            if (this._boundHandlers.click) {
+                this.ftirCanvas.removeEventListener('click', this._boundHandlers.click);
+            }
+            if (this._boundHandlers.touchend) {
+                this.ftirCanvas.removeEventListener('touchend', this._boundHandlers.touchend);
+            }
+            if (this._boundHandlers.mousemove) {
+                this.ftirCanvas.removeEventListener('mousemove', this._boundHandlers.mousemove);
+            }
+            if (this._boundHandlers.touchmove) {
+                this.ftirCanvas.removeEventListener('touchmove', this._boundHandlers.touchmove);
+            }
+            if (this._boundHandlers.mouseleave) {
+                this.ftirCanvas.removeEventListener('mouseleave', this._boundHandlers.mouseleave);
+            }
+            if (this._boundHandlers.touchcancel) {
+                this.ftirCanvas.removeEventListener('touchcancel', this._boundHandlers.touchcancel);
+            }
+        }
+
+        // Clear references
+        this._boundHandlers = null;
+        this.audioEngine = null;
+        this.currentSpectrum = null;
+        this.currentPeaks = null;
+        this.peakPositions = [];
+        this.selectedPeakIndices.clear();
+        this.onPeakSelectionChange = null;
+
+        // Clear cached canvas
+        this.audioStaticCanvas = null;
+        this.audioStaticCached = false;
+
+        // Hide tooltip if visible
+        this.hideTooltip();
     }
 }

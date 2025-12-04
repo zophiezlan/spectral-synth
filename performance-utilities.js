@@ -40,7 +40,7 @@
 /**
  * Debounce function - delays execution until after wait milliseconds have elapsed
  * since the last time it was invoked.
- * 
+ *
  * @param {Function} func - Function to debounce
  * @param {number} wait - Milliseconds to wait
  * @param {boolean} immediate - If true, trigger on leading edge instead of trailing
@@ -48,27 +48,27 @@
  */
 function debounce(func, wait, immediate = false) {
     let timeout;
-    
+
     return function executedFunction(...args) {
         const context = this;
-        
+
         const later = function() {
             timeout = null;
             if (!immediate) func.apply(context, args);
         };
-        
+
         const callNow = immediate && !timeout;
-        
+
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
-        
+
         if (callNow) func.apply(context, args);
     };
 }
 
 /**
  * Throttle function - ensures function is called at most once per specified time period
- * 
+ *
  * @param {Function} func - Function to throttle
  * @param {number} limit - Milliseconds between calls
  * @returns {Function} Throttled function
@@ -76,19 +76,19 @@ function debounce(func, wait, immediate = false) {
 function throttle(func, limit) {
     let inThrottle;
     let lastResult;
-    
+
     return function executedFunction(...args) {
         const context = this;
-        
+
         if (!inThrottle) {
             lastResult = func.apply(context, args);
             inThrottle = true;
-            
+
             setTimeout(() => {
                 inThrottle = false;
             }, limit);
         }
-        
+
         return lastResult;
     };
 }
@@ -98,7 +98,7 @@ function throttle(func, limit) {
  */
 const RAFManager = {
     activeRAFs: new Map(),
-    
+
     /**
      * Start a RAF loop with automatic ID management
      * @param {string} id - Unique identifier for this RAF loop
@@ -107,16 +107,16 @@ const RAFManager = {
     start(id, callback) {
         // Stop existing RAF with same ID
         this.stop(id);
-        
+
         const loop = () => {
             callback();
             const rafId = requestAnimationFrame(loop);
             this.activeRAFs.set(id, rafId);
         };
-        
+
         loop();
     },
-    
+
     /**
      * Stop a RAF loop
      * @param {string} id - ID of the RAF loop to stop
@@ -128,7 +128,7 @@ const RAFManager = {
             this.activeRAFs.delete(id);
         }
     },
-    
+
     /**
      * Stop all active RAF loops
      */
@@ -149,7 +149,7 @@ const MemoryManager = {
      */
     clearObject(obj, keys = null) {
         if (!obj) return;
-        
+
         const keysToClean = keys || Object.keys(obj);
         keysToClean.forEach(key => {
             if (obj[key] instanceof Array) {
@@ -159,7 +159,7 @@ const MemoryManager = {
             }
         });
     },
-    
+
     /**
      * Revoke object URLs to free memory
      * @param {string|Array<string>} urls - URL or array of URLs to revoke
@@ -179,7 +179,7 @@ const MemoryManager = {
  */
 const LazyLoader = {
     cache: new Map(),
-    
+
     /**
      * Load and cache result of expensive operation
      * @param {string} key - Cache key
@@ -190,12 +190,12 @@ const LazyLoader = {
         if (this.cache.has(key)) {
             return this.cache.get(key);
         }
-        
+
         const result = await loader();
         this.cache.set(key, result);
         return result;
     },
-    
+
     /**
      * Clear cache entry
      * @param {string} key - Cache key to clear
@@ -203,7 +203,7 @@ const LazyLoader = {
     clear(key) {
         this.cache.delete(key);
     },
-    
+
     /**
      * Clear all cache
      */
@@ -226,7 +226,7 @@ const DOMBatcher = {
         elements.forEach(el => fragment.appendChild(el));
         container.appendChild(fragment);
     },
-    
+
     /**
      * Update element styles in batch (avoids reflows)
      * @param {HTMLElement} element - Element to update
@@ -245,7 +245,7 @@ const DOMBatcher = {
  */
 const LazyObserver = {
     observer: null,
-    
+
     /**
      * Initialize observer for lazy loading elements
      * @param {Function} callback - Function to call when element is visible
@@ -263,7 +263,7 @@ const LazyObserver = {
             }, options);
         }
     },
-    
+
     /**
      * Observe an element
      * @param {HTMLElement} element - Element to observe
@@ -273,7 +273,7 @@ const LazyObserver = {
             this.observer.observe(element);
         }
     },
-    
+
     /**
      * Disconnect observer
      */

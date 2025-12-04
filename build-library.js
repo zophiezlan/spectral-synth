@@ -5,13 +5,13 @@
  *
  * This Node.js script reads JCAMP-DX FTIR spectra files from the ENFSI library
  * and converts them into a JSON format suitable for the web application.
- * 
+ *
  * Features:
  * - Parses JCAMP-DX format (standard for spectroscopy data)
  * - Converts absorbance to transmittance
  * - Downsamples spectra for web performance (~400 points per spectrum)
  * - Extracts metadata (name, formula, molecular weight, etc.)
- * 
+ *
  * Usage:
  *   1. Download ENFSI library and extract to enfsi_data/ directory
  *   2. Run: node build-library.js
@@ -23,10 +23,10 @@ const path = require('path');
 
 /**
  * Parse a JCAMP-DX file
- * 
+ *
  * JCAMP-DX is a standard format for exchanging spectroscopic data.
  * Files contain metadata (##KEY=VALUE) and compressed data tables.
- * 
+ *
  * @param {string} filePath - Path to .JDX file
  * @returns {Object} Parsed spectrum data with metadata and spectrum array
  */
@@ -35,7 +35,7 @@ function parseJCAMP(filePath) {
     const lines = content.split('\n');
 
     const metadata = {};
-    let xyData = [];
+    const xyData = [];
     let inDataSection = false;
 
     for (let i = 0; i < lines.length; i++) {
@@ -112,11 +112,11 @@ function extractSubstanceName(title) {
 
 /**
  * Convert absorbance spectrum to transmittance
- * 
+ *
  * Transmittance (T) and absorbance (A) are related by: T = 10^(-A)
  * For web display, we normalize and use a simplified conversion:
  * T% = 100 * (1 - normalized_absorbance)
- * 
+ *
  * @param {Array} spectrum - Array of {wavenumber, absorbance}
  * @returns {Array} Array of {wavenumber, transmittance}
  */
@@ -132,13 +132,13 @@ function convertToTransmittance(spectrum) {
 
 /**
  * Downsample spectrum for web performance
- * 
+ *
  * Original FTIR spectra can have 1800+ data points, which is excessive for web display.
  * This function reduces the number of points by uniform sampling while maintaining
  * the overall shape and key features.
- * 
+ *
  * Note: A more sophisticated approach would use peak-preserving downsampling.
- * 
+ *
  * @param {Array} spectrum - Full spectrum
  * @param {number} [targetPoints=500] - Target number of points
  * @returns {Array} Downsampled spectrum
@@ -244,10 +244,10 @@ function buildLibrary() {
     // Write output
     fs.writeFileSync(outputFile, JSON.stringify(libraryArray, null, 2));
 
-    console.log(`\n✓ Library built successfully!`);
+    console.log('\n✓ Library built successfully!');
     console.log(`  Processed: ${processedCount} substances`);
     console.log(`  Output: ${outputFile}`);
-    console.log(`\nSubstances included:`);
+    console.log('\nSubstances included:');
     libraryArray.forEach(item => console.log(`  - ${item.name}`));
 }
 
