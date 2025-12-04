@@ -4,6 +4,9 @@ node_modules/
 # Test coverage
 coverage/
 
+# Build output
+dist/
+
 # IDE
 .idea/
 .vscode/
