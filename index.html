@@ -118,8 +118,34 @@
                     <button id="show-favorites" class="filter-button" aria-pressed="false">⭐ Favorites</button>
                 </div>
 
-                <div class="results-count">
-                    <span id="results-count">381 substances</span>
+                <div class="filter-status-bar">
+                    <div class="results-count">
+                        <span id="results-count" aria-live="polite" aria-atomic="true">381 substances</span>
+                    </div>
+                    <div id="active-filters" class="active-filters hidden">
+                        <span class="filter-label">Filters:</span>
+                        <span id="search-filter-tag" class="filter-tag hidden">
+                            <span class="filter-tag-text">Search: "<span id="search-term-display"></span>"</span>
+                            <button class="filter-remove" data-filter="search" aria-label="Clear search">×</button>
+                        </span>
+                        <span id="category-filter-tag" class="filter-tag hidden">
+                            <span class="filter-tag-text">Category: <span id="category-name-display"></span></span>
+                            <button class="filter-remove" data-filter="category" aria-label="Clear category">×</button>
+                        </span>
+                        <span id="favorites-filter-tag" class="filter-tag hidden">
+                            <span class="filter-tag-text">Favorites only</span>
+                            <button class="filter-remove" data-filter="favorites" aria-label="Clear favorites filter">×</button>
+                        </span>
+                        <button id="clear-all-filters" class="clear-all-btn">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- No results state -->
+                <div id="no-results" class="no-results hidden" role="status" aria-live="polite">
+                    <div class="no-results-icon">🔍</div>
+                    <p class="no-results-title">No substances found</p>
+                    <p class="no-results-message">Try adjusting your search or filters</p>
+                    <button id="clear-search-btn" class="secondary-button">Clear Filters</button>
                 </div>
             </div>
 
@@ -534,6 +560,44 @@
                 <div id="mapping-info-modal" class="mapping-info">
                     <p>Select a substance to see how infrared frequencies map to audio frequencies.</p>
                 </div>
+            </div>
+
+            <div class="help-section">
+                <h3>📖 Glossary</h3>
+                <dl class="glossary">
+                    <div class="glossary-entry">
+                        <dt>FTIR</dt>
+                        <dd><strong>Fourier Transform Infrared</strong> spectroscopy - A technique that measures how molecules absorb infrared light. Each substance has a unique pattern, like a chemical fingerprint.</dd>
+                    </div>
+                    <div class="glossary-entry">
+                        <dt>Wavenumber (cm⁻¹)</dt>
+                        <dd>A way to measure infrared frequencies. Higher numbers = higher energy vibrations. Range: 400-4000 cm⁻¹ in FTIR.</dd>
+                    </div>
+                    <div class="glossary-entry">
+                        <dt>Transmittance (%)</dt>
+                        <dd>How much light passes through the sample. Lower % = more absorption = stronger peak. This is what creates the "valleys" in the FTIR spectrum.</dd>
+                    </div>
+                    <div class="glossary-entry">
+                        <dt>Peak / Absorption Band</dt>
+                        <dd>The "valleys" in the FTIR spectrum where molecules absorb IR light. Each peak corresponds to a specific molecular vibration (bonds stretching, bending, etc.).</dd>
+                    </div>
+                    <div class="glossary-entry">
+                        <dt>Functional Group</dt>
+                        <dd>Parts of a molecule that have characteristic absorption patterns. Examples: O-H (alcohol), C=O (carbonyl), C-H (hydrocarbon).</dd>
+                    </div>
+                    <div class="glossary-entry">
+                        <dt>FFT</dt>
+                        <dd><strong>Fast Fourier Transform</strong> - The math that breaks down complex signals into individual frequencies. Used in both FTIR and audio analysis!</dd>
+                    </div>
+                    <div class="glossary-entry">
+                        <dt>ADSR Envelope</dt>
+                        <dd><strong>Attack-Decay-Sustain-Release</strong> - Controls how sounds start and end over time. Attack (rise), Decay (fall), Sustain (hold), Release (fade).</dd>
+                    </div>
+                    <div class="glossary-entry">
+                        <dt>Sonification</dt>
+                        <dd>Converting data into sound. This app sonifies molecular vibrations by mapping IR frequencies down to the audible range.</dd>
+                    </div>
+                </dl>
             </div>
 
             <button id="help-ok" class="primary-button modal-action-button">Done</button>

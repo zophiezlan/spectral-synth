@@ -306,6 +306,126 @@ section {
     white-space: nowrap;
 }
 
+/* Filter Status Bar */
+.filter-status-bar {
+    margin-top: 0.75rem;
+}
+
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 6px;
+    margin-top: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(139, 92, 246, 0.25);
+    border: 1px solid var(--accent-primary);
+    border-radius: 16px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    animation: filterSlideIn 0.2s ease-out;
+}
+
+@keyframes filterSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.filter-tag-text {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.filter-remove {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.filter-remove:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--accent-secondary);
+}
+
+.clear-all-btn {
+    padding: 0.375rem 0.75rem;
+    background: rgba(236, 72, 153, 0.2);
+    color: var(--accent-secondary);
+    border: 1px solid var(--accent-secondary);
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.clear-all-btn:hover {
+    background: rgba(236, 72, 153, 0.3);
+    transform: translateY(-1px);
+}
+
+/* No Results State */
+.no-results {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: rgba(139, 92, 246, 0.05);
+    border: 2px dashed rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.no-results-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.no-results-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.no-results-message {
+    color: var(--text-secondary);
+    margin: 0 0 1.5rem 0;
+}
+
 .substance-selector {
     margin-bottom: 1.5rem;
 }
@@ -1683,6 +1803,38 @@ input[type="range"]:hover::-moz-range-thumb {
     flex: 1;
 }
 
+/* Glossary */
+.glossary {
+    margin: 0;
+    padding: 0;
+}
+
+.glossary-entry {
+    margin-bottom: 1.25rem;
+    padding: 0.75rem;
+    background: rgba(139, 92, 246, 0.08);
+    border-left: 3px solid var(--accent-primary);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.glossary-entry:hover {
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.glossary-entry dt {
+    color: var(--accent-primary);
+    font-weight: bold;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+}
+
+.glossary-entry dd {
+    margin: 0;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
 /* ============================================
    PHASE 2: Enhanced Micro-interactions
    ============================================ */
@@ -1806,6 +1958,31 @@ input[type="range"]:hover::-moz-range-thumb {
     .filter-controls {
         grid-template-columns: 1fr;
         gap: 0.75rem;
+    }
+
+    /* Filter status bar mobile */
+    .active-filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .filter-tag {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .clear-all-btn {
+        width: 100%;
+    }
+
+    .no-results {
+        padding: 1.5rem 1rem;
+    }
+
+    .no-results-icon {
+        font-size: 2.5rem;
     }
 
     .results-count {

@@ -76,6 +76,7 @@ async function init() {
 
         // Set up event listeners
         setupEventListeners();
+        setupFilterStatusListeners();
 
         // Set up onboarding and shortcuts
         setupOnboarding();
@@ -206,9 +207,155 @@ function populateSubstanceSelector() {
 
     // Update results count
     resultsCount.textContent = `${filteredData.length} substance${filteredData.length !== 1 ? 's' : ''}`;
+
+    // Update filter status and show/hide no results
+    updateFilterStatus(filteredData.length);
 }
 
 
+
+/**
+ * Update filter status bar display
+ * @param {number} resultCount - Number of results after filtering
+ */
+function updateFilterStatus(resultCount) {
+    const activeFiltersContainer = document.getElementById('active-filters');
+    const searchFilterTag = document.getElementById('search-filter-tag');
+    const categoryFilterTag = document.getElementById('category-filter-tag');
+    const favoritesFilterTag = document.getElementById('favorites-filter-tag');
+    const noResultsDiv = document.getElementById('no-results');
+    const substanceSelector = document.querySelector('.substance-selector');
+
+    let hasActiveFilters = false;
+
+    // Update search filter tag
+    if (currentSearchTerm) {
+        const searchTermDisplay = document.getElementById('search-term-display');
+        searchTermDisplay.textContent = currentSearchTerm;
+        searchFilterTag.classList.remove('hidden');
+        hasActiveFilters = true;
+    } else {
+        searchFilterTag.classList.add('hidden');
+    }
+
+    // Update category filter tag
+    if (currentCategory && currentCategory !== 'all') {
+        const categoryNameDisplay = document.getElementById('category-name-display');
+        const categorySelect = document.getElementById('category');
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        categoryNameDisplay.textContent = selectedOption.text;
+        categoryFilterTag.classList.remove('hidden');
+        hasActiveFilters = true;
+    } else {
+        categoryFilterTag.classList.add('hidden');
+    }
+
+    // Update favorites filter tag
+    const showFavoritesButton = document.getElementById('show-favorites');
+    const showFavoritesOnly = showFavoritesButton?.classList.contains('active') || false;
+    if (showFavoritesOnly) {
+        favoritesFilterTag.classList.remove('hidden');
+        hasActiveFilters = true;
+    } else {
+        favoritesFilterTag.classList.add('hidden');
+    }
+
+    // Show/hide active filters container
+    if (hasActiveFilters) {
+        activeFiltersContainer.classList.remove('hidden');
+    } else {
+        activeFiltersContainer.classList.add('hidden');
+    }
+
+    // Show/hide no results state
+    if (resultCount === 0) {
+        noResultsDiv.classList.remove('hidden');
+        if (substanceSelector) {
+            substanceSelector.style.display = 'none';
+        }
+    } else {
+        noResultsDiv.classList.add('hidden');
+        if (substanceSelector) {
+            substanceSelector.style.display = 'block';
+        }
+    }
+}
+
+/**
+ * Clear a specific filter
+ * @param {string} filterType - Type of filter to clear ('search', 'category', 'favorites')
+ */
+function clearFilter(filterType) {
+    switch (filterType) {
+        case 'search':
+            searchInput.value = '';
+            currentSearchTerm = '';
+            break;
+        case 'category':
+            categorySelect.value = 'all';
+            currentCategory = 'all';
+            break;
+        case 'favorites':
+            const showAllButton = document.getElementById('show-all');
+            const showFavoritesButton = document.getElementById('show-favorites');
+            if (showAllButton && showFavoritesButton) {
+                showAllButton.classList.add('active');
+                showAllButton.setAttribute('aria-pressed', 'true');
+                showFavoritesButton.classList.remove('active');
+                showFavoritesButton.setAttribute('aria-pressed', 'false');
+            }
+            break;
+    }
+    populateSubstanceSelector();
+}
+
+/**
+ * Clear all active filters
+ */
+function clearAllFilters() {
+    searchInput.value = '';
+    currentSearchTerm = '';
+    categorySelect.value = 'all';
+    currentCategory = 'all';
+
+    const showAllButton = document.getElementById('show-all');
+    const showFavoritesButton = document.getElementById('show-favorites');
+    if (showAllButton && showFavoritesButton) {
+        showAllButton.classList.add('active');
+        showAllButton.setAttribute('aria-pressed', 'true');
+        showFavoritesButton.classList.remove('active');
+        showFavoritesButton.setAttribute('aria-pressed', 'false');
+    }
+
+    populateSubstanceSelector();
+    Toast.info('All filters cleared');
+}
+
+/**
+ * Set up filter status bar event listeners
+ */
+function setupFilterStatusListeners() {
+    // Individual filter remove buttons
+    const filterRemoveButtons = document.querySelectorAll('.filter-remove');
+    filterRemoveButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const filterType = button.getAttribute('data-filter');
+            clearFilter(filterType);
+        });
+    });
+
+    // Clear all filters button
+    const clearAllButton = document.getElementById('clear-all-filters');
+    if (clearAllButton) {
+        clearAllButton.addEventListener('click', clearAllFilters);
+    }
+
+    // Clear search button in no results state
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', clearAllFilters);
+    }
+}
 
 /**
  * Set up event listeners
