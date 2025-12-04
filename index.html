@@ -74,6 +74,24 @@
     </nav>
 
     <main role="main">
+        <!-- Quick Start Panel -->
+        <div id="quick-start-panel" class="quick-start-panel hidden" aria-labelledby="quick-start-title">
+            <button id="hide-quick-start" class="quick-start-close" aria-label="Close quick start guide">&times;</button>
+            <div class="quick-start-content">
+                <h3 id="quick-start-title">🚀 Quick Start</h3>
+                <p>New here? Try these 3 simple steps:</p>
+                <ol class="quick-start-steps">
+                    <li><strong>Select a substance</strong> below (try "Caffeine" 👇)</li>
+                    <li><strong>Click "▶ Play Sound"</strong> to hear it</li>
+                    <li><strong>Watch the visualizations</strong> - left shows molecular vibrations, right shows audio</li>
+                </ol>
+                <div class="quick-start-actions">
+                    <button id="try-caffeine" class="quick-start-button">☕ Try Caffeine Now</button>
+                    <button id="start-tour-from-quickstart" class="quick-start-button secondary">🎓 Take Guided Tour</button>
+                </div>
+            </div>
+        </div>
+
         <section class="controls" id="single-controls" aria-label="Playback controls">
             <div class="filter-controls" role="group" aria-label="Substance filters">
                 <div class="search-box">

@@ -329,11 +329,54 @@ section {
 }
 
 .playback-controls {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    flex-wrap: wrap;
     align-items: center;
     margin-bottom: 1.5rem;
+}
+
+/* Make Play button the hero */
+#play {
+    grid-column: 1 / -1; /* Span full width */
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    min-height: 56px;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    position: relative;
+    overflow: visible;
+}
+
+#play:not(:disabled)::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 5px;
+    padding: 2px;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#play:not(:disabled):hover::after {
+    opacity: 1;
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+#stop {
+    grid-column: 1 / -1; /* Stop button also spans full width but appears below */
 }
 
 .audio-effects {
@@ -990,6 +1033,137 @@ footer p {
     color: #a78bfa;
     font-size: 1.1rem;
     font-weight: bold;
+}
+
+/* Quick Start Panel */
+.quick-start-panel {
+    position: relative;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%);
+    border: 2px solid var(--accent-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.quick-start-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.quick-start-close:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.quick-start-content h3 {
+    color: var(--accent-primary);
+    margin: 0 0 0.75rem 0;
+    font-size: 1.5rem;
+}
+
+.quick-start-content p {
+    color: var(--text-primary);
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+}
+
+.quick-start-steps {
+    margin: 1rem 0 1.5rem 1.5rem;
+    padding: 0;
+    color: var(--text-primary);
+}
+
+.quick-start-steps li {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.quick-start-steps li strong {
+    color: var(--accent-secondary);
+}
+
+.quick-start-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-start-button {
+    flex: 1;
+    min-width: 180px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.quick-start-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}
+
+.quick-start-button.secondary {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--accent-primary);
+    border: 2px solid var(--accent-primary);
+}
+
+.quick-start-button.secondary:hover {
+    background: rgba(139, 92, 246, 0.3);
+}
+
+@media (max-width: 768px) {
+    .quick-start-panel {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .quick-start-content h3 {
+        font-size: 1.25rem;
+        padding-right: 2rem; /* Make room for close button */
+    }
+
+    .quick-start-actions {
+        flex-direction: column;
+    }
+
+    .quick-start-button {
+        width: 100%;
+        min-width: 0;
+    }
 }
 
 /* Utility Classes */
@@ -1656,6 +1830,7 @@ input[type="range"]:hover::-moz-range-thumb {
 
     /* Playback controls */
     .playback-controls {
+        display: flex;
         flex-direction: column;
         align-items: stretch;
         gap: 0.75rem;
@@ -1666,6 +1841,13 @@ input[type="range"]:hover::-moz-range-thumb {
         padding: 0.875rem 1.5rem;
         font-size: 0.95rem;
         min-height: 44px; /* Touch-friendly */
+    }
+
+    /* Keep Play button prominent on mobile */
+    #play {
+        font-size: 1.1rem;
+        padding: 1rem 1.5rem;
+        min-height: 52px;
     }
 
     /* Sliders */

@@ -92,8 +92,8 @@ async function init() {
         Toast.success('Spectral Synthesizer ready! 🎵');
         Logger.log('🎵 Spectral Synthesizer initialized');
 
-        // Show onboarding for first-time users
-        checkAndShowOnboarding();
+        // Show Quick Start panel or onboarding for first-time users
+        checkAndShowQuickStart();
     } catch (error) {
         LoadingOverlay.hide();
         ErrorHandler.handle(
@@ -1098,6 +1098,77 @@ function checkAndShowOnboarding() {
             const onboardingModal = document.getElementById('onboarding-modal');
             onboardingModal.style.display = 'flex';
         }, 500);
+    }
+}
+
+/**
+ * Check if we should show Quick Start panel
+ */
+function checkAndShowQuickStart() {
+    const hasSeenQuickStart = localStorage.getItem('quick-start-completed');
+    const hasSeenOnboarding = localStorage.getItem('onboarding-completed');
+
+    // Show Quick Start if user hasn't seen it and hasn't seen onboarding
+    if (!hasSeenQuickStart && !hasSeenOnboarding) {
+        setTimeout(() => {
+            const quickStartPanel = document.getElementById('quick-start-panel');
+            if (quickStartPanel) {
+                quickStartPanel.classList.remove('hidden');
+            }
+        }, 500);
+    } else if (!hasSeenOnboarding) {
+        // If they've seen Quick Start but not onboarding, show onboarding
+        checkAndShowOnboarding();
+    }
+
+    setupQuickStartHandlers();
+}
+
+/**
+ * Set up Quick Start panel event handlers
+ */
+function setupQuickStartHandlers() {
+    const hideButton = document.getElementById('hide-quick-start');
+    const tryCaffeineButton = document.getElementById('try-caffeine');
+    const startTourButton = document.getElementById('start-tour-from-quickstart');
+    const quickStartPanel = document.getElementById('quick-start-panel');
+
+    if (hideButton && quickStartPanel) {
+        hideButton.addEventListener('click', () => {
+            quickStartPanel.classList.add('hidden');
+            localStorage.setItem('quick-start-completed', 'true');
+        });
+    }
+
+    if (tryCaffeineButton) {
+        tryCaffeineButton.addEventListener('click', () => {
+            // Hide Quick Start panel
+            if (quickStartPanel) {
+                quickStartPanel.classList.add('hidden');
+                localStorage.setItem('quick-start-completed', 'true');
+            }
+
+            // Select caffeine
+            selectSubstanceByName('caffeine');
+
+            // Scroll to substance selector
+            setTimeout(() => {
+                substanceSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        });
+    }
+
+    if (startTourButton) {
+        startTourButton.addEventListener('click', () => {
+            // Hide Quick Start panel
+            if (quickStartPanel) {
+                quickStartPanel.classList.add('hidden');
+                localStorage.setItem('quick-start-completed', 'true');
+            }
+
+            // Start the guided tour
+            startGuidedTour();
+        });
     }
 }
 
