@@ -8,6 +8,8 @@
  * loaded from separate files for better maintainability.
  */
 
+/* global handlePeakSelectionChange, setupThemeToggle */
+
 // Global instances
 let audioEngine;
 let visualizer;
@@ -603,141 +605,8 @@ function updateMappingInfo(data, peaks) {
  * Automatically uses selected peaks if any exist, otherwise uses all peaks.
  * Updates button text to reflect current state.
  */
-async function handlePlay() {
-    // If currently playing, stop instead
-    if (audioEngine.isPlaying) {
-        audioEngine.stop();
-        visualizer.stopAudioAnimation();
-        playButton.textContent = '▶ Play Sound';
-        playButton.disabled = false;
-        ScreenReader.announce('Playback stopped');
-        Logger.log('Playback stopped');
-        return;
-    }
-
-    if (!currentPeaks || currentPeaks.length === 0) {
-        Logger.warn('No peaks to play');
-        Toast.warning('No peaks detected for this substance');
-        return;
-    }
-
-    // Use selected peaks if any exist, otherwise use all peaks
-    const selectedPeaks = visualizer.getSelectedPeaks();
-    const peaksToPlay = (selectedPeaks && selectedPeaks.length > 0) ? selectedPeaks : currentPeaks;
-
-    const duration = parseFloat(durationSlider.value);
-
-    if (isNaN(duration) || duration <= 0) {
-        Logger.error('Invalid duration:', duration);
-        ErrorHandler.handle(
-            new Error('Invalid duration'),
-            'Invalid duration value. Please refresh the page.'
-        );
-        return;
-    }
-
-    try {
-        // Update button to show stop
-        playButton.textContent = '■ Stop';
-
-        // Add pulse effect to play button
-        MicroInteractions.pulse(playButton, duration * 1000);
-
-        // Ensure audio context is active (especially for iOS)
-        await iOSAudioHelper.ensureAudioContext(audioEngine);
-
-        // Start audio with selected or all peaks
-        await audioEngine.play(peaksToPlay, duration);
-
-        // Start visualization animation
-        visualizer.startAudioAnimation();
-
-        // Announce to screen reader
-        const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
-        const peakCountMsg = (selectedPeaks && selectedPeaks.length > 0) ?
-            `${selectedPeaks.length} selected peaks` : `${currentPeaks.length} peaks`;
-        ScreenReader.announce(
-            `Playing ${substanceName}, ${peakCountMsg}, duration ${duration} seconds`
-        );
-
-        Logger.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
-
-        // Reset button after duration (with buffer for audio to fully stop)
-        const playbackBuffer = typeof CONSTANTS !== 'undefined'
-            ? CONSTANTS.TIMING.PLAYBACK_END_BUFFER
-            : 100;
-        setTimeout(() => {
-            playButton.textContent = '▶ Play Sound';
-            visualizer.stopAudioAnimation();
-            ScreenReader.announce('Playback finished');
-        }, duration * 1000 + playbackBuffer);
-
-    } catch (error) {
-        playButton.textContent = '▶ Play Sound';
-        visualizer.stopAudioAnimation();
-
-        ErrorHandler.handle(
-            error,
-            `Error playing audio: ${error.message || 'Unknown error'}. Please try again or refresh the page.`
-        );
-    }
-}
-
-
-/**
- * Handle peak selection change
- * Updates the selection status display and clear button visibility.
- * The main Play button automatically respects the selection.
- * @param {Array} selectedPeaks - Currently selected peaks
- */
-function handlePeakSelectionChange(selectedPeaks) {
-    const count = selectedPeaks.length;
-    const clearBtn = clearSelectionButton;
-
-    if (count === 0) {
-        selectionCount.textContent = 'Click peaks to select specific frequencies';
-        if (clearBtn) clearBtn.classList.add('hidden');
-    } else {
-        selectionCount.textContent = `${count} peak${count !== 1 ? 's' : ''} selected`;
-        if (clearBtn) clearBtn.classList.remove('hidden');
-    }
-
-    Logger.log(`Peak selection changed: ${count} peaks selected`);
-}
-
-/**
- * Handle clear selection button
- * Clears all selected peaks and returns to playing all peaks.
- */
-function handleClearSelection() {
-    visualizer.clearSelection();
-}
-
-/**
- * Handle select all peaks button
- * Selects all detected peaks in the current spectrum.
- */
-function handleSelectAll() {
-    if (!visualizer || !currentPeaks || currentPeaks.length === 0) {
-        Logger.warn('No peaks to select');
-        return;
-    }
-    visualizer.selectAllPeaks();
-    Logger.log(`Selected all ${currentPeaks.length} peaks`);
-}
-
-/**
- * Handle stop button click
- */
-function handleStop() {
-    if (audioEngine.isPlaying) {
-        audioEngine.stop();
-        visualizer.stopAudioAnimation();
-        playButton.textContent = '▶ Play Sound';
-        ScreenReader.announce('Playback stopped');
-        Logger.log('Playback stopped');
-    }
-}
+// Playback functions moved to playback-controller.js
+// Functions: handlePlay, handleStop, handlePeakSelectionChange, handleClearSelection, handleSelectAll
 
 /**
  * Handle CSV import
@@ -1512,48 +1381,8 @@ function removeTourHighlight() {
 /**
  * Set up theme toggle
  */
-function setupThemeToggle() {
-    const themeToggle = document.getElementById('theme-toggle');
-
-    if (!themeToggle) {
-        return;
-    }
-
-    const themeIcon = themeToggle.querySelector('.theme-icon');
-
-    // Load saved theme or default to dark
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    setTheme(savedTheme);
-
-    // Toggle theme on click
-    themeToggle.addEventListener('click', () => {
-        const currentTheme = document.body.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-
-        // Show toast notification
-        Toast.info(`Switched to ${newTheme} theme`, 2000);
-    });
-}
-
-/**
- * Set theme
- * @param {string} theme - 'light' or 'dark'
- */
-function setTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    const themeIcon = document.querySelector('.theme-icon');
-    if (themeIcon) {
-        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
-    }
-
-    // Update theme color meta tag
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-        metaThemeColor.setAttribute('content', theme === 'dark' ? '#8b5cf6' : '#7c3aed');
-    }
-}
+// Theme functions moved to theme-manager.js
+// Functions: setupThemeToggle, setTheme
 
 /**
  * Handle favorites filter change
