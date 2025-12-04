@@ -542,6 +542,9 @@ function handleSubstanceChange() {
     // Update visualizations
     visualizer.drawFTIRSpectrum(currentSpectrum, currentPeaks);
 
+    // Show peak selection hint for first-time users
+    showPeakSelectionHint();
+
     // Update mapping info with annotations
     updateMappingInfo(data, currentPeaks);
 
@@ -1617,6 +1620,35 @@ function showSmartSuggestions(currentSubstance) {
     });
 
     suggestionsContainer.style.display = 'block';
+}
+
+/**
+ * Show peak selection hint for first-time users
+ */
+function showPeakSelectionHint() {
+    const hasSeenHint = localStorage.getItem('peak-selection-hint-seen');
+
+    if (!hasSeenHint) {
+        // Wait 2 seconds before showing hint
+        setTimeout(() => {
+            // Add pulse animation to FTIR canvas
+            const ftirCanvas = document.getElementById('ftir-canvas');
+            if (ftirCanvas) {
+                ftirCanvas.classList.add('peak-hint-pulse');
+
+                // Remove pulse after 3 seconds
+                setTimeout(() => {
+                    ftirCanvas.classList.remove('peak-hint-pulse');
+                }, 3000);
+            }
+
+            // Show informative toast
+            Toast.info('💡 Tip: Click on peaks in the FTIR spectrum to select specific frequencies!', 5000);
+
+            // Mark as seen
+            localStorage.setItem('peak-selection-hint-seen', 'true');
+        }, 2000);
+    }
 }
 
 // Initialize when DOM is ready
