@@ -510,6 +510,11 @@ function handleSubstanceChange() {
         if (exportWAV) {
             exportWAV.disabled = true;
         }
+        // Hide favorite button
+        const favoriteButton = document.getElementById('favorite-toggle');
+        if (favoriteButton) {
+            favoriteButton.classList.add('hidden');
+        }
         selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
         const defaultMessage = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
         if (mappingInfo) {
@@ -568,7 +573,7 @@ function handleSubstanceChange() {
     // Update favorite button
     const favoriteButton = document.getElementById('favorite-toggle');
     if (favoriteButton) {
-        favoriteButton.style.display = 'inline-block';
+        favoriteButton.classList.remove('hidden');
         const isFavorite = Favorites.isFavorite(data.name);
         updateFavoriteButton(isFavorite);
     }
@@ -1441,7 +1446,8 @@ function startGuidedTour() {
         Logger.error('Tutorial path modal not found');
         return;
     }
-    
+
+    modal.classList.remove('hidden');
     modal.style.display = 'flex';
     
     // Setup path selection handlers (only once)
@@ -1450,18 +1456,21 @@ function startGuidedTour() {
         const pathCards = modal.querySelectorAll('.tutorial-path-card');
         
         closeButton.addEventListener('click', () => {
+            modal.classList.add('hidden');
             modal.style.display = 'none';
         });
-        
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
+                modal.classList.add('hidden');
                 modal.style.display = 'none';
             }
         });
-        
+
         pathCards.forEach(card => {
             card.addEventListener('click', () => {
                 const path = card.getAttribute('data-path');
+                modal.classList.add('hidden');
                 modal.style.display = 'none';
                 
                 // Auto-select first substance for tour
