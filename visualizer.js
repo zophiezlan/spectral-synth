@@ -646,7 +646,7 @@ class Visualizer {
             ctx.fillText(wavenumber.toString(), x - 20, height - 5);
         }
 
-        // Y-axis labels (transmittance %)
+        // Y-axis numeric markers (transmittance percentages)
         for (let i = 0; i <= 5; i++) {
             const transmittance = (i * 20);
             const y = height - 20 - ((height - 40) / 5) * i;
@@ -669,8 +669,12 @@ class Visualizer {
             ctx.fillText(label, x - 15, height - 5);
         }
 
-        // Y-axis label
-        ctx.fillText('Amplitude', 5, 15);
+        // Y-axis numeric markers (amplitude scale 0-1)
+        for (let i = 0; i <= 5; i++) {
+            const amplitude = (i * 0.2).toFixed(1);
+            const y = height - 20 - ((height - 40) / 5) * i;
+            ctx.fillText(amplitude, 5, y + 5);
+        }
     }
 
     /**

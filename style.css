@@ -2829,7 +2829,8 @@ input[type="range"]:hover::-moz-range-thumb {
 .settings-modal,
 .import-export-modal,
 .midi-modal,
-.help-modal {
+.help-modal,
+.favorites-modal {
     max-width: 800px;
     max-height: 90vh;
     overflow-y: auto;
@@ -3064,4 +3065,74 @@ input[type="range"]:hover::-moz-range-thumb {
     .midi-action-buttons button {
         width: 100%;
     }
+}
+
+/* Favorites Modal Styles */
+.favorites-list {
+    margin-top: 1rem;
+}
+
+.empty-favorites {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 2rem;
+    font-style: italic;
+}
+
+.favorite-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.favorite-item:hover {
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.favorite-name {
+    flex: 1;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.favorite-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.favorite-load-btn,
+.favorite-remove-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.favorite-load-btn {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.favorite-load-btn:hover {
+    background: var(--accent-secondary);
+    transform: translateY(-2px);
+}
+
+.favorite-remove-btn {
+    background: rgba(255, 59, 48, 0.2);
+    color: #ff3b30;
+}
+
+.favorite-remove-btn:hover {
+    background: rgba(255, 59, 48, 0.3);
+    transform: translateY(-2px);
 }

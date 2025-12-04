@@ -503,13 +503,17 @@ function handleSubstanceChange() {
         visualizer.clear();
         visualizer.clearSelection();
         playButton.disabled = true;
-        stopButton.disabled = true;
         selectAllButton.disabled = true;
         clearSelectionButton.disabled = true;
         playSelectedButton.disabled = true;
         const exportWAV = document.getElementById('export-wav');
         if (exportWAV) {
             exportWAV.disabled = true;
+        }
+        // Hide favorite button
+        const favoriteButton = document.getElementById('favorite-toggle');
+        if (favoriteButton) {
+            favoriteButton.classList.add('hidden');
         }
         selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
         const defaultMessage = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
@@ -550,7 +554,6 @@ function handleSubstanceChange() {
 
     // Enable playback and selection controls
     playButton.disabled = false;
-    stopButton.disabled = false;
     selectAllButton.disabled = false;
     clearSelectionButton.disabled = false;
 
@@ -570,7 +573,7 @@ function handleSubstanceChange() {
     // Update favorite button
     const favoriteButton = document.getElementById('favorite-toggle');
     if (favoriteButton) {
-        favoriteButton.style.display = 'inline-block';
+        favoriteButton.classList.remove('hidden');
         const isFavorite = Favorites.isFavorite(data.name);
         updateFavoriteButton(isFavorite);
     }
@@ -641,11 +644,22 @@ function updateMappingInfo(data, peaks) {
 /**
  * Handle play button click
  *
- * Plays audio synthesized from the current FTIR spectrum peaks.
+ * Toggles between play and stop.
  * Automatically uses selected peaks if any exist, otherwise uses all peaks.
- * Disables controls during playback to prevent concurrent play operations.
+ * Updates button text to reflect current state.
  */
 async function handlePlay() {
+    // If currently playing, stop instead
+    if (audioEngine.isPlaying) {
+        audioEngine.stop();
+        visualizer.stopAudioAnimation();
+        playButton.textContent = '▶ Play Sound';
+        playButton.disabled = false;
+        ScreenReader.announce('Playback stopped');
+        Logger.log('Playback stopped');
+        return;
+    }
+
     if (!currentPeaks || currentPeaks.length === 0) {
         Logger.warn('No peaks to play');
         Toast.warning('No peaks detected for this substance');
@@ -668,8 +682,8 @@ async function handlePlay() {
     }
 
     try {
-        // Disable play button during playback
-        playButton.disabled = true;
+        // Update button to show stop
+        playButton.textContent = '■ Stop';
 
         // Add pulse effect to play button
         MicroInteractions.pulse(playButton, duration * 1000);
@@ -693,15 +707,15 @@ async function handlePlay() {
 
         Logger.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
 
-        // Re-enable play button after duration
+        // Reset button after duration
         setTimeout(() => {
-            playButton.disabled = false;
+            playButton.textContent = '▶ Play Sound';
             visualizer.stopAudioAnimation();
             ScreenReader.announce('Playback finished');
         }, duration * 1000 + 100);
 
     } catch (error) {
-        playButton.disabled = false;
+        playButton.textContent = '▶ Play Sound';
         visualizer.stopAudioAnimation();
 
         ErrorHandler.handle(
@@ -711,18 +725,6 @@ async function handlePlay() {
     }
 }
 
-/**
- * Handle stop button click
- */
-function handleStop() {
-    audioEngine.stop();
-    visualizer.stopAudioAnimation();
-    playButton.disabled = false;
-    playSelectedButton.disabled = visualizer.getSelectedPeaks().length === 0;
-
-    ScreenReader.announce('Playback stopped');
-    Logger.log('Playback stopped');
-}
 
 /**
  * Handle peak selection change
@@ -1236,6 +1238,100 @@ function setupMenuModals() {
     if (mappingInfoBtn && helpModal) {
         mappingInfoBtn.addEventListener('click', openHelp);
     }
+
+    // Favorites Modal
+    const favoritesModal = document.getElementById('favorites-modal');
+    const favoritesBtn = document.getElementById('favorites-menu-btn');
+    const favoritesClose = document.getElementById('favorites-close');
+    const favoritesOk = document.getElementById('favorites-ok');
+
+    if (favoritesBtn && favoritesModal) {
+        favoritesBtn.addEventListener('click', () => {
+            updateFavoritesList();
+            favoritesModal.classList.remove('hidden');
+            favoritesModal.style.display = 'flex';
+        });
+
+        const closeFavorites = () => {
+            favoritesModal.classList.add('hidden');
+            favoritesModal.style.display = 'none';
+        };
+
+        if (favoritesClose) favoritesClose.addEventListener('click', closeFavorites);
+        if (favoritesOk) favoritesOk.addEventListener('click', closeFavorites);
+
+        favoritesModal.addEventListener('click', (e) => {
+            if (e.target === favoritesModal) closeFavorites();
+        });
+    }
+}
+
+/**
+ * Update the favorites list in the modal
+ */
+function updateFavoritesList() {
+    const favoritesList = document.getElementById('favorites-list');
+    if (!favoritesList) return;
+
+    const favorites = Favorites.getAll();
+
+    if (favorites.length === 0) {
+        favoritesList.innerHTML = '<p class="empty-favorites">No favorites yet. Click the ⭐ button next to any substance to add it to your favorites.</p>';
+        return;
+    }
+
+    // Build the list
+    const listHTML = favorites.map(substanceName => {
+        // Find the substance in the library to get its ID
+        const substance = libraryData.find(item => item.name === substanceName);
+        const substanceId = substance ? substance.id : null;
+
+        return `
+            <div class="favorite-item">
+                <span class="favorite-name">${substanceName}</span>
+                <div class="favorite-actions">
+                    <button class="favorite-load-btn" data-id="${substanceId}" data-name="${substanceName}">Load</button>
+                    <button class="favorite-remove-btn" data-name="${substanceName}">Remove</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    favoritesList.innerHTML = listHTML;
+
+    // Add event listeners
+    favoritesList.querySelectorAll('.favorite-load-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const substanceId = btn.dataset.id;
+            if (substanceId && substanceSelect) {
+                substanceSelect.value = substanceId;
+                handleSubstanceChange();
+                // Close the modal
+                const favoritesModal = document.getElementById('favorites-modal');
+                if (favoritesModal) {
+                    favoritesModal.classList.add('hidden');
+                    favoritesModal.style.display = 'none';
+                }
+            }
+        });
+    });
+
+    favoritesList.querySelectorAll('.favorite-remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const substanceName = btn.dataset.name;
+            Favorites.remove(substanceName);
+            updateFavoritesList();
+            // Update the favorite toggle button if this substance is currently selected
+            const currentSubstanceName = substanceSelect.options[substanceSelect.selectedIndex]?.text;
+            if (currentSubstanceName === substanceName) {
+                const favoriteToggle = document.getElementById('favorite-toggle');
+                if (favoriteToggle) {
+                    favoriteToggle.textContent = '☆';
+                    favoriteToggle.setAttribute('aria-label', 'Add to favorites');
+                }
+            }
+        });
+    });
 }
 
 /**
@@ -1350,7 +1446,8 @@ function startGuidedTour() {
         Logger.error('Tutorial path modal not found');
         return;
     }
-    
+
+    modal.classList.remove('hidden');
     modal.style.display = 'flex';
     
     // Setup path selection handlers (only once)
@@ -1359,18 +1456,21 @@ function startGuidedTour() {
         const pathCards = modal.querySelectorAll('.tutorial-path-card');
         
         closeButton.addEventListener('click', () => {
+            modal.classList.add('hidden');
             modal.style.display = 'none';
         });
-        
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
+                modal.classList.add('hidden');
                 modal.style.display = 'none';
             }
         });
-        
+
         pathCards.forEach(card => {
             card.addEventListener('click', () => {
                 const path = card.getAttribute('data-path');
+                modal.classList.add('hidden');
                 modal.style.display = 'none';
                 
                 // Auto-select first substance for tour
