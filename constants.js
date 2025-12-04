@@ -44,6 +44,17 @@ const CONSTANTS = Object.freeze({
         BUTTON_DISABLE_BUFFER: 100,
         PULSE_DURATION: 2000,
         RIPPLE_DURATION: 600,
+        // Playback timing
+        PLAYBACK_END_BUFFER: 100,     // Buffer after audio playback ends (ms)
+        // Onboarding/Tutorial timing
+        ONBOARDING_DELAY: 500,        // Delay before showing onboarding UI
+        TUTORIAL_START_DELAY: 500,    // Delay before starting tutorial
+        PEAK_HINT_DELAY: 2000,        // Delay before showing peak selection hint
+        PEAK_HINT_DURATION: 3000,     // Duration of peak hint animation
+        // UI animation delays
+        SIDEBAR_CLOSE_DELAY: 300,     // Delay for sidebar close animation
+        SCROLL_DELAY: 300,            // Delay before auto-scrolling to element
+        MODAL_OPEN_DELAY: 100,        // Delay before modal opens after trigger
     },
     
     // UI constants
@@ -51,9 +62,13 @@ const CONSTANTS = Object.freeze({
         MIN_TOUCH_TARGET: 44, // px - WCAG AA minimum
         MOBILE_BREAKPOINT: 768, // px
         TABLET_BREAKPOINT: 1024, // px
+        // Canvas dimensions
         CANVAS_ASPECT_RATIO: 2, // width:height
-        MAX_CANVAS_WIDTH: 600, // px
-        MOBILE_CANVAS_HEIGHT: 250, // px
+        DEFAULT_CANVAS_WIDTH: 600, // px - default FTIR canvas width
+        DEFAULT_CANVAS_HEIGHT: 300, // px - default FTIR canvas height
+        MAX_CANVAS_WIDTH: 600, // px - maximum canvas width
+        MOBILE_CANVAS_HEIGHT: 250, // px - mobile canvas height
+        AUDIO_CANVAS_HEIGHT: 150, // px - audio visualization canvas height
     },
     
     // File size limits (bytes)

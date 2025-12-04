@@ -505,7 +505,7 @@ function handleSubstanceChange() {
         playButton.disabled = true;
         selectAllButton.disabled = true;
         clearSelectionButton.disabled = true;
-        playSelectedButton.disabled = true;
+        // Note: playSelectedButton removed - main Play button handles selected peaks automatically
         const exportWAV = document.getElementById('export-wav');
         if (exportWAV) {
             exportWAV.disabled = true;
@@ -707,12 +707,15 @@ async function handlePlay() {
 
         Logger.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
 
-        // Reset button after duration
+        // Reset button after duration (with buffer for audio to fully stop)
+        const playbackBuffer = typeof CONSTANTS !== 'undefined'
+            ? CONSTANTS.TIMING.PLAYBACK_END_BUFFER
+            : 100;
         setTimeout(() => {
             playButton.textContent = '▶ Play Sound';
             visualizer.stopAudioAnimation();
             ScreenReader.announce('Playback finished');
-        }, duration * 1000 + 100);
+        }, duration * 1000 + playbackBuffer);
 
     } catch (error) {
         playButton.textContent = '▶ Play Sound';
@@ -755,7 +758,31 @@ function handleClearSelection() {
     visualizer.clearSelection();
 }
 
+/**
+ * Handle select all peaks button
+ * Selects all detected peaks in the current spectrum.
+ */
+function handleSelectAll() {
+    if (!visualizer || !currentPeaks || currentPeaks.length === 0) {
+        Logger.warn('No peaks to select');
+        return;
+    }
+    visualizer.selectAllPeaks();
+    Logger.log(`Selected all ${currentPeaks.length} peaks`);
+}
 
+/**
+ * Handle stop button click
+ */
+function handleStop() {
+    if (audioEngine.isPlaying) {
+        audioEngine.stop();
+        visualizer.stopAudioAnimation();
+        playButton.textContent = '▶ Play Sound';
+        ScreenReader.announce('Playback stopped');
+        Logger.log('Playback stopped');
+    }
+}
 
 /**
  * Handle CSV import
