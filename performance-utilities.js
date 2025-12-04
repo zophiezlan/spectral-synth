@@ -1,10 +1,40 @@
 /**
  * Performance Utilities Module
- * 
- * Provides performance optimization utilities:
- * - Debounce and throttle functions
- * - RAF (RequestAnimationFrame) utilities
- * - Memory management helpers
+ *
+ * Purpose: Provides performance optimization utilities for smooth UX
+ *
+ * Dependencies:
+ * - None
+ *
+ * Exports:
+ * - debounce(func, wait, immediate) - Delays function execution
+ * - throttle(func, limit) - Limits function call frequency
+ * - rafThrottle(callback) - Throttles to animation frame rate
+ * - MicroInteractions object - Visual feedback utilities
+ *
+ * Usage:
+ * ```javascript
+ * // Debounce search input
+ * const debouncedSearch = debounce(handleSearch, 300);
+ * searchInput.addEventListener('input', debouncedSearch);
+ *
+ * // Throttle scroll handler
+ * const throttledScroll = throttle(handleScroll, 100);
+ * window.addEventListener('scroll', throttledScroll);
+ *
+ * // Add pulse effect to button
+ * MicroInteractions.addPulseEffect(button);
+ * ```
+ *
+ * Performance Patterns:
+ * - Debounce: Wait until user stops typing before processing
+ * - Throttle: Limit to max one call per time period
+ * - RAF Throttle: Sync with browser repaint for smooth animations
+ *
+ * Best Practices:
+ * - Use debounce for inputs (search, resize)
+ * - Use throttle for continuous events (scroll, mousemove)
+ * - Use rafThrottle for animations and visual updates
  */
 
 /**

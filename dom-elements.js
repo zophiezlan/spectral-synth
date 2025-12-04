@@ -1,8 +1,21 @@
 /**
  * DOM Elements Module
- * 
- * Centralizes all DOM element references for the application.
- * This improves maintainability by keeping element selectors in one place.
+ *
+ * Purpose: Centralizes all DOM element references for the application
+ *
+ * Dependencies:
+ * - None (pure DOM queries)
+ *
+ * Exports:
+ * - All DOM element references as constants (substanceSelect, playButton, etc.)
+ *
+ * Usage:
+ * This module is loaded early in the script chain and provides global
+ * access to commonly used DOM elements. Elements are queried once at
+ * load time for performance.
+ *
+ * Note: All elements may be null if not found in DOM. Consumer code
+ * should check for existence before using.
  */
 
 // DOM elements - Single mode (comparison mode removed)

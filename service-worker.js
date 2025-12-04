@@ -4,21 +4,43 @@
  * Provides offline functionality and caching for improved performance
  */
 
-const CACHE_NAME = 'spectral-synth-v1';
-const CACHE_VERSION = '1.0.0';
+const VERSION = '1.1.0';
+const CACHE_NAME = `spectral-synth-v${VERSION}`;
 
 // Files to cache for offline use
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/style.css',
+    '/manifest.json',
+    // Configuration and constants
     '/config.js',
-    '/app.js',
-    '/audio-engine.js',
+    '/constants.js',
+    '/debug-logger.js',
+    // Utility modules
+    '/ui-utilities.js',
+    '/visualization-utilities.js',
+    '/storage-utilities.js',
+    '/tutorial-manager.js',
+    '/analysis-utilities.js',
+    '/substance-utilities.js',
+    '/performance-utilities.js',
+    // Core modules
     '/frequency-mapper.js',
+    '/audio-engine.js',
     '/visualizer.js',
     '/csv-importer.js',
-    '/manifest.json'
+    '/jcamp-importer.js',
+    '/mp3-encoder.js',
+    '/midi-output.js',
+    // DOM and event handling
+    '/dom-elements.js',
+    '/event-handlers.js',
+    '/handlers-import-export.js',
+    '/handlers-midi.js',
+    // Main application
+    '/app.js',
+    '/sw-register.js'
 ];
 
 // Large files that can be cached on demand
@@ -31,50 +53,43 @@ const LARGE_FILES = [
  * Install event - cache static assets
  */
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Installing...', CACHE_VERSION);
+    console.log('[Service Worker] Installing...', VERSION);
 
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('[Service Worker] Caching static assets');
-                return cache.addAll(STATIC_ASSETS);
-            })
-            .then(() => {
-                console.log('[Service Worker] Installation complete');
-                return self.skipWaiting(); // Activate immediately
-            })
-            .catch((error) => {
-                console.error('[Service Worker] Installation failed:', error);
-            })
-    );
+    event.waitUntil((async () => {
+        try {
+            const cache = await caches.open(CACHE_NAME);
+            console.log('[Service Worker] Caching static assets');
+            await cache.addAll(STATIC_ASSETS);
+            console.log('[Service Worker] Installation complete');
+            await self.skipWaiting(); // Activate immediately
+        } catch (error) {
+            console.error('[Service Worker] Installation failed:', error);
+        }
+    })());
 });
 
 /**
  * Activate event - clean up old caches
  */
 self.addEventListener('activate', (event) => {
-    console.log('[Service Worker] Activating...', CACHE_VERSION);
+    console.log('[Service Worker] Activating...', VERSION);
 
-    event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                return Promise.all(
-                    cacheNames
-                        .filter((cacheName) => {
-                            // Remove old caches
-                            return cacheName !== CACHE_NAME && cacheName !== DYNAMIC_CACHE;
-                        })
-                        .map((cacheName) => {
-                            console.log('[Service Worker] Deleting old cache:', cacheName);
-                            return caches.delete(cacheName);
-                        })
-                );
-            })
-            .then(() => {
-                console.log('[Service Worker] Activation complete');
-                return self.clients.claim(); // Take control immediately
-            })
-    );
+    event.waitUntil((async () => {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+            cacheNames
+                .filter((cacheName) => {
+                    // Remove old caches
+                    return cacheName !== CACHE_NAME && cacheName !== DYNAMIC_CACHE;
+                })
+                .map((cacheName) => {
+                    console.log('[Service Worker] Deleting old cache:', cacheName);
+                    return caches.delete(cacheName);
+                })
+        );
+        console.log('[Service Worker] Activation complete');
+        await self.clients.claim(); // Take control immediately
+    })());
 });
 
 /**
@@ -92,59 +107,52 @@ self.addEventListener('fetch', (event) => {
 
     // Handle large files (FTIR library) with network-first strategy
     if (LARGE_FILES.some(file => url.pathname.includes(file))) {
-        event.respondWith(
-            caches.open(DYNAMIC_CACHE)
-                .then((cache) => {
-                    return fetch(request)
-                        .then((response) => {
-                            // Cache successful responses
-                            if (response.ok) {
-                                cache.put(request, response.clone());
-                            }
-                            return response;
-                        })
-                        .catch(() => {
-                            // Fallback to cache if network fails
-                            return cache.match(request);
-                        });
-                })
-        );
+        event.respondWith((async () => {
+            const cache = await caches.open(DYNAMIC_CACHE);
+            try {
+                const response = await fetch(request);
+                // Cache successful responses
+                if (response.ok) {
+                    cache.put(request, response.clone());
+                }
+                return response;
+            } catch (error) {
+                // Fallback to cache if network fails
+                return cache.match(request);
+            }
+        })());
         return;
     }
 
     // Handle static assets with cache-first strategy
-    event.respondWith(
-        caches.match(request)
-            .then((cachedResponse) => {
-                if (cachedResponse) {
-                    // Return cached version
-                    return cachedResponse;
-                }
+    event.respondWith((async () => {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+            // Return cached version
+            return cachedResponse;
+        }
 
-                // Fetch from network
-                return fetch(request)
-                    .then((response) => {
-                        // Don't cache non-successful responses
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
-                        }
+        try {
+            // Fetch from network
+            const response = await fetch(request);
 
-                        // Cache successful responses
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then((cache) => {
-                                cache.put(request, responseToCache);
-                            });
+            // Don't cache non-successful responses
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+            }
 
-                        return response;
-                    })
-                    .catch((error) => {
-                        console.error('[Service Worker] Fetch failed:', error);
-                        // Could return a custom offline page here
-                        throw error;
-                    });
-            })
-    );
+            // Cache successful responses
+            const responseToCache = response.clone();
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(request, responseToCache);
+
+            return response;
+        } catch (error) {
+            console.error('[Service Worker] Fetch failed:', error);
+            // Could return a custom offline page here
+            throw error;
+        }
+    })());
 });
 
 /**

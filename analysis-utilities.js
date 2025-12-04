@@ -1,9 +1,33 @@
 /**
  * Analysis Utilities Module
- * 
- * Provides spectral analysis utilities:
- * - Spectral similarity calculations
- * - Smart suggestions
+ *
+ * Purpose: Provides spectral analysis utilities for comparing FTIR spectra
+ *
+ * Dependencies:
+ * - None
+ *
+ * Exports:
+ * - calculateSpectralSimilarity(spectrum1, spectrum2) - Cosine similarity calculation
+ * - findSimilarSubstances(targetSpectrum, library, count) - Find most similar spectra
+ *
+ * Usage:
+ * ```javascript
+ * // Calculate similarity between two spectra
+ * const similarity = calculateSpectralSimilarity(spectrum1, spectrum2);
+ * // Returns: 0.0 (completely different) to 1.0 (identical)
+ *
+ * // Find 5 most similar substances
+ * const similar = findSimilarSubstances(currentSpectrum, libraryData, 5);
+ * // Returns: Array of {substance, similarity} objects, sorted by similarity
+ * ```
+ *
+ * Algorithm:
+ * Uses cosine similarity on binned spectral data (100 bins from 400-4000 cm⁻¹).
+ * This provides rotation and scale invariant comparison of spectral patterns.
+ *
+ * Performance:
+ * O(n) for similarity calculation, O(n*m) for finding similar substances
+ * where n = library size, m = bin count (100)
  */
 
 /**

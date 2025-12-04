@@ -1,14 +1,34 @@
 /**
  * Import/Export Handlers Module
- * 
- * Handles all import and export operations:
- * - CSV import
- * - JCAMP-DX import
- * - WAV export
- * - MP3 export
- * 
- * Dependencies: CSVImporter, JCAMPImporter, MP3Encoder, audioEngine, 
- *               LoadingOverlay, Toast, ErrorHandler, MicroInteractions
+ *
+ * Purpose: Handles all data import and audio export operations
+ *
+ * Dependencies:
+ * - CSVImporter (for CSV parsing)
+ * - JCAMPImporter (for JCAMP-DX parsing)
+ * - MP3Encoder (for MP3 encoding, optional)
+ * - audioEngine (for audio generation)
+ * - LoadingOverlay (for progress indication)
+ * - Toast (for user feedback)
+ * - ErrorHandler (for error handling)
+ * - MicroInteractions (for button feedback)
+ *
+ * Exports:
+ * - handleCSVImport(event, context) - Import FTIR data from CSV
+ * - handleJCAMPImport(event, context) - Import FTIR data from JCAMP-DX
+ * - handleWAVExport() - Export synthesized audio as WAV
+ * - handleMP3Export() - Export synthesized audio as MP3 (requires lamejs)
+ * - handleDownloadTemplate() - Download CSV template file
+ *
+ * File Formats Supported:
+ * - CSV: Two-column format (wavenumber, transmittance OR absorbance)
+ * - JCAMP-DX: Standard spectroscopy format (.jdx, .dx, .jcamp)
+ * - WAV: Uncompressed audio (works without dependencies)
+ * - MP3: Compressed audio (requires lamejs library)
+ *
+ * Usage:
+ * These handlers are wired to file input change events and export buttons
+ * during initialization in event-handlers.js.
  */
 
 /**
