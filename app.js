@@ -8,6 +8,8 @@
  * loaded from separate files for better maintainability.
  */
 
+/* global handlePeakSelectionChange, setupThemeToggle */
+
 // Global instances
 let audioEngine;
 let visualizer;
