@@ -11,7 +11,11 @@ const CACHE_NAME = `spectral-synth-v${VERSION}`;
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/style.css',
+    // CSS files (split architecture)
+    '/base.css',
+    '/components.css',
+    '/modals.css',
+    '/responsive.css',
     '/manifest.json',
     // Configuration and constants
     '/config.js',
@@ -38,6 +42,14 @@ const STATIC_ASSETS = [
     '/event-handlers.js',
     '/handlers-import-export.js',
     '/handlers-midi.js',
+    // State and feature modules
+    '/app-state.js',
+    '/modal-manager.js',
+    '/filter-manager.js',
+    '/keyboard-shortcuts.js',
+    '/onboarding.js',
+    '/playback-controller.js',
+    '/theme-manager.js',
     // Main application
     '/app.js',
     '/sw-register.js'
