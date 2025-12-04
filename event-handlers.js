@@ -59,9 +59,6 @@ function setupPlaybackListeners() {
     if (playButton) {
         playButton.addEventListener('click', handlePlay);
     }
-    if (stopButton) {
-        stopButton.addEventListener('click', handleStop);
-    }
 
     // Peak selection
     if (clearSelectionButton) {
@@ -240,6 +237,9 @@ function setupAudioModeListeners() {
             option.textContent = `${mode.name} - ${mode.description}`;
             playbackModeSelect.appendChild(option);
         });
+
+        // Set default to sequential to match the audio engine default
+        playbackModeSelect.value = 'sequential';
 
         playbackModeSelect.addEventListener('change', (e) => {
             try {

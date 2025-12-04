@@ -645,13 +645,6 @@ class Visualizer {
             const x = 20 + ((width - 40) / 5) * i;
             ctx.fillText(wavenumber.toString(), x - 20, height - 5);
         }
-
-        // Y-axis labels (transmittance %)
-        for (let i = 0; i <= 5; i++) {
-            const transmittance = (i * 20);
-            const y = height - 20 - ((height - 40) / 5) * i;
-            ctx.fillText(transmittance + '%', 5, y + 5);
-        }
     }
 
     /**
@@ -668,9 +661,6 @@ class Visualizer {
             const label = freq >= 1000 ? (freq / 1000).toFixed(1) + 'k' : freq.toString();
             ctx.fillText(label, x - 15, height - 5);
         }
-
-        // Y-axis label
-        ctx.fillText('Amplitude', 5, 15);
     }
 
     /**

@@ -58,16 +58,9 @@ const TutorialManager = {
                 position: 'top'
             },
             {
-                target: '#playback-mode-select',
-                title: 'Playback Modes',
-                description: 'Try different modes: Chord plays all peaks together, Arpeggio plays them in sequence, creating different musical interpretations.',
-                action: null,
-                position: 'top'
-            },
-            {
                 target: '#settings-menu-btn',
-                title: 'Audio Effects & Settings',
-                description: 'Open Settings to experiment with reverb, filters, and ADSR envelope controls to shape the sound. Make chemistry musical!',
+                title: 'Playback Modes & Audio Effects',
+                description: 'Open Settings to explore playback modes (Chord, Arpeggio, Sequential), adjust duration and volume, add reverb, filters, and shape your sound with ADSR envelope controls. Make chemistry musical!',
                 action: null,
                 position: 'right'
             }
@@ -95,32 +88,11 @@ const TutorialManager = {
                 position: 'top'
             },
             {
-                target: '#playback-mode-select',
-                title: 'Musical Modes',
-                description: 'Switch between Chord (harmonic), Arpeggio (melodic), Sequential, or Random for different musical effects.',
+                target: '#settings-menu-btn',
+                title: 'Sound Design Controls',
+                description: 'Open Settings to explore: Musical Modes (Chord, Arpeggio, Sequential, Random), ADSR Envelope (Attack, Decay, Sustain, Release), Reverb for spatial effects, and Frequency Filtering to shape the tone. These are essential tools for expressive synthesis!',
                 action: null,
-                position: 'top'
-            },
-            {
-                target: '.adsr-grid',
-                title: 'ADSR Envelope',
-                description: 'Shape your sound over time: Attack (rise), Decay (fall), Sustain (hold), Release (fade). Essential for expressive synthesis!',
-                action: null,
-                position: 'top'
-            },
-            {
-                target: '#reverb',
-                title: 'Spatial Effects',
-                description: 'Add reverb for depth and atmosphere. The larger the value, the bigger the virtual space.',
-                action: null,
-                position: 'top'
-            },
-            {
-                target: '#filter-freq',
-                title: 'Frequency Filtering',
-                description: 'Use the lowpass filter to shape the tone. Lower values = darker, warmer sound. Higher = brighter, sharper.',
-                action: null,
-                position: 'top'
+                position: 'right'
             },
             {
                 target: '.peak-selection-info',

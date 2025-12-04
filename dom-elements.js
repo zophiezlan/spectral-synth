@@ -25,7 +25,6 @@ const searchInput = document.getElementById('search');
 const categorySelect = document.getElementById('category');
 const resultsCount = document.getElementById('results-count');
 const playButton = document.getElementById('play');
-const stopButton = document.getElementById('stop');
 const clearSelectionButton = document.getElementById('clear-selection');
 const selectionCount = document.getElementById('selection-count');
 const durationSlider = document.getElementById('duration');

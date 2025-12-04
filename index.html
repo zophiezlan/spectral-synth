@@ -47,6 +47,12 @@
         </div>
         <ul class="sidebar-menu">
             <li>
+                <button id="favorites-menu-btn" class="sidebar-button" aria-label="View favorites">
+                    <span class="sidebar-icon">⭐</span>
+                    <span class="sidebar-label">Favorites</span>
+                </button>
+            </li>
+            <li>
                 <button id="settings-menu-btn" class="sidebar-button" aria-label="Open settings">
                     <span class="sidebar-icon">⚙️</span>
                     <span class="sidebar-label">Settings</span>
@@ -161,15 +167,6 @@
 
             <div class="playback-controls" role="group" aria-label="Playback buttons">
                 <button id="play" class="primary-button" disabled aria-label="Play sound from selected substance">▶ Play Sound</button>
-                <button id="stop" class="secondary-button" disabled aria-label="Stop playback">■ Stop</button>
-                <div class="slider-control">
-                    <label for="duration">Duration: <span id="duration-value">2.0</span>s</label>
-                    <input type="range" id="duration" min="0.5" max="5" step="0.1" value="2">
-                </div>
-                <div class="slider-control">
-                    <label for="volume">Volume: <span id="volume-value">50</span>%</label>
-                    <input type="range" id="volume" min="0" max="100" step="1" value="50">
-                </div>
             </div>
         </section>
 
@@ -184,7 +181,6 @@
                 <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualization"></canvas>
                 <div class="axis-labels">
                     <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
-                    <span class="axis-label-y">Transmittance (%)</span>
                 </div>
                 <div class="peak-selection-info">
                     <span id="selection-count" class="selection-status">Click peaks to select specific frequencies</span>
@@ -197,7 +193,6 @@
                 <canvas id="audio-canvas" width="600" height="300" role="img" aria-label="Audio FFT visualization"></canvas>
                 <div class="axis-labels">
                     <span class="axis-label-x">Frequency (Hz)</span>
-                    <span class="axis-label-y">Amplitude</span>
                 </div>
             </div>
         </section>
@@ -313,6 +308,20 @@
         <div class="modal-content settings-modal">
             <button class="modal-close" id="settings-close" aria-label="Close settings">&times;</button>
             <h2 id="settings-title">⚙️ Settings</h2>
+
+            <div class="settings-section">
+                <h3>🎚️ Playback Controls</h3>
+                <div class="effects-grid">
+                    <div class="slider-control">
+                        <label for="duration">Duration: <span id="duration-value">2.0</span>s</label>
+                        <input type="range" id="duration" min="0.5" max="5" step="0.1" value="2">
+                    </div>
+                    <div class="slider-control">
+                        <label for="volume">Volume: <span id="volume-value">50</span>%</label>
+                        <input type="range" id="volume" min="0" max="100" step="1" value="50">
+                    </div>
+                </div>
+            </div>
 
             <div class="settings-section">
                 <h3>🎚️ Audio Effects</h3>
@@ -601,6 +610,20 @@
             </div>
 
             <button id="help-ok" class="primary-button modal-action-button">Done</button>
+        </div>
+    </div>
+
+    <!-- Favorites Modal -->
+    <div id="favorites-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="favorites-title" aria-modal="true">
+        <div class="modal-content favorites-modal">
+            <button class="modal-close" id="favorites-close" aria-label="Close favorites">&times;</button>
+            <h2 id="favorites-title">⭐ Favorites</h2>
+
+            <div id="favorites-list" class="favorites-list">
+                <p class="empty-favorites">No favorites yet. Click the ⭐ button next to any substance to add it to your favorites.</p>
+            </div>
+
+            <button id="favorites-ok" class="primary-button modal-action-button">Done</button>
         </div>
     </div>
 
