@@ -187,20 +187,20 @@ const ResponsiveCanvas = {
 
             // Get container width
             const containerWidth = container.clientWidth;
-            
+
             // Calculate dimensions based on screen size
             let canvasWidth, canvasHeight;
-            
+
             if (window.innerWidth <= 768) {
                 // Mobile: full container width, reduced height
                 canvasWidth = Math.min(containerWidth - 32, 600); // Subtract padding
                 canvasHeight = Math.min(canvasWidth / aspectRatio, 250);
-                
+
                 // Set canvas internal dimensions to match logical pixels
                 // This ensures drawing code coordinates match the display size
                 canvas.width = canvasWidth;
                 canvas.height = canvasHeight;
-                
+
                 // Set CSS size to match (no scaling needed)
                 canvas.style.width = canvasWidth + 'px';
                 canvas.style.height = canvasHeight + 'px';
@@ -211,7 +211,7 @@ const ResponsiveCanvas = {
                 canvas.style.width = '100%';
                 canvas.style.height = 'auto';
             }
-            
+
             // Trigger redraw of current visualization after resize
             const handler = redrawHandlers[canvas.id];
             if (handler) {

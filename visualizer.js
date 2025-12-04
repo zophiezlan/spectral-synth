@@ -57,7 +57,7 @@
 class Visualizer {
     /**
      * Create a new Visualizer instance
-     * 
+     *
      * @param {HTMLCanvasElement} ftirCanvas - Canvas for FTIR spectrum display
      * @param {HTMLCanvasElement} audioCanvas - Canvas for audio FFT display
      * @throws {Error} If canvases are invalid
@@ -111,7 +111,7 @@ class Visualizer {
 
     /**
      * Set up click handler for peak selection
-     * 
+     *
      * Enables interactive peak selection by clicking on the FTIR spectrum.
      * Also changes cursor to pointer when hovering over peaks.
      * Includes full touch support for mobile devices.

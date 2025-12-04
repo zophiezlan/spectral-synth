@@ -1,6 +1,6 @@
 /**
  * JCAMP-DX Importer - Import FTIR data from JCAMP-DX files
- * 
+ *
  * JCAMP-DX is the standard format for spectroscopy data exchange.
  * This module provides browser-based parsing of JCAMP-DX files.
  */
@@ -8,10 +8,10 @@
 class JCAMPImporter {
     /**
      * Parse JCAMP-DX file containing FTIR data
-     * 
+     *
      * Supports JCAMP-DX format with XYDATA or XYPOINTS sections.
      * Handles both transmittance and absorbance data.
-     * 
+     *
      * @param {File} file - JCAMP-DX file from input element
      * @returns {Promise<Object>} Parsed spectrum data with metadata
      * @throws {Error} If file is invalid or parsing fails
@@ -24,7 +24,7 @@ class JCAMPImporter {
         const validExtensions = ['.jdx', '.dx', '.jcamp'];
         const fileName = file.name.toLowerCase();
         const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
-        
+
         if (!hasValidExtension) {
             throw new Error('File must be a JCAMP-DX file (.jdx, .dx, or .jcamp)');
         }
@@ -40,7 +40,7 @@ class JCAMPImporter {
         }
 
         const text = await file.text();
-        
+
         // Parse JCAMP-DX format
         const metadata = this.parseMetadata(text);
         const spectrum = this.parseSpectrum(text, metadata);
@@ -84,7 +84,7 @@ class JCAMPImporter {
 
     /**
      * Parse metadata from JCAMP-DX file
-     * 
+     *
      * @param {string} text - JCAMP file content
      * @returns {Object} Metadata object
      * @private
@@ -95,10 +95,10 @@ class JCAMPImporter {
 
         for (const line of lines) {
             const trimmed = line.trim();
-            
+
             // JCAMP fields start with ##
             if (!trimmed.startsWith('##')) continue;
-            
+
             // Skip data sections
             if (trimmed.includes('XYDATA') || trimmed.includes('XYPOINTS')) break;
 
@@ -116,7 +116,7 @@ class JCAMPImporter {
 
     /**
      * Parse spectrum data from JCAMP-DX file
-     * 
+     *
      * @param {string} text - JCAMP file content
      * @param {Object} metadata - Parsed metadata
      * @returns {Array} Array of {wavenumber, transmittance} objects
@@ -125,7 +125,7 @@ class JCAMPImporter {
     static parseSpectrum(text, metadata) {
         const spectrum = [];
         const lines = text.split('\n');
-        
+
         // Determine if data is in XYDATA or XYPOINTS format
         let inDataSection = false;
         let dataFormat = null;
@@ -167,7 +167,7 @@ class JCAMPImporter {
                 if (parts.length >= 2) {
                     const wavenumber = parseFloat(parts[0]) * xFactor;
                     const value = parseFloat(parts[1]) * yFactor;
-                    
+
                     if (!isNaN(wavenumber) && !isNaN(value)) {
                         spectrum.push({
                             wavenumber,
@@ -179,7 +179,7 @@ class JCAMPImporter {
                 // XYDATA can be compressed with difference encoding
                 // Format: X followed by Y values, or compressed notation
                 const parts = line.split(/\s+/).filter(p => p);
-                
+
                 for (const part of parts) {
                     // Check if it's an X value (contains decimal point or is first value)
                     if (part.includes('.') || spectrum.length === 0) {
@@ -216,7 +216,7 @@ class JCAMPImporter {
 
     /**
      * Convert Y value to transmittance based on Y units
-     * 
+     *
      * @param {number} value - Y value from JCAMP file
      * @param {Object} metadata - File metadata
      * @returns {number} Transmittance percentage (0-100)
@@ -224,7 +224,7 @@ class JCAMPImporter {
      */
     static valueToTransmittance(value, metadata) {
         const yUnits = (metadata.yunits || metadata.yunit || '').toLowerCase();
-        
+
         // Determine if value is absorbance or transmittance
         if (yUnits.includes('absorbance') || yUnits.includes('abs')) {
             // Convert absorbance to transmittance: T = 10^(-A) * 100
@@ -249,7 +249,7 @@ class JCAMPImporter {
 
     /**
      * Sanitize substance name for security
-     * 
+     *
      * @param {string} name - Raw name from file
      * @returns {string} Sanitized name
      * @private
@@ -261,7 +261,7 @@ class JCAMPImporter {
 
         return name
             .replace(/[<>'"&]/g, '') // Remove XSS-prone characters
-            .replace(/[\/\\]/g, '-')  // Replace path separators
+            .replace(/[/\\]/g, '-')  // Replace path separators
             .trim()
             .slice(0, 100) // Limit length
             || 'Untitled';
@@ -269,7 +269,7 @@ class JCAMPImporter {
 
     /**
      * Downsample spectrum data to target number of points
-     * 
+     *
      * @param {Array} spectrum - Original spectrum data
      * @param {number} targetPoints - Desired number of points
      * @returns {Array} Downsampled spectrum
@@ -286,7 +286,7 @@ class JCAMPImporter {
         for (let i = 0; i < targetPoints; i++) {
             const start = i * binSize;
             const end = Math.min(start + binSize, spectrum.length);
-            
+
             let sumWavenumber = 0;
             let sumTransmittance = 0;
             let count = 0;
@@ -308,7 +308,7 @@ class JCAMPImporter {
 
     /**
      * Validate imported spectrum data
-     * 
+     *
      * @param {Object} data - Imported spectrum data
      * @returns {boolean} True if valid
      * @throws {Error} If validation fails

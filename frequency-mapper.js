@@ -63,7 +63,7 @@ class FrequencyMapper {
         // Audible frequency range (Hz)
         this.AUDIO_MIN = CONFIG.frequency.AUDIO_MIN;
         this.AUDIO_MAX = CONFIG.frequency.AUDIO_MAX;
-        
+
         // Peak detection parameters
         this.DEFAULT_THRESHOLD = CONFIG.peakDetection.DEFAULT_THRESHOLD;
         this.DEFAULT_MAX_PEAKS = CONFIG.peakDetection.DEFAULT_MAX_PEAKS;
@@ -71,10 +71,10 @@ class FrequencyMapper {
 
     /**
      * Map IR wavenumber to audio frequency using logarithmic scaling
-     * 
+     *
      * Uses logarithmic scaling to preserve perceptual relationships between
      * frequencies. Higher IR wavenumbers map to higher audio frequencies.
-     * 
+     *
      * @param {number} wavenumber - IR wavenumber in cm⁻¹
      * @returns {number} Audio frequency in Hz
      * @throws {Error} If wavenumber is not a valid number
@@ -83,10 +83,10 @@ class FrequencyMapper {
         if (typeof wavenumber !== 'number' || isNaN(wavenumber)) {
             throw new Error(`Invalid wavenumber: ${wavenumber}. Must be a number.`);
         }
-        
+
         // Clamp wavenumber to valid range
         const clampedWavenumber = Math.max(this.IR_MIN, Math.min(this.IR_MAX, wavenumber));
-        
+
         // Normalize wavenumber to 0-1 range
         const normalized = (clampedWavenumber - this.IR_MIN) / (this.IR_MAX - this.IR_MIN);
 
@@ -101,10 +101,10 @@ class FrequencyMapper {
 
     /**
      * Extract peaks from FTIR spectrum for sonification
-     * 
+     *
      * Identifies local maxima in the absorption spectrum that exceed the threshold.
      * Returns the most intense peaks up to maxPeaks limit.
-     * 
+     *
      * @param {Array} spectrum - Array of {wavenumber, transmittance} objects
      * @param {number} [threshold=0.15] - Minimum absorption intensity (0-1)
      * @param {number} [maxPeaks=20] - Maximum number of peaks to extract

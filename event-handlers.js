@@ -32,7 +32,6 @@
  */
 
 
-
 /**
  * Setup substance selection and filtering listeners
  */
@@ -174,7 +173,7 @@ function setupADSRListeners() {
             option.textContent = `${curve.name} - ${curve.description}`;
             adsrCurveSelect.appendChild(option);
         });
-        
+
         // Set default curve
         adsrCurveSelect.value = CONFIG.adsr.DEFAULT_CURVE;
 

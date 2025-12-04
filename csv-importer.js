@@ -1,6 +1,6 @@
 /**
  * CSV Importer - Import custom FTIR data from CSV files
- * 
+ *
  * Allows users to import their own FTIR spectral data in CSV format
  * and sonify it using the Spectral Synthesizer.
  */
@@ -8,12 +8,12 @@
 class CSVImporter {
     /**
      * Parse CSV file containing FTIR data
-     * 
+     *
      * Expected formats:
      * 1. Two columns: wavenumber, transmittance
      * 2. Two columns: wavenumber, absorbance
      * 3. With headers (will be auto-detected and skipped)
-     * 
+     *
      * @param {File} file - CSV file from input element
      * @returns {Promise<Object>} Parsed spectrum data with metadata
      * @throws {Error} If file is invalid or parsing fails
@@ -61,7 +61,7 @@ class CSVImporter {
 
         for (let i = startIdx; i < lines.length; i++) {
             const parts = lines[i].split(/[,;\t]/).map(p => p.trim());
-            
+
             if (parts.length < 2) continue;
 
             const wavenumber = parseFloat(parts[0]);
@@ -140,7 +140,7 @@ class CSVImporter {
 
         return name
             .replace(/[<>'"&]/g, '') // Remove XSS-prone characters
-            .replace(/[\/\\]/g, '-')  // Replace path separators
+            .replace(/[/\\]/g, '-')  // Replace path separators
             .trim()
             .slice(0, 100) // Limit length
             || 'Untitled';
@@ -149,7 +149,7 @@ class CSVImporter {
     /**
      * Downsample spectrum data to target number of points
      * Uses simple averaging in bins
-     * 
+     *
      * @param {Array} spectrum - Original spectrum data
      * @param {number} targetPoints - Desired number of points
      * @returns {Array} Downsampled spectrum
@@ -166,7 +166,7 @@ class CSVImporter {
         for (let i = 0; i < targetPoints; i++) {
             const start = i * binSize;
             const end = Math.min(start + binSize, spectrum.length);
-            
+
             let sumWavenumber = 0;
             let sumTransmittance = 0;
             let count = 0;
@@ -188,7 +188,7 @@ class CSVImporter {
 
     /**
      * Validate imported spectrum data
-     * 
+     *
      * @param {Object} data - Imported spectrum data
      * @returns {boolean} True if valid
      * @throws {Error} If validation fails with specific reason
@@ -219,7 +219,7 @@ class CSVImporter {
 
     /**
      * Generate example CSV template
-     * 
+     *
      * @returns {string} CSV template string
      */
     static generateTemplate() {

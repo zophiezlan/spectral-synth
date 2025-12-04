@@ -3,7 +3,7 @@
  *
  * Coordinates between UI, data, audio engine, and visualization.
  * This is the main entry point that ties together all the modules.
- * 
+ *
  * Utility modules (LoadingOverlay, Toast, ErrorHandler, etc.) are now
  * loaded from separate files for better maintainability.
  */
@@ -126,9 +126,9 @@ function checkMP3ExportAvailability() {
 
 /**
  * Load FTIR library from JSON
- * 
+ *
  * Fetches the FTIR spectral database and populates the substance selectors.
- * 
+ *
  * @throws {Error} If library fails to load
  */
 async function loadLibrary() {
@@ -213,7 +213,6 @@ function populateSubstanceSelector() {
 }
 
 
-
 /**
  * Update filter status bar display
  * @param {number} resultCount - Number of results after filtering
@@ -295,7 +294,7 @@ function clearFilter(filterType) {
             categorySelect.value = 'all';
             currentCategory = 'all';
             break;
-        case 'favorites':
+        case 'favorites': {
             const showAllButton = document.getElementById('show-all');
             const showFavoritesButton = document.getElementById('show-favorites');
             if (showAllButton && showFavoritesButton) {
@@ -305,6 +304,7 @@ function clearFilter(filterType) {
                 showFavoritesButton.setAttribute('aria-pressed', 'false');
             }
             break;
+        }
     }
     populateSubstanceSelector();
 }
@@ -401,7 +401,7 @@ function navigateSubstance(direction) {
 
 /**
  * Handle search input with debouncing
- * 
+ *
  * Debounces search to avoid excessive filtering during typing.
  */
 function handleSearch() {
@@ -409,7 +409,7 @@ function handleSearch() {
     if (searchDebounceTimer) {
         clearTimeout(searchDebounceTimer);
     }
-    
+
     // Set new timer
     searchDebounceTimer = setTimeout(() => {
         currentSearchTerm = searchInput.value.trim();
@@ -583,10 +583,10 @@ function updateMappingInfo(data, peaks) {
         html += `<p style="margin-top: 10px; font-size: 0.9em; color: #888;">... and ${peaks.length - 10} more peaks</p>`;
     }
 
-    html += `<p style="margin-top: 15px; font-size: 0.9em;">`;
+    html += '<p style="margin-top: 15px; font-size: 0.9em;">';
     html += `Mapping: ${frequencyMapper.IR_MIN}-${frequencyMapper.IR_MAX} cm⁻¹ → `;
     html += `${frequencyMapper.AUDIO_MIN}-${frequencyMapper.AUDIO_MAX} Hz (logarithmic scale)`;
-    html += `</p>`;
+    html += '</p>';
 
     if (mappingInfo) {
         mappingInfo.innerHTML = html;
@@ -909,7 +909,6 @@ async function handleExportMP3() {
 }
 
 
-
 /**
  * Refresh MIDI device list
  */
@@ -929,9 +928,9 @@ async function refreshMIDIDevices() {
         }
 
         const devices = midiOutput.getOutputDevices();
-        
+
         midiDeviceSelect.innerHTML = '';
-        
+
         if (devices.length === 0) {
             const option = document.createElement('option');
             option.value = '';
@@ -964,11 +963,11 @@ async function refreshMIDIDevices() {
 function updateMIDISendButton() {
     const sendButton = document.getElementById('send-midi-notes');
     const exportButton = document.getElementById('export-midi-file');
-    
+
     if (sendButton) {
         sendButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput || !midiOutput.hasSelectedDevice();
     }
-    
+
     // MIDI file export doesn't require a device
     if (exportButton) {
         exportButton.disabled = !currentPeaks || currentPeaks.length === 0 || !midiOutput;
@@ -1026,7 +1025,7 @@ async function handleExportMIDIFile() {
     try {
         const exportButton = document.getElementById('export-midi-file');
         const tempoSlider = document.getElementById('midi-tempo');
-        
+
         exportButton.disabled = true;
         exportButton.textContent = '⏳ Exporting...';
 
@@ -1431,12 +1430,12 @@ function startGuidedTour() {
 
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
-    
+
     // Setup path selection handlers (only once)
     if (!modal.dataset.initialized) {
         const closeButton = document.getElementById('tutorial-path-close');
         const pathCards = modal.querySelectorAll('.tutorial-path-card');
-        
+
         closeButton.addEventListener('click', () => {
             modal.classList.add('hidden');
             modal.style.display = 'none';
@@ -1454,19 +1453,19 @@ function startGuidedTour() {
                 const path = card.getAttribute('data-path');
                 modal.classList.add('hidden');
                 modal.style.display = 'none';
-                
+
                 // Auto-select first substance for tour
                 if (libraryData && libraryData.length > 0) {
                     selectSubstanceByName('mdma');
                 }
-                
+
                 // Start tutorial with selected path
                 setTimeout(() => {
                     TutorialManager.start(path);
                 }, 500);
             });
         });
-        
+
         modal.dataset.initialized = 'true';
     }
 }
