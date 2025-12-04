@@ -205,7 +205,7 @@ function setupAudioModeListeners() {
         playbackModeSelect.addEventListener('change', (e) => {
             try {
                 audioEngine.setPlaybackMode(e.target.value);
-                console.log(`Playback mode changed to: ${e.target.value}`);
+                Logger.log(`Playback mode changed to: ${e.target.value}`);
             } catch (error) {
                 ErrorHandler.handle(error, 'Failed to set playback mode');
             }

@@ -68,7 +68,7 @@ class CSVImporter {
             const value = parseFloat(parts[1]);
 
             if (isNaN(wavenumber) || isNaN(value)) {
-                console.warn(`Skipping invalid line ${i + 1}: ${lines[i]}`);
+                Logger.warn(`Skipping invalid line ${i + 1}: ${lines[i]}`);
                 continue;
             }
 
@@ -83,7 +83,7 @@ class CSVImporter {
 
             // Validate reasonable ranges
             if (wavenumber < 100 || wavenumber > 10000) {
-                console.warn(`Wavenumber ${wavenumber} outside typical range (100-10000 cm⁻¹)`);
+                Logger.warn(`Wavenumber ${wavenumber} outside typical range (100-10000 cm⁻¹)`);
             }
 
             if (transmittance < 0 || transmittance > 100) {

@@ -10,7 +10,7 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
             .then((registration) => {
-                console.log('✓ Service Worker registered:', registration.scope);
+                Logger.log('✓ Service Worker registered:', registration.scope);
 
                 // Check for updates periodically
                 setInterval(() => {
@@ -18,7 +18,7 @@ if ('serviceWorker' in navigator) {
                 }, 60000); // Check every minute
             })
             .catch((error) => {
-                console.log('Service Worker registration failed:', error);
+                Logger.error('Service Worker registration failed:', error);
             });
     });
 }

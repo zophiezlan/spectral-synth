@@ -101,9 +101,9 @@ const iOSAudioHelper = {
         if (audioEngine.audioContext.state === 'suspended') {
             try {
                 await audioEngine.audioContext.resume();
-                console.log('✓ Audio context resumed');
+                Logger.log('✓ Audio context resumed');
             } catch (error) {
-                console.error('Failed to resume audio context:', error);
+                Logger.error('Failed to resume audio context:', error);
                 throw error;
             }
         }

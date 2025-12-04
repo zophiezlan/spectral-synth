@@ -59,11 +59,11 @@ async function init() {
                     await midiOutput.init();
                     refreshMIDIDevices();
                 } catch (midiError) {
-                    console.log('MIDI not available:', midiError.message);
+                    Logger.info('MIDI not available:', midiError.message);
                 }
             }
         } catch (error) {
-            console.log('MIDI Output not loaded');
+            Logger.info('MIDI Output not loaded');
         }
 
         // Create visualizer for single mode
@@ -90,7 +90,7 @@ async function init() {
 
         LoadingOverlay.hide();
         Toast.success('Spectral Synthesizer ready! 🎵');
-        console.log('🎵 Spectral Synthesizer initialized');
+        Logger.log('🎵 Spectral Synthesizer initialized');
 
         // Show onboarding for first-time users
         checkAndShowOnboarding();
@@ -116,9 +116,9 @@ function checkMP3ExportAvailability() {
             exportMP3.disabled = true;
             exportMP3.title = 'MP3 export requires lamejs library (not loaded). WAV export is available.';
             exportMP3.style.opacity = '0.5';
-            console.log('⚠️ MP3 export disabled: lamejs library not loaded. Use WAV export instead.');
+            Logger.info('⚠️ MP3 export disabled: lamejs library not loaded. Use WAV export instead.');
         } else {
-            console.log('✓ MP3 export available');
+            Logger.log('✓ MP3 export available');
         }
     }
 }
@@ -133,7 +133,7 @@ function checkMP3ExportAvailability() {
 async function loadLibrary() {
     try {
         LoadingOverlay.show('Loading FTIR library (381 spectra)...');
-        console.log('Loading FTIR library...');
+        Logger.log('Loading FTIR library...');
 
         const response = await fetch(CONFIG.library.LIBRARY_FILE);
 
@@ -143,7 +143,7 @@ async function loadLibrary() {
 
         libraryData = await response.json();
 
-        console.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
+        Logger.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
 
         // Populate substance selector
         populateSubstanceSelector();
@@ -378,7 +378,7 @@ function handleSubstanceChange() {
     // Find spectrum in library
     const data = libraryData.find(item => item.id === substanceId);
     if (!data) {
-        console.error('Spectrum not found:', substanceId);
+        Logger.error('Spectrum not found:', substanceId);
         return;
     }
 
@@ -387,7 +387,7 @@ function handleSubstanceChange() {
     // Extract peaks for sonification
     currentPeaks = frequencyMapper.extractPeaks(currentSpectrum);
 
-    console.log(`Loaded ${data.name}:`, currentPeaks.length, 'peaks detected');
+    Logger.log(`Loaded ${data.name}:`, currentPeaks.length, 'peaks detected');
 
     // Clear any previous selection
     visualizer.clearSelection();
@@ -497,7 +497,7 @@ function updateMappingInfo(data, peaks) {
  */
 async function handlePlay() {
     if (!currentPeaks || currentPeaks.length === 0) {
-        console.warn('No peaks to play');
+        Logger.warn('No peaks to play');
         Toast.warning('No peaks detected for this substance');
         return;
     }
@@ -509,7 +509,7 @@ async function handlePlay() {
     const duration = parseFloat(durationSlider.value);
 
     if (isNaN(duration) || duration <= 0) {
-        console.error('Invalid duration:', duration);
+        Logger.error('Invalid duration:', duration);
         ErrorHandler.handle(
             new Error('Invalid duration'),
             'Invalid duration value. Please refresh the page.'
@@ -541,7 +541,7 @@ async function handlePlay() {
             `Playing ${substanceName}, ${peakCountMsg}, duration ${duration} seconds`
         );
 
-        console.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
+        Logger.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
 
         // Re-enable play button after duration
         setTimeout(() => {
@@ -571,7 +571,7 @@ function handleStop() {
     playSelectedButton.disabled = visualizer.getSelectedPeaks().length === 0;
 
     ScreenReader.announce('Playback stopped');
-    console.log('Playback stopped');
+    Logger.log('Playback stopped');
 }
 
 /**
@@ -592,7 +592,7 @@ function handlePeakSelectionChange(selectedPeaks) {
         if (clearBtn) clearBtn.classList.remove('hidden');
     }
 
-    console.log(`Peak selection changed: ${count} peaks selected`);
+    Logger.log(`Peak selection changed: ${count} peaks selected`);
 }
 
 /**
@@ -1126,7 +1126,7 @@ function selectSubstanceByName(searchTerm) {
 function startGuidedTour() {
     const modal = document.getElementById('tutorial-path-modal');
     if (!modal) {
-        console.error('Tutorial path modal not found');
+        Logger.error('Tutorial path modal not found');
         return;
     }
     

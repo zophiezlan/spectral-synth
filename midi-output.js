@@ -34,7 +34,7 @@ class MIDIOutput {
         try {
             this.midiAccess = await navigator.requestMIDIAccess();
             this.midiSupported = true;
-            console.log('✓ MIDI access granted');
+            Logger.log('✓ MIDI access granted');
             return true;
         } catch (error) {
             this.midiSupported = false;
@@ -80,7 +80,7 @@ class MIDIOutput {
         const output = this.midiAccess.outputs.get(deviceId);
         if (output) {
             this.selectedOutput = output;
-            console.log(`Selected MIDI output: ${output.name}`);
+            Logger.log(`Selected MIDI output: ${output.name}`);
             return true;
         }
 
@@ -157,8 +157,8 @@ class MIDIOutput {
                 const velocity = Math.max(1, Math.min(127, Math.round(this.velocity * peak.absorbance)));
                 this.sendNote(note, velocity, this.noteDuration);
             });
-            
-            console.log(`Sent ${peaks.length} MIDI notes as chord`);
+
+            Logger.log(`Sent ${peaks.length} MIDI notes as chord`);
         } else if (mode === 'arpeggio') {
             // Send notes sequentially
             const noteDelay = this.noteDuration / peaks.length;
@@ -173,8 +173,8 @@ class MIDIOutput {
                     this.sendNote(note, velocity, this.noteDuration);
                 }, i * noteDelay);
             }
-            
-            console.log(`Sent ${peaks.length} MIDI notes as arpeggio`);
+
+            Logger.log(`Sent ${peaks.length} MIDI notes as arpeggio`);
         } else {
             throw new Error(`Invalid mode: ${mode}. Must be 'chord' or 'arpeggio'.`);
         }
@@ -200,7 +200,7 @@ class MIDIOutput {
         const allNotesOffMessage = [0xB0 + this.channel, 123, 0];
         this.selectedOutput.send(allNotesOffMessage);
 
-        console.log('All notes off sent');
+        Logger.log('All notes off sent');
     }
 
     /**
@@ -307,7 +307,7 @@ class MIDIOutput {
         a.click();
         URL.revokeObjectURL(url);
 
-        console.log(`Exported MIDI file: ${filename} (${orderedPeaks.length} notes, mode: ${mode})`);
+        Logger.log(`Exported MIDI file: ${filename} (${orderedPeaks.length} notes, mode: ${mode})`);
     }
 
     /**

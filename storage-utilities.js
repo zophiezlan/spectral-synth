@@ -14,7 +14,7 @@ const Favorites = {
             const data = localStorage.getItem(this.STORAGE_KEY);
             return data ? JSON.parse(data) : [];
         } catch (error) {
-            console.error('Failed to load favorites:', error);
+            Logger.error('Failed to load favorites:', error);
             return [];
         }
     },
@@ -23,7 +23,7 @@ const Favorites = {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
         } catch (error) {
-            console.error('Failed to save favorites:', error);
+            Logger.error('Failed to save favorites:', error);
             Toast.error('Failed to save favorites');
         }
     },
