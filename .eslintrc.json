@@ -1,0 +1,61 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "script"
+  },
+  "globals": {
+    "CONFIG": "readonly",
+    "CONSTANTS": "readonly",
+    "AppState": "readonly",
+    "Logger": "readonly",
+    "Toast": "readonly",
+    "ErrorHandler": "readonly",
+    "LoadingOverlay": "readonly",
+    "ScreenReader": "readonly",
+    "Modal": "readonly",
+    "ModalManager": "readonly",
+    "KeyboardShortcuts": "readonly",
+    "FilterManager": "readonly",
+    "Visualizer": "readonly",
+    "AudioEngine": "readonly",
+    "FrequencyMapper": "readonly",
+    "MIDIOutput": "readonly",
+    "CSVImporter": "readonly",
+    "JCAMPImporter": "readonly",
+    "MP3Encoder": "readonly",
+    "ColorMapper": "readonly",
+    "Favorites": "readonly",
+    "TutorialManager": "readonly",
+    "Onboarding": "readonly",
+    "SmartSuggestions": "readonly"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_"
+    }],
+    "no-console": "off",
+    "semi": ["error", "always"],
+    "quotes": ["warn", "single", { "avoidEscape": true }],
+    "indent": ["warn", 4, { "SwitchCase": 1 }],
+    "no-trailing-spaces": "warn",
+    "eol-last": ["warn", "always"],
+    "no-multiple-empty-lines": ["warn", { "max": 2 }],
+    "comma-dangle": ["warn", "only-multiline"],
+    "eqeqeq": ["warn", "smart"],
+    "curly": ["warn", "multi-line"],
+    "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
+    "no-var": "warn",
+    "prefer-const": "warn"
+  },
+  "ignorePatterns": [
+    "tests/**",
+    "node_modules/**",
+    "*.min.js"
+  ]
+}

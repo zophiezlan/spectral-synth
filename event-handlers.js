@@ -357,12 +357,10 @@ function setupMIDIListeners() {
 }
 
 /**
- * Setup favorites and keyboard shortcuts
+ * Setup favorites UI listeners
+ * Note: Keyboard shortcuts are now handled by KeyboardShortcuts module (initialized in app.js)
  */
 function setupUIEnhancementListeners() {
-    // Keyboard shortcuts
-    document.addEventListener('keydown', handleKeyboardShortcut);
-
     // Favorites filter buttons
     const showAllButton = document.getElementById('show-all');
     const showFavoritesButton = document.getElementById('show-favorites');

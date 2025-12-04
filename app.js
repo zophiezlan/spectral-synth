@@ -78,9 +78,9 @@ async function init() {
         setupEventListeners();
         setupFilterStatusListeners();
 
-        // Set up onboarding and shortcuts
+        // Set up onboarding and keyboard shortcuts
         setupOnboarding();
-        setupShortcutsOverlay();
+        setupKeyboardShortcuts();
         setupMenuModals();
 
         // Set up theme toggle
@@ -363,66 +363,21 @@ function setupFilterStatusListeners() {
 // setupEventListeners is now loaded from event-handlers.js
 
 /**
- * Handle keyboard shortcuts
- * @param {KeyboardEvent} e - Keyboard event
+ * Set up keyboard shortcuts using the KeyboardShortcuts module
  */
-function handleKeyboardShortcut(e) {
-    // Don't trigger shortcuts when typing in input fields
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
-        return;
-    }
-
-    // Show keyboard shortcuts help
-    if (e.key === '?' || (e.shiftKey && e.key === '/')) {
-        e.preventDefault();
-        showShortcutsOverlay();
-        return;
-    }
-
-    // Prevent default for shortcuts we handle
-    const handledKeys = [' ', 'ArrowUp', 'ArrowDown', 'Escape', 'a', 'c'];
-    if (handledKeys.includes(e.key)) {
-        e.preventDefault();
-    }
-
-    // Keyboard shortcuts
-    switch (e.key) {
-        case ' ': // Spacebar - Play/Stop
-            if (!playButton.disabled) {
-                if (audioEngine.getIsPlaying()) {
-                    handleStop();
-                } else {
-                    handlePlay();
-                }
-            }
-            break;
-
-        case 'ArrowUp': // Navigate to previous substance
-            navigateSubstance(-1);
-            break;
-
-        case 'ArrowDown': // Navigate to next substance
-            navigateSubstance(1);
-            break;
-
-        case 'a': // Select all peaks
-            if (!selectAllButton.disabled) {
-                handleSelectAll();
-            }
-            break;
-
-        case 'c': // Clear selection
-            if (!clearSelectionButton.disabled) {
-                handleClearSelection();
-            }
-            break;
-
-        case 'Escape': // Clear search/filters
+function setupKeyboardShortcuts() {
+    KeyboardShortcuts.init({
+        onPlay: handlePlay,
+        onStop: handleStop,
+        onSelectAll: handleSelectAll,
+        onClearSelection: handleClearSelection,
+        onNavigate: navigateSubstance,
+        onClearFilters: () => {
             searchInput.value = '';
             categorySelect.value = 'all';
             handleSearch();
-            break;
-    }
+        }
+    });
 }
 
 /**
@@ -1552,50 +1507,8 @@ function removeTourHighlight() {
     });
 }
 
-/**
- * Set up keyboard shortcuts overlay
- */
-function setupShortcutsOverlay() {
-    const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-    const closeButton = document.getElementById('shortcuts-close');
-    const okButton = document.getElementById('shortcuts-ok');
-
-    // Early return if elements don't exist (feature may have been removed)
-    if (!shortcutsOverlay || !closeButton || !okButton) {
-        return;
-    }
-
-    const closeModal = () => {
-        shortcutsOverlay.style.display = 'none';
-    };
-
-    closeButton.addEventListener('click', closeModal);
-    okButton.addEventListener('click', closeModal);
-
-    // Close on overlay click
-    shortcutsOverlay.addEventListener('click', (e) => {
-        if (e.target === shortcutsOverlay) {
-            closeModal();
-        }
-    });
-
-    // Close on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && shortcutsOverlay.style.display === 'flex') {
-            closeModal();
-        }
-    });
-}
-
-/**
- * Show keyboard shortcuts overlay
- */
-function showShortcutsOverlay() {
-    const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-    if (shortcutsOverlay) {
-        shortcutsOverlay.style.display = 'flex';
-    }
-}
+// Note: setupShortcutsOverlay and showShortcutsOverlay have been moved to keyboard-shortcuts.js
+// The shortcuts overlay is now managed by ModalManager and KeyboardShortcuts module
 
 /**
  * Set up theme toggle
