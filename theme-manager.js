@@ -5,7 +5,7 @@
  * This module is extracted from app.js for better maintainability.
  */
 
-/* global Toast */
+/* global Toast, localStorage, document */
 
 /**
  * Setup theme toggle button and load saved theme

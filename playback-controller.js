@@ -3,6 +3,10 @@
  *
  * Handles audio playback functionality including play, stop, and peak selection.
  * This module is extracted from app.js for better maintainability.
+ *
+ * Note: This module currently has high coupling with global dependencies.
+ * Future refactoring could use dependency injection or a module pattern
+ * to reduce coupling and improve testability.
  */
 
 /* global audioEngine, visualizer, currentPeaks, playButton, durationSlider, substanceSelect,

@@ -168,7 +168,9 @@ function updateHTML() {
     );
 
     // Replace individual JS files with bundle
-    const scriptRegex = /<script src="(config|constants|debug-logger|app-state|ui-utilities|modal-manager|keyboard-shortcuts|visualization-utilities|storage-utilities|tutorial-manager|analysis-utilities|substance-utilities|performance-utilities|frequency-mapper|audio-engine|visualizer|csv-importer|jcamp-importer|mp3-encoder|midi-output|dom-elements|event-handlers|handlers-import-export|handlers-midi|filter-manager|onboarding|playback-controller|theme-manager|app)\.js"><\/script>\s*/g;
+    // Generate regex pattern from JS_FILES array
+    const jsFileNames = JS_FILES.map(f => path.basename(f, '.js')).join('|');
+    const scriptRegex = new RegExp(`<script src="(${jsFileNames})\\.js"></script>\\s*`, 'g');
 
     html = html.replace(
         scriptRegex,
