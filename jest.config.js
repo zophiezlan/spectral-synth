@@ -7,6 +7,7 @@ module.exports = {
         '*.js',
         '!jest.config.js',
         '!build-library.js',
+        '!build.js',
         '!service-worker.js',
         '!sw-register.js'
     ],
