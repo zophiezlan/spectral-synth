@@ -68,7 +68,16 @@ jobs:
       run: npm ci
     
     - name: Build production bundle
-      run: npm run build
+      run: |
+        echo "::group::Build Performance Metrics"
+        BUILD_START=$(date +%s)
+        npm run build
+        BUILD_END=$(date +%s)
+        BUILD_TIME=$((BUILD_END - BUILD_START))
+        echo "Build time: ${BUILD_TIME} seconds"
+        echo "build_time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+        echo "::endgroup::"
+      id: build
     
     - name: Check build output
       run: |
@@ -85,6 +94,21 @@ jobs:
           exit 1
         fi
         echo "Build artifacts verified successfully"
+    
+    - name: Report build metrics
+      run: |
+        echo "::group::Build Size Metrics"
+        echo "Bundle sizes:"
+        du -h dist/bundle.*.min.css dist/bundle.*.min.js 2>/dev/null || true
+        echo ""
+        echo "Library split sizes:"
+        du -h dist/library/*.json 2>/dev/null || true
+        echo ""
+        echo "Total dist size:"
+        du -sh dist
+        echo "::endgroup::"
+        
+        echo "::notice title=Build Time::Build completed in ${{ steps.build.outputs.build_time }} seconds"
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4

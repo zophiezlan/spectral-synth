@@ -61,6 +61,10 @@ const LARGE_FILES = [
     '/ftir-library.json'
 ];
 
+// Library files for lazy loading
+const LIBRARY_PATH = '/dist/library/';
+const LIBRARY_INDEX = `${LIBRARY_PATH}index.json`;
+
 /**
  * Install event - cache static assets
  */
@@ -72,6 +76,15 @@ self.addEventListener('install', (event) => {
             const cache = await caches.open(CACHE_NAME);
             console.log('[Service Worker] Caching static assets');
             await cache.addAll(STATIC_ASSETS);
+
+            // Try to cache library index (optional, fail silently if not available)
+            try {
+                await cache.add(LIBRARY_INDEX);
+                console.log('[Service Worker] Library index cached');
+            } catch (error) {
+                console.log('[Service Worker] Library index not available (normal if using monolithic library)');
+            }
+
             console.log('[Service Worker] Installation complete');
             await self.skipWaiting(); // Activate immediately
         } catch (error) {
@@ -117,7 +130,35 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Handle large files (FTIR library) with network-first strategy
+    // Handle library files (lazy loading) with cache-first strategy
+    if (url.pathname.startsWith(LIBRARY_PATH)) {
+        event.respondWith((async () => {
+            const cache = await caches.open(DYNAMIC_CACHE);
+
+            // Try cache first
+            const cachedResponse = await cache.match(request);
+            if (cachedResponse) {
+                console.log(`[Service Worker] Serving ${url.pathname} from cache`);
+                return cachedResponse;
+            }
+
+            // Fetch from network and cache
+            try {
+                const response = await fetch(request);
+                if (response.ok) {
+                    console.log(`[Service Worker] Caching ${url.pathname}`);
+                    cache.put(request, response.clone());
+                }
+                return response;
+            } catch (error) {
+                console.error(`[Service Worker] Failed to fetch ${url.pathname}:`, error);
+                throw error;
+            }
+        })());
+        return;
+    }
+
+    // Handle large files (FTIR library monolithic) with network-first strategy
     if (LARGE_FILES.some(file => url.pathname.includes(file))) {
         event.respondWith((async () => {
             const cache = await caches.open(DYNAMIC_CACHE);
