@@ -161,7 +161,8 @@ async function minifyJSWithTerser(js, filename) {
  * @returns {string} Hash string (first 8 characters)
  */
 function generateHash(content) {
-    return crypto.createHash('md5').update(content).digest('hex').substring(0, 8);
+    // Using SHA-256 for better collision resistance (though MD5 would be fine for cache busting)
+    return crypto.createHash('sha256').update(content).digest('hex').substring(0, 8);
 }
 
 /**
@@ -170,9 +171,11 @@ function generateHash(content) {
  * @param {string} outputPath - Output file path
  */
 function compressBrotli(content, outputPath) {
+    // Using quality level 8 for good balance between compression ratio and build speed
+    // (Quality 11 is too slow for builds; 6-8 is optimal for production)
     const compressed = zlib.brotliCompressSync(content, {
         params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY
+            [zlib.constants.BROTLI_PARAM_QUALITY]: 8
         }
     });
     fs.writeFileSync(outputPath, compressed);

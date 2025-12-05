@@ -27,9 +27,8 @@ const path = require('path');
 // Same categorization logic as substance-utilities.js
 function categorizeSubstance(item) {
     const name = item.name.toLowerCase();
-    // Formula kept for potential future categorization logic
-    // eslint-disable-next-line no-unused-vars
-    const formula = (item.formula || '').toLowerCase();
+    // Note: Formula could be used for future categorization logic based on
+    // molecular structure (e.g., identifying benzene rings, functional groups)
 
     // Opioids
     const opioidKeywords = ['morphine', 'heroin', 'codeine', 'fentanyl', 'oxycodone',
