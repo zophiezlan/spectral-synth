@@ -187,7 +187,7 @@ export default [
     },
     // Node.js files (build scripts)
     {
-        files: ['build.js', 'build-library.js'],
+        files: ['build.js', 'build-library.js', 'split-library.js'],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'commonjs',

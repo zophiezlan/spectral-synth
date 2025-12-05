@@ -10,7 +10,9 @@
     "test:verbose": "jest --verbose",
     "lint": "eslint *.js --ignore-pattern '*.min.js'",
     "lint:fix": "eslint *.js --fix --ignore-pattern '*.min.js'",
-    "build": "node build.js",
+    "build": "node build.js && node split-library.js",
+    "build:fast": "node build.js",
+    "split-library": "node split-library.js",
     "clean": "rm -rf dist",
     "prepare": "husky"
   },
