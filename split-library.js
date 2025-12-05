@@ -161,6 +161,46 @@ function splitLibrary() {
     fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf8');
     console.log(`  ✓ index.json (${(Buffer.byteLength(JSON.stringify(index), 'utf8') / 1024).toFixed(2)} KB)`);
 
+    // Create search index
+    console.log('\nCreating search index...');
+    const searchIndex = {};
+
+    library.forEach(substance => {
+        const category = categorizeSubstance(substance);
+        const nameKey = substance.name.toLowerCase();
+
+        // Store minimal info for each substance: category and id
+        // Use array to handle potential duplicates
+        if (!searchIndex[nameKey]) {
+            searchIndex[nameKey] = [];
+        }
+        searchIndex[nameKey].push({
+            category: category,
+            id: substance.id,
+            name: substance.name,
+            formula: substance.formula || ''
+        });
+
+        // Add formula as searchable if present
+        if (substance.formula) {
+            const formulaKey = substance.formula.toLowerCase();
+            if (!searchIndex[formulaKey]) {
+                searchIndex[formulaKey] = [];
+            }
+            searchIndex[formulaKey].push({
+                category: category,
+                id: substance.id,
+                name: substance.name,
+                formula: substance.formula
+            });
+        }
+    });
+
+    const searchIndexPath = path.join(outputDir, 'search-index.json');
+    const searchIndexContent = JSON.stringify(searchIndex, null, 2);
+    fs.writeFileSync(searchIndexPath, searchIndexContent, 'utf8');
+    console.log(`  ✓ search-index.json (${(Buffer.byteLength(searchIndexContent, 'utf8') / 1024).toFixed(2)} KB)`);
+
     // Calculate savings
     console.log('\n' + '='.repeat(60));
     console.log('Results:');

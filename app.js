@@ -8,7 +8,7 @@
  * loaded from separate files for better maintainability.
  */
 
-/* global handlePeakSelectionChange, setupThemeToggle */
+/* global handlePeakSelectionChange, setupThemeToggle, LibraryLoader, PerformanceMonitor */
 
 // Global instances
 let audioEngine;
@@ -18,6 +18,7 @@ let midiOutput;
 let currentSpectrum = null;
 let currentPeaks = null;
 let libraryData = null;
+let libraryIndex = null; // Library index for lazy loading
 
 // DOM elements are now loaded from dom-elements.js
 
@@ -36,6 +37,12 @@ let searchDebounceTimer = null;
  */
 async function init() {
     try {
+        // Initialize performance monitoring
+        if (typeof PerformanceMonitor !== 'undefined') {
+            PerformanceMonitor.init();
+            PerformanceMonitor.mark('init-start');
+        }
+
         // Check browser compatibility first
         const compatibility = BrowserCompatibility.check();
         if (!compatibility.compatible) {
@@ -73,8 +80,18 @@ async function init() {
         visualizer.setAudioEngine(audioEngine);
         visualizer.onPeakSelectionChange = handlePeakSelectionChange;
 
-        // Load FTIR library
+        // Initialize library loader
+        libraryIndex = await LibraryLoader.init();
+
+        // Load FTIR library (using lazy loading if available)
         await loadLibrary();
+
+        // Preload popular categories in background (after initial render)
+        setTimeout(() => {
+            if (LibraryLoader.isLazyLoadingEnabled()) {
+                LibraryLoader.preloadPopularCategories();
+            }
+        }, 2000);
 
         // Set up event listeners
         setupEventListeners();
@@ -94,6 +111,12 @@ async function init() {
         LoadingOverlay.hide();
         Toast.success('Spectral Synthesizer ready! 🎵');
         Logger.log('🎵 Spectral Synthesizer initialized');
+
+        // Mark initialization complete
+        if (typeof PerformanceMonitor !== 'undefined') {
+            PerformanceMonitor.mark('init-complete');
+            PerformanceMonitor.measure('initialization-time', 'init-start', 'init-complete');
+        }
 
         // Show Quick Start panel or onboarding for first-time users
         checkAndShowQuickStart();
@@ -130,23 +153,48 @@ function checkMP3ExportAvailability() {
  * Load FTIR library from JSON
  *
  * Fetches the FTIR spectral database and populates the substance selectors.
+ * Uses lazy loading if available, otherwise falls back to monolithic file.
  *
  * @throws {Error} If library fails to load
  */
 async function loadLibrary() {
+    const startTime = typeof PerformanceMonitor !== 'undefined' ? window.performance.now() : 0;
+
     try {
-        LoadingOverlay.show('Loading FTIR library (381 spectra)...');
-        Logger.log('Loading FTIR library...');
+        if (LibraryLoader.isLazyLoadingEnabled()) {
+            // Lazy loading mode: initially load all categories to maintain compatibility
+            // In the future, we can load only on-demand based on category selection
+            LoadingOverlay.show('Loading FTIR library index...');
+            Logger.log('Loading FTIR library with lazy loading...');
 
-        const response = await fetch(CONFIG.library.LIBRARY_FILE);
+            libraryData = await LibraryLoader.loadAll();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            Logger.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library (lazy loaded)`);
+
+            // Track performance
+            if (typeof PerformanceMonitor !== 'undefined') {
+                PerformanceMonitor.trackLibraryLoad('lazy', 'all', startTime);
+            }
+        } else {
+            // Fallback to monolithic file
+            LoadingOverlay.show('Loading FTIR library (381 spectra)...');
+            Logger.log('Loading FTIR library...');
+
+            const response = await fetch(CONFIG.library.LIBRARY_FILE);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            libraryData = await response.json();
+
+            Logger.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
+
+            // Track performance
+            if (typeof PerformanceMonitor !== 'undefined') {
+                PerformanceMonitor.trackLibraryLoad('monolithic', null, startTime);
+            }
         }
-
-        libraryData = await response.json();
-
-        Logger.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
 
         // Populate substance selector
         populateSubstanceSelector();
