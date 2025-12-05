@@ -8,7 +8,7 @@
  * loaded from separate files for better maintainability.
  */
 
-/* global handlePeakSelectionChange, setupThemeToggle, LibraryLoader */
+/* global handlePeakSelectionChange, setupThemeToggle, LibraryLoader, PerformanceMonitor */
 
 // Global instances
 let audioEngine;
@@ -37,6 +37,12 @@ let searchDebounceTimer = null;
  */
 async function init() {
     try {
+        // Initialize performance monitoring
+        if (typeof PerformanceMonitor !== 'undefined') {
+            PerformanceMonitor.init();
+            PerformanceMonitor.mark('init-start');
+        }
+
         // Check browser compatibility first
         const compatibility = BrowserCompatibility.check();
         if (!compatibility.compatible) {
@@ -106,6 +112,12 @@ async function init() {
         Toast.success('Spectral Synthesizer ready! 🎵');
         Logger.log('🎵 Spectral Synthesizer initialized');
 
+        // Mark initialization complete
+        if (typeof PerformanceMonitor !== 'undefined') {
+            PerformanceMonitor.mark('init-complete');
+            PerformanceMonitor.measure('initialization-time', 'init-start', 'init-complete');
+        }
+
         // Show Quick Start panel or onboarding for first-time users
         checkAndShowQuickStart();
     } catch (error) {
@@ -146,6 +158,8 @@ function checkMP3ExportAvailability() {
  * @throws {Error} If library fails to load
  */
 async function loadLibrary() {
+    const startTime = typeof PerformanceMonitor !== 'undefined' ? window.performance.now() : 0;
+
     try {
         if (LibraryLoader.isLazyLoadingEnabled()) {
             // Lazy loading mode: initially load all categories to maintain compatibility
@@ -156,6 +170,11 @@ async function loadLibrary() {
             libraryData = await LibraryLoader.loadAll();
 
             Logger.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library (lazy loaded)`);
+
+            // Track performance
+            if (typeof PerformanceMonitor !== 'undefined') {
+                PerformanceMonitor.trackLibraryLoad('lazy', 'all', startTime);
+            }
         } else {
             // Fallback to monolithic file
             LoadingOverlay.show('Loading FTIR library (381 spectra)...');
@@ -170,6 +189,11 @@ async function loadLibrary() {
             libraryData = await response.json();
 
             Logger.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
+
+            // Track performance
+            if (typeof PerformanceMonitor !== 'undefined') {
+                PerformanceMonitor.trackLibraryLoad('monolithic', null, startTime);
+            }
         }
 
         // Populate substance selector

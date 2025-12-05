@@ -40,6 +40,8 @@ const JS_FILES = [
     'analysis-utilities.js',
     'substance-utilities.js',
     'performance-utilities.js',
+    'performance-monitor.js',
+    'indexeddb-storage.js',
     'library-loader.js',
     'frequency-mapper.js',
     'audio-engine.js',

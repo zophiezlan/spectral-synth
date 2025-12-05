@@ -23,6 +23,8 @@
  * ```
  */
 
+/* global IndexedDBStorage */
+
 const LibraryLoader = (function() {
     'use strict';
 
@@ -43,6 +45,32 @@ const LibraryLoader = (function() {
      * @returns {Promise<Object>} Library index
      */
     async function init() {
+        // Initialize IndexedDB if available
+        if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
+            try {
+                await IndexedDBStorage.init();
+
+                // Try to load index from IndexedDB first
+                const cachedIndex = await IndexedDBStorage.getIndex();
+                if (cachedIndex) {
+                    libraryIndex = cachedIndex;
+                    isInitialized = true;
+                    useLazyLoading = true;
+
+                    if (typeof Logger !== 'undefined') {
+                        Logger.log(`✓ Library index loaded from IndexedDB: ${libraryIndex.totalSubstances} substances`);
+                    }
+
+                    return libraryIndex;
+                }
+            } catch (error) {
+                // IndexedDB initialization failed, continue without it
+                if (typeof Logger !== 'undefined') {
+                    Logger.debug('IndexedDB initialization failed:', error.message);
+                }
+            }
+        }
+
         try {
             // Try to load the library index for lazy loading
             const response = await fetch(`${LIBRARY_BASE_PATH}index.json`);
@@ -54,6 +82,18 @@ const LibraryLoader = (function() {
             libraryIndex = await response.json();
             isInitialized = true;
             useLazyLoading = true;
+
+            // Store index in IndexedDB for offline use
+            if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
+                try {
+                    await IndexedDBStorage.storeIndex(libraryIndex);
+                } catch (error) {
+                    // Don't fail if IndexedDB storage fails
+                    if (typeof Logger !== 'undefined') {
+                        Logger.debug('Failed to store index in IndexedDB:', error.message);
+                    }
+                }
+            }
 
             if (typeof Logger !== 'undefined') {
                 Logger.log(`✓ Library index loaded: ${libraryIndex.totalSubstances} substances in ${libraryIndex.categories.length} categories`);
@@ -77,10 +117,10 @@ const LibraryLoader = (function() {
      * @returns {Promise<Array>} Array of substances in the category
      */
     async function loadCategory(categoryName) {
-        // Check if already loaded
+        // Check if already loaded in memory
         if (loadedCategories[categoryName]) {
             if (typeof Logger !== 'undefined') {
-                Logger.log(`✓ Category '${categoryName}' already loaded (cached)`);
+                Logger.log(`✓ Category '${categoryName}' already loaded (memory cache)`);
             }
             return loadedCategories[categoryName];
         }
@@ -91,7 +131,26 @@ const LibraryLoader = (function() {
             throw new Error(`Category not found: ${categoryName}`);
         }
 
-        // Show loading indicator
+        // Try to load from IndexedDB first (offline-first strategy)
+        if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
+            try {
+                const cachedSubstances = await IndexedDBStorage.getCategory(categoryName, libraryIndex.version);
+                if (cachedSubstances) {
+                    loadedCategories[categoryName] = cachedSubstances;
+                    if (typeof Logger !== 'undefined') {
+                        Logger.log(`✓ Loaded ${cachedSubstances.length} substances from IndexedDB (offline cache)`);
+                    }
+                    return cachedSubstances;
+                }
+            } catch (error) {
+                // IndexedDB failed, continue to network fetch
+                if (typeof Logger !== 'undefined') {
+                    Logger.debug('IndexedDB load failed, fetching from network:', error.message);
+                }
+            }
+        }
+
+        // Show loading indicator for network fetch
         if (typeof LoadingOverlay !== 'undefined') {
             LoadingOverlay.show(`Loading ${categoryInfo.displayName} (${categoryInfo.count} substances)...`);
         }
@@ -105,11 +164,23 @@ const LibraryLoader = (function() {
 
             const substances = await response.json();
 
-            // Cache the loaded category
+            // Cache the loaded category in memory
             loadedCategories[categoryName] = substances;
 
+            // Store in IndexedDB for offline use
+            if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
+                try {
+                    await IndexedDBStorage.storeCategory(categoryName, substances, libraryIndex.version);
+                } catch (error) {
+                    // Don't fail if IndexedDB storage fails
+                    if (typeof Logger !== 'undefined') {
+                        Logger.debug('Failed to store in IndexedDB:', error.message);
+                    }
+                }
+            }
+
             if (typeof Logger !== 'undefined') {
-                Logger.log(`✓ Loaded ${substances.length} substances from category '${categoryName}'`);
+                Logger.log(`✓ Loaded ${substances.length} substances from category '${categoryName}' (network)`);
             }
 
             return substances;
