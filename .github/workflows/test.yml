@@ -85,14 +85,22 @@ jobs:
           echo "Error: dist directory not created"
           exit 1
         fi
-        if [ ! -f "dist/bundle.min.css" ]; then
-          echo "Error: bundle.min.css not created"
+        # Check for cache-busted CSS file (bundle.*.min.css)
+        CSS_FILES=$(find dist -name "bundle.*.min.css" -type f)
+        if [ -z "$CSS_FILES" ]; then
+          echo "Error: No CSS bundle found matching bundle.*.min.css"
           exit 1
         fi
-        if [ ! -f "dist/bundle.min.js" ]; then
-          echo "Error: bundle.min.js not created"
+        echo "Found CSS bundle: $CSS_FILES"
+        
+        # Check for cache-busted JS file (bundle.*.min.js, excluding .map files)
+        JS_FILES=$(find dist -name "bundle.*.min.js" -type f ! -name "*.map")
+        if [ -z "$JS_FILES" ]; then
+          echo "Error: No JS bundle found matching bundle.*.min.js"
           exit 1
         fi
+        echo "Found JS bundle: $JS_FILES"
+        
         echo "Build artifacts verified successfully"
     
     - name: Report build metrics
