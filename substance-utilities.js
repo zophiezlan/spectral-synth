@@ -36,7 +36,8 @@
  */
 function categorizeSubstance(item) {
     const name = item.name.toLowerCase();
-    const formula = (item.formula || '').toLowerCase();
+    // Formula reserved for future enhanced categorization
+    const _formula = (item.formula || '').toLowerCase();
 
     // Opioids
     const opioidKeywords = ['morphine', 'heroin', 'codeine', 'fentanyl', 'oxycodone',

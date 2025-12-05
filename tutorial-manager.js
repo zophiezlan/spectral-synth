@@ -220,9 +220,9 @@ const TutorialManager = {
 
     /**
      * End tutorial
-     * @param {boolean} completed - Whether tutorial was completed
+     * @param {boolean} _completed - Whether tutorial was completed (reserved for analytics)
      */
-    end(completed = false) {
+    end(_completed = false) {
         this.isActive = false;
         this.currentStep = 0;
         this.currentPath = null;
@@ -435,7 +435,7 @@ const TutorialManager = {
         try {
             const progress = localStorage.getItem('tutorial-progress');
             return progress ? JSON.parse(progress) : null;
-        } catch (e) {
+        } catch (_e) {
             return null;
         }
     },

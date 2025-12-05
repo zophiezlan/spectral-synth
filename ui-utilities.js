@@ -155,7 +155,7 @@ const BrowserCompatibility = {
         };
 
         const unsupported = Object.entries(required)
-            .filter(([name, supported]) => !supported)
+            .filter(([_name, supported]) => !supported)
             .map(([name]) => name);
 
         if (unsupported.length > 0) {
