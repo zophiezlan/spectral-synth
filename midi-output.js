@@ -337,7 +337,7 @@ class MIDIOutput {
 
         if (mode === 'chord') {
             // All notes start at the same time
-            peaks.forEach((peak, idx) => {
+            peaks.forEach((peak) => {
                 const note = this.frequencyToMIDINote(peak.audioFreq);
                 const velocity = Math.max(1, Math.min(127, Math.round(this.velocity * peak.absorbance)));
 
@@ -348,19 +348,16 @@ class MIDIOutput {
             });
         } else {
             // Sequential notes
-            let currentTick = 0;
             peaks.forEach((peak, idx) => {
                 const note = this.frequencyToMIDINote(peak.audioFreq);
                 const velocity = Math.max(1, Math.min(127, Math.round(this.velocity * peak.absorbance)));
 
-                // Note on
+                // Note on (first note starts immediately, others have spacing)
                 const deltaTimeOn = idx === 0 ? 0 : noteSpacingTicks;
                 events.push(...this.createNoteEvent(deltaTimeOn, 0x90, note, velocity));
 
                 // Note off
                 events.push(...this.createNoteEvent(noteDurationTicks, 0x80, note, 0));
-
-                currentTick += deltaTimeOn + noteDurationTicks;
             });
         }
 
@@ -518,7 +515,6 @@ class MIDIOutput {
             buffer |= ((value & 0x7F) | 0x80);
         }
 
-        // eslint-disable-next-line no-constant-condition
         while (true) {
             bytes.push(buffer & 0xFF);
             if (buffer & 0x80) {

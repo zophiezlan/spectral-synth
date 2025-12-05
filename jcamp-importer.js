@@ -131,16 +131,9 @@ class JCAMPImporter {
         let dataFormat = null;
         let xFactor = 1;
         let yFactor = 1;
-        let firstX = null;
-        let lastX = null;
-        let numPoints = null;
-
-        // Extract factors and ranges
+        // Extract factors and ranges (firstX, lastX, numPoints reserved for future validation)
         if (metadata.xfactor) xFactor = parseFloat(metadata.xfactor);
         if (metadata.yfactor) yFactor = parseFloat(metadata.yfactor);
-        if (metadata.firstx) firstX = parseFloat(metadata.firstx);
-        if (metadata.lastx) lastX = parseFloat(metadata.lastx);
-        if (metadata.npoints) numPoints = parseInt(metadata.npoints);
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
