@@ -201,7 +201,7 @@ const LibraryLoader = (function() {
      * @returns {Promise<Array>} Array of all substances
      */
     async function loadAll() {
-        if (!useLazyLoading) {
+        if (!useLazyLoading || !libraryIndex) {
             // Load monolithic file
             if (typeof LoadingOverlay !== 'undefined') {
                 LoadingOverlay.show('Loading FTIR library (381 spectra)...');

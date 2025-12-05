@@ -82,7 +82,12 @@ self.addEventListener('install', (event) => {
                 await cache.add(LIBRARY_INDEX);
                 console.log('[Service Worker] Library index cached');
             } catch (error) {
-                console.log('[Service Worker] Library index not available (normal if using monolithic library)');
+                // Check if it's a 404 or network error
+                if (error.message && error.message.includes('404')) {
+                    console.log('[Service Worker] Library index not available (normal if using monolithic library)');
+                } else {
+                    console.error('[Service Worker] Failed to cache library index:', error.message);
+                }
             }
 
             console.log('[Service Worker] Installation complete');

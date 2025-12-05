@@ -53,9 +53,24 @@ const PerformanceMonitor = (function() {
         // Mark app start
         mark('app-start');
 
-        // Track page load time
-        if (window.performance.timing) {
-            window.addEventListener('load', () => {
+        // Track page load time using Navigation Timing API Level 2 (preferred) or fallback to Level 1
+        window.addEventListener('load', () => {
+            // Try Navigation Timing Level 2 first
+            const navigationEntries = window.performance.getEntriesByType('navigation');
+            if (navigationEntries && navigationEntries.length > 0) {
+                const navigation = navigationEntries[0];
+                const loadTime = navigation.loadEventEnd - navigation.fetchStart;
+                const domReady = navigation.domContentLoadedEventEnd - navigation.fetchStart;
+
+                measurements['page-load-time'] = loadTime;
+                measurements['dom-ready-time'] = domReady;
+
+                if (typeof Logger !== 'undefined') {
+                    Logger.log(`Page load time: ${loadTime.toFixed(2)}ms`);
+                    Logger.log(`DOM ready time: ${domReady.toFixed(2)}ms`);
+                }
+            } else if (window.performance.timing) {
+                // Fallback to deprecated Level 1 API
                 const timing = window.performance.timing;
                 const loadTime = timing.loadEventEnd - timing.navigationStart;
                 const domReady = timing.domContentLoadedEventEnd - timing.navigationStart;
@@ -67,8 +82,8 @@ const PerformanceMonitor = (function() {
                     Logger.log(`Page load time: ${loadTime}ms`);
                     Logger.log(`DOM ready time: ${domReady}ms`);
                 }
-            });
-        }
+            }
+        });
 
         // Track resource loading if available
         if (window.performance.getEntriesByType) {
