@@ -94,7 +94,7 @@ jobs:
         echo "Found CSS bundle: $CSS_FILES"
         
         # Check for cache-busted JS file (bundle.*.min.js, excluding .map files)
-        JS_FILES=$(find dist -name "bundle.*.min.js" -type f ! -name "*.map")
+        JS_FILES=$(find dist -name "bundle.*.min.js" -type f ! -name "*.js.map")
         if [ -z "$JS_FILES" ]; then
           echo "Error: No JS bundle found matching bundle.*.min.js"
           exit 1
