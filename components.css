@@ -54,14 +54,14 @@ section {
     font-weight: bold;
     background: rgba(255, 255, 255, 0.05);
     color: #a0a0a0;
-    border: 2px solid rgba(139, 92, 246, 0.3);
+    border: 2px solid var(--panel-border);
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .mode-button:hover {
-    background: rgba(139, 92, 246, 0.2);
+    background: var(--panel-bg);
     border-color: var(--accent-primary);
 }
 
@@ -90,7 +90,7 @@ section {
     padding: 1.5rem;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border: 1px solid var(--panel-bg);
 }
 
 .comparison-title {
@@ -124,7 +124,7 @@ section {
     background: rgba(255, 255, 255, 0.05);
     padding: 1.5rem;
     border-radius: 10px;
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    border: 1px solid var(--panel-border);
 }
 
 .info-panel h2 {
@@ -336,8 +336,8 @@ section {
 .no-results {
     text-align: center;
     padding: 2rem 1rem;
-    background: rgba(139, 92, 246, 0.05);
-    border: 2px dashed rgba(139, 92, 246, 0.3);
+    background: var(--control-bg);
+    border: 2px dashed var(--panel-border);
     border-radius: 8px;
     margin: 1rem 0;
 }
@@ -447,7 +447,7 @@ section {
 .audio-effects {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(139, 92, 246, 0.3);
+    border-top: 1px solid var(--panel-border);
 }
 
 .effects-title {
@@ -488,7 +488,7 @@ section {
 .adsr-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(139, 92, 246, 0.3);
+    border-top: 1px solid var(--panel-border);
 }
 
 .adsr-grid {
@@ -522,7 +522,7 @@ section {
 .playback-mode-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(139, 92, 246, 0.3);
+    border-top: 1px solid var(--panel-border);
 }
 
 .playback-mode-selector {
@@ -578,7 +578,7 @@ section {
 .import-export-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(139, 92, 246, 0.3);
+    border-top: 1px solid var(--panel-border);
 }
 
 .section-title {
@@ -591,7 +591,7 @@ section {
 .collapsible-section {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(139, 92, 246, 0.3);
+    border-top: 1px solid var(--panel-border);
 }
 
 .section-header {
@@ -656,7 +656,7 @@ section {
 .import-export-info {
     margin-top: 1rem;
     padding: 0.75rem;
-    background: rgba(139, 92, 246, 0.1);
+    background: var(--control-bg);
     border-left: 3px solid var(--primary);
     border-radius: 4px;
     font-size: 0.9rem;
@@ -679,7 +679,7 @@ section {
 .file-label:hover {
     background: linear-gradient(135deg, #7c3aed, var(--accent-tertiary));
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 8px var(--panel-border);
 }
 
 .secondary-button {
@@ -715,7 +715,7 @@ section {
 .peak-selection-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(139, 92, 246, 0.3);
+    border-top: 1px solid var(--panel-border);
 }
 
 .selection-info {
@@ -738,7 +738,7 @@ section {
 .smart-suggestions {
     margin-top: 1rem;
     padding: 1rem;
-    background: rgba(139, 92, 246, 0.05);
+    background: var(--control-bg);
     border-radius: 8px;
     border: 1px solid var(--panel-border);
 }
@@ -781,7 +781,7 @@ section {
     color: white;
     border-color: var(--accent-primary);
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 2px 6px var(--panel-border);
 }
 
 .suggestion-name {
@@ -901,7 +901,7 @@ input[type="range"]::-moz-range-thumb:hover {
     background: rgba(255, 255, 255, 0.05);
     padding: 1.5rem;
     border-radius: 10px;
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    border: 1px solid var(--panel-border);
     position: relative; /* Fix for absolute positioned axis labels */
 }
 
@@ -1001,7 +1001,7 @@ canvas {
 }
 
 .shortcut-item kbd {
-    background: rgba(139, 92, 246, 0.2);
+    background: var(--panel-bg);
     border: 2px solid var(--accent-primary);
     border-radius: 4px;
     padding: 0.25rem 0.5rem;
@@ -1073,7 +1073,7 @@ footer p {
 .loading-spinner {
     width: 60px;
     height: 60px;
-    border: 6px solid rgba(139, 92, 246, 0.3);
+    border: 6px solid var(--panel-border);
     border-top-color: var(--accent-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -1214,7 +1214,7 @@ footer p {
 .info-highlight {
     margin-top: 1rem;
     padding: 0.75rem;
-    background: rgba(139, 92, 246, 0.15);
+    background: var(--panel-bg);
     border-left: 3px solid var(--accent-primary);
     border-radius: 4px;
 }
@@ -1431,7 +1431,7 @@ footer p {
 /* Hover effects for better interactivity */
 .substance-selector select:hover {
     border-color: var(--accent-secondary);
-    background: rgba(139, 92, 246, 0.1);
+    background: var(--control-bg);
 }
 
 .slider-control:hover label {
@@ -1439,7 +1439,7 @@ footer p {
 }
 
 input[type="range"]:hover {
-    background: rgba(139, 92, 246, 0.4);
+    background: var(--panel-border);
 }
 
 input[type="range"]:hover::-webkit-slider-thumb {

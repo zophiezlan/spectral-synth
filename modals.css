@@ -134,7 +134,7 @@
     padding: 0.5rem 1.25rem;
     font-size: 0.95rem;
     font-weight: bold;
-    background: rgba(139, 92, 246, 0.3);
+    background: var(--panel-border);
     color: var(--accent-tertiary);
     border: 2px solid var(--accent-primary);
     border-radius: 20px;
@@ -146,7 +146,7 @@
 .suggestion-pill:hover {
     background: rgba(139, 92, 246, 0.5);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 8px var(--panel-border);
 }
 
 .onboarding-actions {
@@ -354,7 +354,7 @@
         color: inherit;
     }
     50% {
-        background: rgba(139, 92, 246, 0.3);
+        background: var(--panel-border);
         color: var(--accent-primary);
         transform: scale(1.05);
     }
@@ -434,7 +434,7 @@
 .tutorial-path-card:hover {
     transform: translateY(-4px);
     border-color: var(--primary-color);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 8px 24px var(--panel-border);
 }
 
 .tutorial-path-card .path-icon {
@@ -458,7 +458,7 @@
 .tutorial-path-card .path-duration {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    background: rgba(139, 92, 246, 0.15);
+    background: var(--panel-bg);
     border-radius: 20px;
     font-size: 0.85rem;
     color: var(--text-secondary);
@@ -599,9 +599,9 @@
 .blend-controls {
     margin: 1.5rem 0;
     padding: 1rem;
-    background: rgba(139, 92, 246, 0.1);
+    background: var(--control-bg);
     border-radius: 8px;
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    border: 1px solid var(--panel-border);
 }
 
 .blend-controls .section-title {
@@ -642,7 +642,7 @@
 .midi-info {
     margin-top: 1rem;
     padding: 0.75rem;
-    background: rgba(139, 92, 246, 0.1);
+    background: var(--control-bg);
     border-left: 3px solid var(--primary);
     border-radius: 4px;
     font-size: 0.9rem;
@@ -935,7 +935,7 @@
 .onboarding-quick-tips {
     margin-top: 1.5rem;
     padding: 1rem;
-    background: rgba(139, 92, 246, 0.1);
+    background: var(--control-bg);
     border-radius: 8px;
     border: 1px solid var(--panel-border);
 }
@@ -954,7 +954,7 @@
 
 .onboarding-quick-tips li {
     padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+    border-bottom: 1px solid var(--control-bg);
 }
 
 .onboarding-quick-tips li:last-child {
@@ -972,9 +972,9 @@
     justify-content: space-between;
     margin-top: 0.75rem;
     padding: 0.5rem 0.75rem;
-    background: rgba(139, 92, 246, 0.05);
+    background: var(--control-bg);
     border-radius: 6px;
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border: 1px solid var(--panel-bg);
 }
 
 .selection-status {
@@ -1029,14 +1029,14 @@
     align-items: center;
     padding: 1rem;
     margin-bottom: 0.5rem;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: var(--control-bg);
+    border: 1px solid var(--panel-border);
     border-radius: 8px;
     transition: background 0.2s ease;
 }
 
 .favorite-item:hover {
-    background: rgba(139, 92, 246, 0.15);
+    background: var(--panel-bg);
 }
 
 .favorite-name {
