@@ -13,7 +13,7 @@
                    object-src 'none';
                    base-uri 'self';
                    form-action 'self';">
-    <title>Spectral Synthesizer - Hear Molecules</title>
+    <title>Spectral Synthesiser - Hear Molecules</title>
     <meta name="description" content="Making molecular fingerprints audible through sonification of FTIR spectroscopy data">
     <meta name="theme-color" content="#8b5cf6">
     <link rel="stylesheet" href="base.css">
@@ -32,7 +32,7 @@
                 <span class="burger-line"></span>
             </button>
             <div class="header-title">
-                <h1>Spectral Synthesizer</h1>
+                <h1>Spectral Synthesiser</h1>
                 <p class="tagline">Making molecular fingerprints audible through sonification</p>
             </div>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle theme">
@@ -92,7 +92,7 @@
                 <ol class="quick-start-steps">
                     <li><strong>Select a substance</strong> below (try "Caffeine" 👇)</li>
                     <li><strong>Click "▶ Play Sound"</strong> to hear it</li>
-                    <li><strong>Watch the visualizations</strong> - left shows molecular vibrations, right shows audio</li>
+                    <li><strong>Watch the visualisations</strong> - left shows molecular vibrations, right shows audio</li>
                 </ol>
                 <div class="quick-start-actions">
                     <button id="try-caffeine" class="quick-start-button">☕ Try Caffeine Now</button>
@@ -176,7 +176,7 @@
             </div>
         </section>
 
-        <section class="visualization single-visualization" aria-label="Visualization">
+        <section class="visualisation single-visualisation" aria-label="Visualisation">
             <div class="viz-panel">
                 <div class="viz-header">
                     <h3>FTIR Spectrum (Infrared)</h3>
@@ -184,7 +184,7 @@
                         <span class="info-icon">ℹ️</span>
                     </button>
                 </div>
-                <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualization"></canvas>
+                <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualisation"></canvas>
                 <div class="axis-labels">
                     <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
                 </div>
@@ -196,7 +196,7 @@
 
             <div class="viz-panel">
                 <h3>Audio FFT (Audible)</h3>
-                <canvas id="audio-canvas" width="600" height="300" role="img" aria-label="Audio FFT visualization"></canvas>
+                <canvas id="audio-canvas" width="600" height="300" role="img" aria-label="Audio FFT visualisation"></canvas>
                 <div class="axis-labels">
                     <span class="axis-label-x">Frequency (Hz)</span>
                 </div>
@@ -239,7 +239,7 @@
     <div id="onboarding-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="onboarding-title" aria-modal="true">
         <div class="modal-content onboarding-modal">
             <button class="modal-close" id="onboarding-close" aria-label="Close welcome message">&times;</button>
-            <h2 id="onboarding-title">Welcome to Spectral Synthesizer! 🎵</h2>
+            <h2 id="onboarding-title">Welcome to Spectral Synthesiser! 🎵</h2>
 
             <div class="onboarding-section">
                 <div class="onboarding-illustration">
@@ -282,7 +282,7 @@
                     <ul>
                         <li>⚙️ <strong>Settings</strong> - Adjust audio effects, ADSR envelope, playback mode</li>
                         <li>📥 <strong>Import/Export</strong> - Load your own data or save audio</li>
-                        <li>🎹 <strong>MIDI</strong> - Connect to external synthesizers</li>
+                        <li>🎹 <strong>MIDI</strong> - Connect to external synthesisers</li>
                         <li>❓ <strong>Help</strong> - Learn the science and keyboard shortcuts</li>
                     </ul>
                 </div>
@@ -485,7 +485,7 @@
                         💾 Export MIDI File
                     </button>
                 </div>
-                <p class="midi-info">Send spectral peaks as MIDI notes to external synthesizers or export as Standard MIDI File (.mid). Uses the Playback Mode setting. Requires Web MIDI API support for device output.</p>
+                <p class="midi-info">Send spectral peaks as MIDI notes to external synthesisers or export as Standard MIDI File (.mid). Uses the Playback Mode setting. Requires Web MIDI API support for device output.</p>
             </div>
 
             <button id="midi-ok" class="primary-button modal-action-button">Done</button>
@@ -547,7 +547,7 @@
                 <button id="restart-tutorial" class="primary-button">
                     🎓 Take the Tutorial
                 </button>
-                <p class="help-description">Learn how to use the synthesizer with a guided tour.</p>
+                <p class="help-description">Learn how to use the synthesiser with a guided tour.</p>
             </div>
 
             <div class="help-section">
@@ -564,7 +564,7 @@
                     <p>
                         Both FTIR and audio analysis use the same mathematical tool: the Fourier Transform.
                         It decomposes complex signals into individual frequency components. In FTIR, we're
-                        analyzing molecular vibrations (~10¹³ Hz). In audio, we're analyzing sound waves (~100-10000 Hz).
+                        analysing molecular vibrations (~10¹³ Hz). In audio, we're analyzsng sound waves (~100-10000 Hz).
                     </p>
 
                     <h4>The sonification process</h4>
@@ -572,7 +572,7 @@
                         <li>Extract absorption peaks from FTIR spectrum</li>
                         <li>Map IR wavenumbers (400-4000 cm⁻¹) to audio frequencies (20-20000 Hz) logarithmically</li>
                         <li>Create oscillators at mapped frequencies with amplitudes based on absorption intensity</li>
-                        <li>Synthesize the sound and visualize its FFT in real-time</li>
+                        <li>Synthesise the sound and visualise its FFT in real-time</li>
                     </ol>
                 </div>
             </div>
