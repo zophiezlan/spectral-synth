@@ -145,13 +145,14 @@ The library includes **943 curated FTIR spectra** from the ENFSI DWG IR Library,
 - **Stimulants**: Amphetamines (100+ variants), MDMA, MDA, Cocaine, Methamphetamine, Mephedrone, Cathinones, Caffeine
 - **Opioids**: Morphine, Heroin, Codeine, Oxycodone, Hydrocodone, Buprenorphine, Methadone
 - **Synthetic Opioids**: Fentanyl and 50+ analogs (acetylfentanyl, carfentanyl, furanylfentanyl, etc.)
-- **Dissociatives**: Ketamine variants, PCP, Methoxetamine, Deschloroketamine
-- **Psychedelics**: LSD and analogs (1P-LSD, 1cP-LSD, etc.), 2C-series, DMT, Psilocybin, Mescaline, NBOMes
+- **Dissociatives**: Ketamine variants, PCP, PCE compounds, Phenidines, Methoxetamine
+- **Psychedelics**: LSD and analogs (1P-LSD, 1cP-LSD, etc.), 2C-series, NBOMes, DOx compounds
+- **Tryptamines**: DMT, DPT, DiPT, 5-MeO-DiPT, 4-AcO-DPT, Alpha-Methyltryptamine
 - **Benzodiazepines**: Diazepam, Alprazolam, Clonazepam, Flualprazolam, Etizolam, and 20+ others
 - **Cannabinoids**: THC, CBD, synthetic cannabinoids (JWH series, AM-2201, UR-144, etc.)
 - **Steroids**: Testosterone, Trenbolone, Stanozolol, and anabolic derivatives
+- **Precursors**: BMK, PMK, Safrole, Glycidates, Benzaldehydes (chemical intermediates)
 - **Novel Psychoactive Substances**: Alpha-PVP, MDPV, research chemicals, designer drugs
-- **Precursors**: BMK, P2P, Safrole, Ephedrine, Glycidates
 
 Each spectrum is from actual forensic laboratory measurements, providing authentic molecular fingerprints. With nearly 1,000 substances, this comprehensive database allows you to hear the unique "sound" of almost any common recreational drug!
 

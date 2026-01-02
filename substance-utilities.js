@@ -19,9 +19,12 @@
  * - opioids: Morphine, fentanyl, heroin, etc.
  * - stimulants: Amphetamines, cocaine, caffeine, etc.
  * - benzodiazepines: Diazepam, alprazolam, etc.
- * - psychedelics: LSD, psilocybin, DMT, etc.
+ * - psychedelics: LSD, psilocybin, 2C-series, NBOMes, etc.
  * - cannabinoids: THC, CBD, synthetic cannabinoids
+ * - dissociatives: Ketamine, PCP, PCE, phenidines, etc.
+ * - tryptamines: DMT, DPT, DiPT, 5-MeO-DiPT, etc.
  * - steroids: Testosterone and derivatives
+ * - precursors: BMK, PMK, glycidates, benzaldehydes, etc.
  * - other: Everything else
  *
  * Categorization Method:
@@ -87,6 +90,25 @@ function categorizeSubstance(item) {
         'drostanolone', 'mesterolone'];
     if (steroidKeywords.some(keyword => name.includes(keyword))) {
         return 'steroids';
+    }
+
+    // Dissociatives (Arylcyclohexylamines)
+    const dissociativeKeywords = ['ketamine', '-pcp', 'pce', 'phenidine', 'methoxetamine'];
+    if (dissociativeKeywords.some(keyword => name.includes(keyword)) && !name.includes('bmk')) {
+        return 'dissociatives';
+    }
+
+    // Tryptamines
+    const tryptamineKeywords = ['tryptamine', 'dpt ', '-dpt', 'dipt ', '-dipt', 'mipt'];
+    if (tryptamineKeywords.some(keyword => name.includes(keyword))) {
+        return 'tryptamines';
+    }
+
+    // Precursors (Chemical intermediates for synthesis)
+    const precursorKeywords = ['bmk', 'pmk', 'glycidate', 'benzaldehyde', 'nitrostyrene',
+        'safrole', 'phenylacetone', 'p2p', 'ecgonine'];
+    if (precursorKeywords.some(keyword => name.includes(keyword))) {
+        return 'precursors';
     }
 
     return 'other';
