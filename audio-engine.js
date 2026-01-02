@@ -72,6 +72,10 @@ class AudioEngine {
         // Playback mode
         this.playbackMode = 'sequential';  // Default to sequential mode (order by intensity)
 
+        // Looping parameters
+        this.loopEnabled = CONFIG.looping.DEFAULT_LOOP_ENABLED;  // Enable looping for arpeggios
+        this.loopTimeoutId = null;  // Store timeout ID for loop control
+
         // ADSR envelope parameters
         this.attackTime = CONFIG.adsr.DEFAULT_ATTACK;
         this.decayTime = CONFIG.adsr.DEFAULT_DECAY;
@@ -365,9 +369,21 @@ class AudioEngine {
             };
         });
 
-        // Set flag to false after duration
-        setTimeout(() => {
-            this.isPlaying = false;
+        // Handle looping or stop after duration
+        if (this.loopTimeoutId) {
+            clearTimeout(this.loopTimeoutId);
+            this.loopTimeoutId = null;
+        }
+
+        this.loopTimeoutId = setTimeout(() => {
+            // Check if looping is enabled and we're in an arpeggio mode
+            if (this.loopEnabled && this.isPlaying && this.playbackMode !== 'chord') {
+                // Restart the arpeggio with the same peaks
+                this.playArpeggio(peaks, duration);
+            } else {
+                this.isPlaying = false;
+                this.loopTimeoutId = null;
+            }
         }, duration * 1000);
     }
 
@@ -436,6 +452,12 @@ class AudioEngine {
      */
     stop() {
         const currentTime = this.audioContext ? this.audioContext.currentTime : 0;
+
+        // Clear any pending loop timeout
+        if (this.loopTimeoutId) {
+            clearTimeout(this.loopTimeoutId);
+            this.loopTimeoutId = null;
+        }
 
         this.oscillators.forEach(({osc, gain}) => {
             try {
@@ -627,6 +649,27 @@ class AudioEngine {
      */
     getPlaybackModes() {
         return CONFIG.playbackModes;
+    }
+
+    /**
+     * Enable or disable arpeggio looping
+     *
+     * @param {boolean} enabled - Whether to loop arpeggios
+     * @throws {Error} If enabled is not a boolean
+     */
+    setLoopEnabled(enabled) {
+        if (typeof enabled !== 'boolean') {
+            throw new Error('Loop enabled must be a boolean');
+        }
+        this.loopEnabled = enabled;
+    }
+
+    /**
+     * Get current loop enabled state
+     * @returns {boolean} Whether looping is enabled
+     */
+    getLoopEnabled() {
+        return this.loopEnabled;
     }
 
     /**

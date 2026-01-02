@@ -632,4 +632,51 @@ describe('AudioEngine', () => {
             expect(engine.oscillators.length).toBe(samplePeaks.length * 2 - 1);
         });
     });
+
+    describe('looping', () => {
+        describe('setLoopEnabled', () => {
+            it('should set loop enabled state', () => {
+                engine.setLoopEnabled(false);
+                expect(engine.getLoopEnabled()).toBe(false);
+
+                engine.setLoopEnabled(true);
+                expect(engine.getLoopEnabled()).toBe(true);
+            });
+
+            it('should throw for invalid values', () => {
+                expect(() => engine.setLoopEnabled('true')).toThrow('Loop enabled must be a boolean');
+                expect(() => engine.setLoopEnabled(1)).toThrow('Loop enabled must be a boolean');
+                expect(() => engine.setLoopEnabled(null)).toThrow('Loop enabled must be a boolean');
+            });
+        });
+
+        describe('getLoopEnabled', () => {
+            it('should return current loop state', () => {
+                expect(engine.getLoopEnabled()).toBe(CONFIG.looping.DEFAULT_LOOP_ENABLED);
+            });
+
+            it('should reflect changes made by setLoopEnabled', () => {
+                engine.setLoopEnabled(false);
+                expect(engine.getLoopEnabled()).toBe(false);
+
+                engine.setLoopEnabled(true);
+                expect(engine.getLoopEnabled()).toBe(true);
+            });
+        });
+
+        describe('stop', () => {
+            it('should clear loop timeout when stopping', async () => {
+                await engine.init();
+                engine.setLoopEnabled(true);
+                engine.playbackMode = 'sequential';
+                
+                await engine.playArpeggio(samplePeaks, 0.1);
+                expect(engine.loopTimeoutId).not.toBeNull();
+                
+                engine.stop();
+                expect(engine.loopTimeoutId).toBeNull();
+                expect(engine.isPlaying).toBe(false);
+            });
+        });
+    });
 });
