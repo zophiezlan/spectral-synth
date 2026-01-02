@@ -65,7 +65,7 @@ Spectral Synthesizer is a pure vanilla JavaScript web application that sonifies 
 │                         ▼                            │
 │  ┌──────────────────────────────────────────────┐   │
 │  │      ftir-library.json (Data Layer)          │   │
-│  │  - 381 FTIR spectra from ENFSI               │   │
+│  │  - 242 FTIR spectra from ENFSI               │   │
 │  │  - Pre-processed and downsampled             │   │
 │  │  - Loaded asynchronously                     │   │
 │  └──────────────────────────────────────────────┘   │

@@ -8,7 +8,7 @@ Spectral Synthesizer explores the fascinating connection between audio and spect
 
 Each molecule has a unique "fingerprint" based on how its chemical bonds absorb infrared light. This tool maps those infrared absorption patterns down to audible frequencies, letting you **hear what molecules sound like**.
 
-**✨ Now with real data!** Includes **381 authentic FTIR spectra** from the [ENFSI DWG IR Library](https://enfsi.eu/) (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints from forensic laboratories.
+**✨ Now with real data!** Includes **242 authentic FTIR spectra** from the [ENFSI DWG IR Library](https://enfsi.eu/) (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints from forensic laboratories.
 
 ## The Core Concept
 
@@ -74,7 +74,7 @@ Both visualizations use the same mathematical transformation, just on different 
 index.html           - Main UI structure
 style.css            - Styling and layout
 config.js            - Centralized configuration and constants
-ftir-library.json    - Real FTIR spectra (381 substances, 9.5MB)
+ftir-library.json    - Real FTIR spectra (242 substances, 9.5MB)
 frequency-mapper.js  - IR → audio conversion algorithms
 audio-engine.js      - Web Audio API synthesis
 visualizer.js        - Canvas-based visualization
@@ -140,7 +140,7 @@ audioFreq = exp(log(AUDIO_MIN) + normalized * (log(AUDIO_MAX) - log(AUDIO_MIN)))
 
 ## Data Source
 
-The library includes **381 curated FTIR spectra** from the ENFSI DWG IR Library, covering:
+The library includes **242 curated FTIR spectra** from the ENFSI DWG IR Library, covering:
 
 - **Controlled substances**: MDMA, Cocaine, Heroin, LSD, Ketamine, Mephedrone
 - **Pharmaceuticals**: Codeine, Morphine, Buprenorphine, Methadone, Diazepam
@@ -150,6 +150,21 @@ The library includes **381 curated FTIR spectra** from the ENFSI DWG IR Library,
 - **And many more**: Including precursors, metabolites, and designer drugs
 
 Each spectrum is from actual forensic laboratory measurements, providing authentic molecular fingerprints. The substances produce distinctly different sounds based on their unique molecular structures!
+
+### ENFSI Library Connection
+
+The application uses data directly from the [ENFSI DWG IR Library](https://enfsi.eu/) (European Network of Forensic Science Institutes):
+
+- **Source**: Official ENFSI library containing 3,900+ validated FTIR spectra
+- **Format**: JCAMP-DX standard format for spectroscopic data
+- **Processing**: Original ENFSI `.JDX` files are parsed and converted to JSON
+- **Verification**: Each spectrum includes:
+  - Molecular formula (e.g., C8H10N4O2 for caffeine)
+  - Molecular weight (e.g., 194.1915 for caffeine)
+  - CAS name and chemical identifiers
+  - Source attribution: "ENFSI DWG IR Library"
+
+The `ftir-library.json` file was built by downloading the ENFSI library and processing it with `build-library.js`, which extracts and converts spectra from authentic forensic laboratory measurements.
 
 ## Educational Use
 
