@@ -163,28 +163,85 @@ function buildLibrary() {
     const enfsiDir = path.join(__dirname, 'enfsi_data');
     const outputFile = path.join(__dirname, 'ftir-library.json');
 
-    // Curated list of interesting substances
-    const curatedSubstances = [
-        'Caffeine',
-        'MDMA',
-        'Ketamine',
-        'Cocaine',
-        'Heroin',
-        'Aspirin',
-        'Morphine',
-        'Amphetamine',
-        'Mephedrone',
-        'LSD',
-        'Fentanyl',
-        'Methamphetamine',
-        'Cannabis', // THC
-        'Benzoylecgonine', // Cocaine metabolite
-        'Codeine',
-        'Diazepam',
-        'Alprazolam',
-        'Testosterone',
-        'Buprenorphine',
-        'Methadone'
+    // Expanded list of recreational drugs and substances of interest
+    // Includes major drug classes and their analogs
+    const recreationalDrugPatterns = [
+        // Stimulants - Amphetamines
+        'amphetamine', 'methamphetamine', 'MDMA', 'MDA', 'MDEA', 'MBDB',
+        'methylone', 'mephedrone', 'cathinone', 'methcathinone',
+        'ethcathinone', 'pentedrone', 'methylenedioxy',
+        
+        // Stimulants - Cocaine
+        'cocaine', 'benzoylecgonine', 'ecgonine', 'tropacocaine',
+        
+        // Stimulants - Other
+        'caffeine', 'ephedrine', 'pseudoephedrine', 'phenmetrazine',
+        'phentermine', 'diethylpropion', 'pemoline',
+        
+        // Opioids - Natural and Semi-Synthetic
+        'morphine', 'codeine', 'heroin', 'diacetylmorphine',
+        'hydrocodone', 'hydromorphone', 'oxycodone', 'oxymorphone',
+        'buprenorphine', 'naloxone', 'naltrexone',
+        
+        // Opioids - Fentanyl and Analogs
+        'fentanyl', 'acetylfentanyl', 'butyrfentanyl', 'furanylfentanyl',
+        'carfentanyl', 'sufentanil', 'alfentanil', 'remifentanil',
+        'acrylfentanyl', 'valerylfentanyl', 'methoxyacetylfentanyl',
+        'cyclopropylfentanyl', 'tetrahydrofuranylfentanyl', 'fluorofentanyl',
+        
+        // Opioids - Synthetic
+        'methadone', 'tramadol', 'tapentadol', 'pethidine', 'meperidine',
+        
+        // Dissociatives
+        'ketamine', 'phencyclidine', 'PCP', 'methoxetamine', 'MXE',
+        'deschloroketamine', 'methoxphenidine', '3-MeO-PCP', '4-MeO-PCP',
+        'diphenidine', 'ephenidine', 'fluoroketamine',
+        
+        // Psychedelics - Tryptamines
+        'DMT', 'psilocybin', 'psilocin', 'DPT', 'DiPT', '5-MeO-DMT',
+        'tryptamine', 'bufotenin',
+        
+        // Psychedelics - Phenethylamines
+        'mescaline', '2C-B', '2C-I', '2C-E', '2C-T', '2C-D', '2C-P',
+        'DOB', 'DOI', 'DOM', 'DOC', 'TMA', 'DMMDA', 'MMDA',
+        
+        // Psychedelics - Lysergamides
+        'LSD', 'ALD-52', 'ETH-LAD', 'AL-LAD', 'PRO-LAD', 'LSZ',
+        '1P-LSD', '1cP-LSD', '1B-LSD', '1V-LSD',
+        
+        // Benzodiazepines
+        'diazepam', 'alprazolam', 'clonazepam', 'lorazepam', 'temazepam',
+        'triazolam', 'flurazepam', 'nitrazepam', 'oxazepam', 'bromazepam',
+        'chlordiazepoxide', 'flunitrazepam', 'midazolam', 'flualprazolam',
+        'etizolam', 'pyrazolam', 'norfludiazepam', 'flubromazolam',
+        
+        // Cannabinoids - Natural
+        'THC', 'CBD', 'cannabinol', 'cannabidiol', 'cannabis',
+        'tetrahydrocannabinol', 'cannabigerol',
+        
+        // Cannabinoids - Synthetic
+        'JWH', 'AM-2201', 'UR-144', 'XLR-11', 'ADB', 'APINACA',
+        'AB-FUBINACA', '5F-ADB', 'MDMB', 'MMB', 'PB-22',
+        
+        // Steroids and Hormones
+        'testosterone', 'nandrolone', 'stanozolol', 'methandienone',
+        'boldenone', 'trenbolone', 'oxandrolone', 'oxymetholone',
+        'dihydrotestosterone', 'methyltestosterone',
+        
+        // Novel Psychoactive Substances
+        'NBOMe', 'NBOH', 'benzofuran', 'benzodifuran', 'methylphenidate',
+        'ethylphenidate', 'methiopropamine', 'MPA', 'phenazepam',
+        'mexedrone', 'alpha-PVP', 'MDPV', 'alpha-PHP', 'pentylone',
+        'eutylone', 'naphyrone', 'pyrovalerone',
+        
+        // Precursors and Related Compounds
+        'BMK', 'P2P', 'safrole', 'isosafrole', 'piperonal',
+        'phenylacetone', 'benzaldehyde', 'nitroethane', 'nitrostyrene',
+        'glycidate', 'ephedrine', 'pseudoephedrine',
+        
+        // Other Substances of Interest
+        'GHB', 'GBL', 'BDO', 'nitrous', 'amyl nitrite', 'poppers',
+        'DXM', 'dextromethorphan', 'diphenhydramine', 'promethazine'
     ];
 
     console.log('Scanning ENFSI library...');
@@ -197,12 +254,12 @@ function buildLibrary() {
     for (const file of files) {
         const filePath = path.join(enfsiDir, file);
 
-        // Check if this is a curated substance
-        const matchesCurated = curatedSubstances.some(sub =>
-            file.toLowerCase().includes(sub.toLowerCase())
+        // Check if this matches any recreational drug pattern
+        const matchesPattern = recreationalDrugPatterns.some(pattern =>
+            file.toLowerCase().includes(pattern.toLowerCase())
         );
 
-        if (!matchesCurated) continue;
+        if (!matchesPattern) continue;
 
         try {
             console.log(`Processing: ${file}`);
