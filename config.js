@@ -163,6 +163,11 @@ const CONFIG = {
             description: 'Play peaks in random order',
         },
     },
+
+    // Looping parameters
+    looping: {
+        DEFAULT_LOOP_ENABLED: true,  // Enable looping by default for arpeggios
+    },
 };
 
 // Freeze config to prevent accidental modification
@@ -180,3 +185,4 @@ Object.freeze(CONFIG.presets);
 Object.keys(CONFIG.presets).forEach(key => Object.freeze(CONFIG.presets[key]));
 Object.freeze(CONFIG.playbackModes);
 Object.keys(CONFIG.playbackModes).forEach(key => Object.freeze(CONFIG.playbackModes[key]));
+Object.freeze(CONFIG.looping);

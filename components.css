@@ -508,6 +508,34 @@ section {
     cursor: pointer;
 }
 
+.loop-toggle-container {
+    margin-top: 1rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 0.5rem;
+    cursor: pointer;
+    width: 1.2rem;
+    height: 1.2rem;
+    accent-color: #8b5cf6;
+}
+
+.setting-description {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    line-height: 1.4;
+}
+
 .import-export-controls {
     margin-top: 1.5rem;
     padding-top: 1.5rem;

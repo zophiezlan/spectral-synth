@@ -84,6 +84,9 @@ global.CONFIG = {
         'sequential': { name: 'Sequential', description: 'By intensity' },
         'random': { name: 'Random', description: 'Random order' },
     },
+    looping: {
+        DEFAULT_LOOP_ENABLED: true,
+    },
 };
 
 // Freeze CONFIG like in production

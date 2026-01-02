@@ -254,6 +254,22 @@ function setupAudioModeListeners() {
             }
         });
     }
+
+    // Loop toggle
+    const loopToggle = document.getElementById('loop-toggle');
+    if (loopToggle) {
+        // Set initial state to match the audio engine default
+        loopToggle.checked = audioEngine.getLoopEnabled();
+
+        loopToggle.addEventListener('change', (e) => {
+            try {
+                audioEngine.setLoopEnabled(e.target.checked);
+                Logger.log(`Loop arpeggios: ${e.target.checked ? 'enabled' : 'disabled'}`);
+            } catch (error) {
+                ErrorHandler.handle(error, 'Failed to set loop enabled');
+            }
+        });
+    }
 }
 
 /**
