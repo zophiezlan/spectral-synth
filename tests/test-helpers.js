@@ -65,6 +65,10 @@ function loadBrowserModule(filename, additionalGlobals = {}) {
             try { if (typeof Visualizer !== 'undefined') exports.Visualizer = Visualizer; } catch(e) {}
             try { if (typeof calculateSpectralSimilarity !== 'undefined') exports.calculateSpectralSimilarity = calculateSpectralSimilarity; } catch(e) {}
             try { if (typeof findSimilarSubstances !== 'undefined') exports.findSimilarSubstances = findSimilarSubstances; } catch(e) {}
+            try { if (typeof LibraryLoader !== 'undefined') exports.LibraryLoader = LibraryLoader; } catch(e) {}
+            try { if (typeof EventRegistry !== 'undefined') exports.EventRegistry = EventRegistry; } catch(e) {}
+            try { if (typeof Modal !== 'undefined') exports.Modal = Modal; } catch(e) {}
+            try { if (typeof ModalManager !== 'undefined') exports.ModalManager = ModalManager; } catch(e) {}
         })
     `;
 
