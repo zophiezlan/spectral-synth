@@ -69,6 +69,11 @@ function loadBrowserModule(filename, additionalGlobals = {}) {
             try { if (typeof EventRegistry !== 'undefined') exports.EventRegistry = EventRegistry; } catch(e) {}
             try { if (typeof Modal !== 'undefined') exports.Modal = Modal; } catch(e) {}
             try { if (typeof ModalManager !== 'undefined') exports.ModalManager = ModalManager; } catch(e) {}
+            try { if (typeof FilterManager !== 'undefined') exports.FilterManager = FilterManager; } catch(e) {}
+            try { if (typeof withExportButton !== 'undefined') exports.withExportButton = withExportButton; } catch(e) {}
+            try { if (typeof enableExportButton !== 'undefined') exports.enableExportButton = enableExportButton; } catch(e) {}
+            try { if (typeof handleExportWAV !== 'undefined') exports.handleExportWAV = handleExportWAV; } catch(e) {}
+            try { if (typeof handleExportMP3 !== 'undefined') exports.handleExportMP3 = handleExportMP3; } catch(e) {}
         })
     `;
 
