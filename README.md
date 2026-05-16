@@ -29,14 +29,25 @@ A drug's spectral fingerprint is literally a frequency spectrum—just like audi
 
 ## Live Demo
 
-Simply open `index.html` in a modern web browser. No build step or server required!
+The app works in two modes:
+
+**Quick start (no build):** Open `index.html` in a modern browser. Everything works, but the full 39 MB FTIR library loads up-front.
 
 ```bash
-# Clone and open
 git clone https://github.com/yourusername/spectral-synth.git
 cd spectral-synth
 open index.html  # or just double-click the file
 ```
+
+**Production / fast load:** Run the build once. This bundles + minifies the JS/CSS and splits the library into per-category chunks that load on demand (~hundreds of KB instead of 39 MB).
+
+```bash
+npm install
+npm run build           # outputs dist/
+npx serve dist          # or deploy dist/ to Vercel / any static host
+```
+
+`vercel.json` is already wired up so a Vercel deploy runs the build automatically.
 
 ## How It Works
 

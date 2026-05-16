@@ -35,7 +35,10 @@ const LibraryLoader = (function() {
     let useLazyLoading = true; // Feature flag
 
     // Configuration
-    const LIBRARY_BASE_PATH = 'dist/library/';
+    // Path is relative to the served root. In production the build outputs
+    // chunks to dist/library/ and Vercel serves dist/ as /, so /library/ resolves
+    // correctly. In dev (no build run) this 404s and triggers the monolith fallback.
+    const LIBRARY_BASE_PATH = 'library/';
     const FALLBACK_LIBRARY_FILE = 'ftir-library.json';
     const POPULAR_CATEGORIES = ['opioids', 'stimulants']; // Preload these
 
@@ -204,7 +207,7 @@ const LibraryLoader = (function() {
         if (!useLazyLoading || !libraryIndex) {
             // Load monolithic file
             if (typeof LoadingOverlay !== 'undefined') {
-                LoadingOverlay.show('Loading FTIR library (381 spectra)...');
+                LoadingOverlay.show('Loading FTIR library...');
             }
 
             try {

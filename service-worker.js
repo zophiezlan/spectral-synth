@@ -4,65 +4,29 @@
  * Provides offline functionality and caching for improved performance
  */
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const CACHE_NAME = `spectral-synth-v${VERSION}`;
 
-// Files to cache for offline use
+// Minimal pre-cache list: only assets that exist in BOTH dev (source layout) and
+// prod (bundled dist/ layout). Everything else (individual modules in dev, the
+// hashed bundle in prod) is picked up by the runtime cache-first handler below.
+// Keeping this list tight means SW install can't be broken by a stale path.
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    // CSS files (split architecture)
-    '/base.css',
-    '/components.css',
-    '/modals.css',
-    '/responsive.css',
     '/manifest.json',
-    // Configuration and constants
-    '/config.js',
-    '/constants.js',
-    '/debug-logger.js',
-    // Utility modules
-    '/ui-utilities.js',
-    '/visualization-utilities.js',
-    '/storage-utilities.js',
-    '/tutorial-manager.js',
-    '/analysis-utilities.js',
-    '/substance-utilities.js',
-    '/performance-utilities.js',
-    // Core modules
-    '/frequency-mapper.js',
-    '/audio-engine.js',
-    '/visualizer.js',
-    '/csv-importer.js',
-    '/jcamp-importer.js',
-    '/mp3-encoder.js',
-    '/midi-output.js',
-    // DOM and event handling
-    '/dom-elements.js',
-    '/event-handlers.js',
-    '/handlers-import-export.js',
-    '/handlers-midi.js',
-    // State and feature modules
-    '/app-state.js',
-    '/modal-manager.js',
-    '/filter-manager.js',
-    '/keyboard-shortcuts.js',
-    '/onboarding.js',
-    '/playback-controller.js',
-    '/theme-manager.js',
-    // Main application
-    '/app.js',
     '/sw-register.js'
 ];
 
 // Large files that can be cached on demand
-const DYNAMIC_CACHE = 'spectral-synth-dynamic-v1';
+const DYNAMIC_CACHE = `spectral-synth-dynamic-v${VERSION}`;
 const LARGE_FILES = [
     '/ftir-library.json'
 ];
 
-// Library files for lazy loading
-const LIBRARY_PATH = '/dist/library/';
+// Library chunks (lazy loading). Production: dist/library/ served as /library/.
+// Dev: path 404s; loader falls back to the monolith.
+const LIBRARY_PATH = '/library/';
 const LIBRARY_INDEX = `${LIBRARY_PATH}index.json`;
 
 /**
@@ -75,19 +39,25 @@ self.addEventListener('install', (event) => {
         try {
             const cache = await caches.open(CACHE_NAME);
             console.log('[Service Worker] Caching static assets');
-            await cache.addAll(STATIC_ASSETS);
 
-            // Try to cache library index (optional, fail silently if not available)
+            // Use allSettled so one bad path doesn't abort the whole install.
+            // cache.addAll() is atomic — a single 404 rejects everything.
+            const results = await Promise.allSettled(
+                STATIC_ASSETS.map((asset) => cache.add(asset))
+            );
+            const failed = results
+                .map((r, i) => (r.status === 'rejected' ? STATIC_ASSETS[i] : null))
+                .filter(Boolean);
+            if (failed.length) {
+                console.warn('[Service Worker] Skipped missing assets:', failed);
+            }
+
+            // Library index is optional (only exists after `npm run build`).
             try {
                 await cache.add(LIBRARY_INDEX);
                 console.log('[Service Worker] Library index cached');
-            } catch (error) {
-                // Check if it's a 404 or network error
-                if (error.message && error.message.includes('404')) {
-                    console.log('[Service Worker] Library index not available (normal if using monolithic library)');
-                } else {
-                    console.error('[Service Worker] Failed to cache library index:', error.message);
-                }
+            } catch {
+                console.log('[Service Worker] Library index not available — using runtime caching');
             }
 
             console.log('[Service Worker] Installation complete');
