@@ -97,17 +97,14 @@ export default [
                 categorizeSubstance: 'readonly',
                 calculateSpectralSimilarity: 'readonly',
                 handleSubstanceChange: 'readonly',
-                handleSearch: 'readonly',
-                handleCategoryChange: 'readonly',
                 handlePlay: 'readonly',
                 handleStop: 'readonly',
                 handleSelectAll: 'readonly',
                 handleClearSelection: 'readonly',
                 handleKeyboardShortcut: 'readonly',
-                handleFavoritesFilterChange: 'readonly',
                 handleFavoriteToggle: 'readonly',
-                populateSubstanceSelector: 'readonly',
                 updateFavoritesList: 'readonly',
+                FilterManager: 'readonly',
                 
                 // Import/Export handlers
                 handleCSVImport: 'readonly',

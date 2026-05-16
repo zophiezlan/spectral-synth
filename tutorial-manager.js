@@ -18,7 +18,7 @@ const TutorialManager = {
             {
                 target: '#substance',
                 title: 'Select a Substance',
-                description: 'Start by choosing one of 381 real FTIR spectra from forensic laboratories. Each substance has a unique molecular fingerprint.',
+                description: 'Start by choosing one of 943 real FTIR spectra from forensic laboratories. Each substance has a unique molecular fingerprint.',
                 action: null,
                 position: 'bottom'
             },

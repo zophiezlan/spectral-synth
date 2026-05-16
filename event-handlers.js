@@ -33,20 +33,12 @@
 
 
 /**
- * Setup substance selection and filtering listeners
+ * Setup substance selection listener.
+ * Search input + category select are wired by FilterManager.
  */
 function setupSubstanceListeners() {
-    // Single mode substance selection
     if (substanceSelect) {
         substanceSelect.addEventListener('change', handleSubstanceChange);
-    }
-
-    // Search and filter
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-    }
-    if (categorySelect) {
-        categorySelect.addEventListener('change', handleCategoryChange);
     }
 }
 
@@ -372,19 +364,10 @@ function setupMIDIListeners() {
 }
 
 /**
- * Setup favorites UI listeners
- * Note: Keyboard shortcuts are now handled by KeyboardShortcuts module (initialized in app.js)
+ * Setup favorite-toggle button.
+ * Show-all / show-favorites filter buttons are wired by FilterManager.
  */
 function setupUIEnhancementListeners() {
-    // Favorites filter buttons
-    const showAllButton = document.getElementById('show-all');
-    const showFavoritesButton = document.getElementById('show-favorites');
-    if (showAllButton && showFavoritesButton) {
-        showAllButton.addEventListener('click', () => handleFavoritesFilterChange(false));
-        showFavoritesButton.addEventListener('click', () => handleFavoritesFilterChange(true));
-    }
-
-    // Favorite button
     const favoriteToggleButton = document.getElementById('favorite-toggle');
     if (favoriteToggleButton) {
         favoriteToggleButton.addEventListener('click', handleFavoriteToggle);

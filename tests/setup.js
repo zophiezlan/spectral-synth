@@ -28,8 +28,6 @@ global.CONFIG = {
     },
     audio: {
         DEFAULT_VOLUME: 0.3,
-        DEFAULT_FADE_IN: 0.05,
-        DEFAULT_FADE_OUT: 0.1,
         REVERB_DURATION: 2,
         FFT_SIZE: 2048,
         ANALYSER_SMOOTHING: 0.8,

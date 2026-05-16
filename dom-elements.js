@@ -49,4 +49,3 @@ const mappingInfoModal = document.getElementById('mapping-info-modal');
 const ftirCanvas = document.getElementById('ftir-canvas');
 const audioCanvas = document.getElementById('audio-canvas');
 const selectAllButton = document.getElementById('select-all');
-// Note: playSelectedButton removed - main Play button handles selected peaks automatically

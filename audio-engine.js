@@ -85,8 +85,6 @@ class AudioEngine {
 
         // Load audio constants from global CONFIG object
         this.DEFAULT_VOLUME = CONFIG.audio.DEFAULT_VOLUME;
-        this.DEFAULT_FADE_IN = CONFIG.audio.DEFAULT_FADE_IN;  // Deprecated, kept for backwards compatibility
-        this.DEFAULT_FADE_OUT = CONFIG.audio.DEFAULT_FADE_OUT;  // Deprecated, kept for backwards compatibility
         this.REVERB_DURATION = CONFIG.audio.REVERB_DURATION;
         this.FFT_SIZE = CONFIG.audio.FFT_SIZE;
         this.ANALYSER_SMOOTHING = CONFIG.audio.ANALYSER_SMOOTHING;

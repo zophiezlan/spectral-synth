@@ -22,10 +22,7 @@ let libraryIndex = null; // Library index for lazy loading
 
 // DOM elements are now loaded from dom-elements.js
 
-// Filter state
-let currentSearchTerm = '';
-let currentCategory = 'all';
-let searchDebounceTimer = null;
+// Filter state is owned by FilterManager (filter-manager.js)
 
 /**
  * Initialize application
@@ -93,9 +90,8 @@ async function init() {
             }
         }, 2000);
 
-        // Set up event listeners
+        // Set up event listeners (FilterManager owns its own — wired in loadLibrary)
         setupEventListeners();
-        setupFilterStatusListeners();
 
         // Set up onboarding and keyboard shortcuts
         setupOnboarding();
@@ -177,7 +173,7 @@ async function loadLibrary() {
             }
         } else {
             // Fallback to monolithic file
-            LoadingOverlay.show('Loading FTIR library (381 spectra)...');
+            LoadingOverlay.show('Loading FTIR library...');
             Logger.log('Loading FTIR library...');
 
             const response = await fetch(CONFIG.library.LIBRARY_FILE);
@@ -196,8 +192,8 @@ async function loadLibrary() {
             }
         }
 
-        // Populate substance selector
-        populateSubstanceSelector();
+        // Hand the library off to FilterManager, which owns the selector + filter UI.
+        FilterManager.init(libraryData);
     } catch (error) {
         ErrorHandler.handle(
             error,
@@ -209,207 +205,11 @@ async function loadLibrary() {
 
 // categorizeSubstance is now loaded from substance-utilities.js
 
-/**
- * Get filtered library based on search term and category
- * @returns {Array} Filtered library data
- */
-function getFilteredLibrary() {
-    const showFavoritesButton = document.getElementById('show-favorites');
-    const showFavoritesOnly = showFavoritesButton?.classList.contains('active') || false;
-    const favoritesList = Favorites.getAll();
+// Filtering, selector population, filter-status UI, and filter-clear handlers
+// are owned by FilterManager (filter-manager.js). FilterManager.init() in
+// loadLibrary() wires the search input, category select, favorites buttons,
+// per-filter remove buttons, and the clear-all/clear-search buttons.
 
-    return libraryData.filter(item => {
-        // Favorites filter
-        if (showFavoritesOnly && !favoritesList.includes(item.name)) {
-            return false;
-        }
-
-        // Category filter
-        const itemCategory = categorizeSubstance(item);
-        const categoryMatch = currentCategory === 'all' || itemCategory === currentCategory;
-
-        // Search filter
-        const searchLower = currentSearchTerm.toLowerCase();
-        const nameMatch = item.name.toLowerCase().includes(searchLower);
-        const formulaMatch = (item.formula || '').toLowerCase().includes(searchLower);
-        const searchMatch = !currentSearchTerm || nameMatch || formulaMatch;
-
-        return categoryMatch && searchMatch;
-    });
-}
-
-/**
- * Populate substance selector dropdown
- */
-function populateSubstanceSelector() {
-    const filteredData = getFilteredLibrary();
-
-    // Clear existing options except the first one
-    substanceSelect.innerHTML = '<option value="">-- Select a Substance --</option>';
-
-    // Add filtered substances
-    filteredData.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.id;
-        option.textContent = item.name;
-        substanceSelect.appendChild(option);
-    });
-
-    // Update results count
-    resultsCount.textContent = `${filteredData.length} substance${filteredData.length !== 1 ? 's' : ''}`;
-
-    // Update filter status and show/hide no results
-    updateFilterStatus(filteredData.length);
-}
-
-
-/**
- * Update filter status bar display
- * @param {number} resultCount - Number of results after filtering
- */
-function updateFilterStatus(resultCount) {
-    const activeFiltersContainer = document.getElementById('active-filters');
-    const searchFilterTag = document.getElementById('search-filter-tag');
-    const categoryFilterTag = document.getElementById('category-filter-tag');
-    const favoritesFilterTag = document.getElementById('favorites-filter-tag');
-    const noResultsDiv = document.getElementById('no-results');
-    const substanceSelector = document.querySelector('.substance-selector');
-
-    let hasActiveFilters = false;
-
-    // Update search filter tag
-    if (currentSearchTerm) {
-        const searchTermDisplay = document.getElementById('search-term-display');
-        searchTermDisplay.textContent = currentSearchTerm;
-        searchFilterTag.classList.remove('hidden');
-        hasActiveFilters = true;
-    } else {
-        searchFilterTag.classList.add('hidden');
-    }
-
-    // Update category filter tag
-    if (currentCategory && currentCategory !== 'all') {
-        const categoryNameDisplay = document.getElementById('category-name-display');
-        const categorySelect = document.getElementById('category');
-        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-        categoryNameDisplay.textContent = selectedOption.text;
-        categoryFilterTag.classList.remove('hidden');
-        hasActiveFilters = true;
-    } else {
-        categoryFilterTag.classList.add('hidden');
-    }
-
-    // Update favorites filter tag
-    const showFavoritesButton = document.getElementById('show-favorites');
-    const showFavoritesOnly = showFavoritesButton?.classList.contains('active') || false;
-    if (showFavoritesOnly) {
-        favoritesFilterTag.classList.remove('hidden');
-        hasActiveFilters = true;
-    } else {
-        favoritesFilterTag.classList.add('hidden');
-    }
-
-    // Show/hide active filters container
-    if (hasActiveFilters) {
-        activeFiltersContainer.classList.remove('hidden');
-    } else {
-        activeFiltersContainer.classList.add('hidden');
-    }
-
-    // Show/hide no results state
-    if (resultCount === 0) {
-        noResultsDiv.classList.remove('hidden');
-        if (substanceSelector) {
-            substanceSelector.style.display = 'none';
-        }
-    } else {
-        noResultsDiv.classList.add('hidden');
-        if (substanceSelector) {
-            substanceSelector.style.display = 'block';
-        }
-    }
-}
-
-/**
- * Clear a specific filter
- * @param {string} filterType - Type of filter to clear ('search', 'category', 'favorites')
- */
-function clearFilter(filterType) {
-    switch (filterType) {
-        case 'search':
-            searchInput.value = '';
-            currentSearchTerm = '';
-            break;
-        case 'category':
-            categorySelect.value = 'all';
-            currentCategory = 'all';
-            break;
-        case 'favorites': {
-            const showAllButton = document.getElementById('show-all');
-            const showFavoritesButton = document.getElementById('show-favorites');
-            if (showAllButton && showFavoritesButton) {
-                showAllButton.classList.add('active');
-                showAllButton.setAttribute('aria-pressed', 'true');
-                showFavoritesButton.classList.remove('active');
-                showFavoritesButton.setAttribute('aria-pressed', 'false');
-            }
-            break;
-        }
-    }
-    populateSubstanceSelector();
-}
-
-/**
- * Clear all active filters
- */
-function clearAllFilters() {
-    searchInput.value = '';
-    currentSearchTerm = '';
-    categorySelect.value = 'all';
-    currentCategory = 'all';
-
-    const showAllButton = document.getElementById('show-all');
-    const showFavoritesButton = document.getElementById('show-favorites');
-    if (showAllButton && showFavoritesButton) {
-        showAllButton.classList.add('active');
-        showAllButton.setAttribute('aria-pressed', 'true');
-        showFavoritesButton.classList.remove('active');
-        showFavoritesButton.setAttribute('aria-pressed', 'false');
-    }
-
-    populateSubstanceSelector();
-    Toast.info('All filters cleared');
-}
-
-/**
- * Set up filter status bar event listeners
- */
-function setupFilterStatusListeners() {
-    // Individual filter remove buttons
-    const filterRemoveButtons = document.querySelectorAll('.filter-remove');
-    filterRemoveButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const filterType = button.getAttribute('data-filter');
-            clearFilter(filterType);
-        });
-    });
-
-    // Clear all filters button
-    const clearAllButton = document.getElementById('clear-all-filters');
-    if (clearAllButton) {
-        clearAllButton.addEventListener('click', clearAllFilters);
-    }
-
-    // Clear search button in no results state
-    const clearSearchBtn = document.getElementById('clear-search-btn');
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', clearAllFilters);
-    }
-}
-
-/**
- * Set up event listeners
- */
 // setupEventListeners is now loaded from event-handlers.js
 
 /**
@@ -422,11 +222,7 @@ function setupKeyboardShortcuts() {
         onSelectAll: handleSelectAll,
         onClearSelection: handleClearSelection,
         onNavigate: navigateSubstance,
-        onClearFilters: () => {
-            searchInput.value = '';
-            categorySelect.value = 'all';
-            handleSearch();
-        }
+        onClearFilters: () => FilterManager.clearAll(),
     });
 }
 
@@ -449,51 +245,7 @@ function navigateSubstance(direction) {
     }
 }
 
-/**
- * Handle search input with debouncing
- *
- * Debounces search to avoid excessive filtering during typing.
- */
-function handleSearch() {
-    // Clear existing timer
-    if (searchDebounceTimer) {
-        clearTimeout(searchDebounceTimer);
-    }
-
-    // Set new timer
-    searchDebounceTimer = setTimeout(() => {
-        currentSearchTerm = searchInput.value.trim();
-        populateSubstanceSelector();
-
-        // Clear current selection if it's no longer in filtered results
-        if (substanceSelect.value) {
-            const filteredData = getFilteredLibrary();
-            const stillExists = filteredData.some(item => item.id === substanceSelect.value);
-            if (!stillExists) {
-                substanceSelect.value = '';
-                handleSubstanceChange();
-            }
-        }
-    }, CONFIG.ui.DEBOUNCE_DELAY);
-}
-
-/**
- * Handle category filter change
- */
-function handleCategoryChange() {
-    currentCategory = categorySelect.value;
-    populateSubstanceSelector();
-
-    // Clear current selection if it's no longer in filtered results
-    if (substanceSelect.value) {
-        const filteredData = getFilteredLibrary();
-        const stillExists = filteredData.some(item => item.id === substanceSelect.value);
-        if (!stillExists) {
-            substanceSelect.value = '';
-            handleSubstanceChange();
-        }
-    }
-}
+// handleSearch and handleCategoryChange are owned by FilterManager.
 
 /**
  * Handle substance selection change
@@ -510,7 +262,6 @@ function handleSubstanceChange() {
         playButton.disabled = true;
         selectAllButton.disabled = true;
         clearSelectionButton.disabled = true;
-        // Note: playSelectedButton removed - main Play button handles selected peaks automatically
         const exportWAV = document.getElementById('export-wav');
         if (exportWAV) {
             exportWAV.disabled = true;
@@ -656,174 +407,8 @@ function updateMappingInfo(data, peaks) {
 // Playback functions moved to playback-controller.js
 // Functions: handlePlay, handleStop, handlePeakSelectionChange, handleClearSelection, handleSelectAll
 
-/**
- * Handle CSV import
- * @param {Event} e - File input change event
- */
-async function handleCSVImport(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-        LoadingOverlay.show(`Importing ${file.name}...`);
-
-        const data = await CSVImporter.parseCSV(file);
-        CSVImporter.validate(data);
-
-        // Add to library
-        libraryData.push(data);
-
-        // Repopulate selector
-        populateSubstanceSelector();
-
-        // Auto-select the imported substance
-        substanceSelect.value = libraryData.length - 1;
-        handleSubstanceChange();
-
-        // Enable export button
-        const exportWAV = document.getElementById('export-wav');
-        if (exportWAV) {
-            exportWAV.disabled = false;
-        }
-
-        LoadingOverlay.hide();
-        Toast.success(`Successfully imported: ${data.name} (${data.metadata.finalPoints} data points)`);
-    } catch (error) {
-        LoadingOverlay.hide();
-        ErrorHandler.handle(
-            error,
-            `Failed to import CSV: ${error.message}\n\nPlease ensure your CSV has two columns:\nwavenumber,transmittance\n\nDownload the template for an example.`
-        );
-    }
-
-    // Clear the file input so the same file can be imported again
-    e.target.value = '';
-}
-
-/**
- * Handle WAV export
- */
-async function handleExportWAV() {
-    if (!currentPeaks || currentPeaks.length === 0) {
-        Toast.warning('Please select a substance first');
-        return;
-    }
-
-    const duration = parseFloat(durationSlider.value);
-    const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
-    const filename = `${substanceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${duration}s.wav`;
-
-    try {
-        const exportButton = document.getElementById('export-wav');
-        exportButton.disabled = true;
-        exportButton.textContent = '⏳ Exporting...';
-
-        LoadingOverlay.show(`Rendering audio: ${filename}`);
-
-        await audioEngine.exportWAV(currentPeaks, duration, filename);
-
-        LoadingOverlay.hide();
-        exportButton.disabled = false;
-        exportButton.textContent = '💾 Export WAV';
-
-        MicroInteractions.celebrate(`First export! Successfully exported: ${filename}`);
-    } catch (error) {
-        LoadingOverlay.hide();
-        const exportButton = document.getElementById('export-wav');
-        exportButton.disabled = false;
-        exportButton.textContent = '💾 Export WAV';
-
-        ErrorHandler.handle(error, `Failed to export audio: ${error.message}`);
-    }
-}
-
-/**
- * Handle JCAMP-DX import
- * @param {Event} e - File input change event
- */
-async function handleJCAMPImport(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-        LoadingOverlay.show(`Importing JCAMP-DX: ${file.name}...`);
-
-        const data = await JCAMPImporter.parseJCAMP(file);
-        JCAMPImporter.validate(data);
-
-        // Add to library
-        data.id = libraryData.length.toString();
-        libraryData.push(data);
-
-        // Repopulate selector
-        populateSubstanceSelector();
-
-        // Auto-select the imported substance
-        substanceSelect.value = data.id;
-        handleSubstanceChange();
-
-        // Enable export buttons
-        const exportWAV = document.getElementById('export-wav');
-        const exportMP3 = document.getElementById('export-mp3');
-        if (exportWAV) exportWAV.disabled = false;
-        if (exportMP3) exportMP3.disabled = false;
-
-        LoadingOverlay.hide();
-        Toast.success(`Successfully imported JCAMP-DX: ${data.name} (${data.metadata.finalPoints} data points)`);
-    } catch (error) {
-        LoadingOverlay.hide();
-        ErrorHandler.handle(
-            error,
-            `Failed to import JCAMP-DX: ${error.message}\n\nPlease ensure your file is a valid JCAMP-DX format (.jdx, .dx, or .jcamp).`
-        );
-    }
-
-    // Clear the file input
-    e.target.value = '';
-}
-
-/**
- * Handle MP3 export
- */
-async function handleExportMP3() {
-    if (!currentPeaks || currentPeaks.length === 0) {
-        Toast.warning('Please select a substance first');
-        return;
-    }
-
-    // Check if lamejs is loaded
-    if (typeof lamejs === 'undefined') {
-        Toast.error('MP3 export requires the lamejs library. Please ensure the library is loaded.', 5000);
-        return;
-    }
-
-    const duration = parseFloat(durationSlider.value);
-    const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
-    const filename = `${substanceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${duration}s.mp3`;
-
-    try {
-        const exportButton = document.getElementById('export-mp3');
-        exportButton.disabled = true;
-        exportButton.textContent = '⏳ Encoding MP3...';
-
-        LoadingOverlay.show(`Encoding MP3: ${filename}`);
-
-        await audioEngine.exportMP3(currentPeaks, duration, filename, 128);
-
-        LoadingOverlay.hide();
-        exportButton.disabled = false;
-        exportButton.textContent = '🎵 Export MP3';
-
-        MicroInteractions.celebrate(`First MP3 export! Successfully exported: ${filename}`);
-    } catch (error) {
-        LoadingOverlay.hide();
-        const exportButton = document.getElementById('export-mp3');
-        exportButton.disabled = false;
-        exportButton.textContent = '🎵 Export MP3';
-
-        ErrorHandler.handle(error, `Failed to export MP3: ${error.message}`);
-    }
-}
+// Import/Export handlers moved to handlers-import-export.js
+// Functions: handleCSVImport, handleJCAMPImport, handleExportWAV, handleExportMP3
 
 
 /**
@@ -1432,31 +1017,7 @@ function removeTourHighlight() {
 // Theme functions moved to theme-manager.js
 // Functions: setupThemeToggle, setTheme
 
-/**
- * Handle favorites filter change
- * @param {boolean} showFavoritesOnly - Whether to show only favorites
- */
-function handleFavoritesFilterChange(showFavoritesOnly) {
-    // Update button states
-    const showAllButton = document.getElementById('show-all');
-    const showFavoritesButton = document.getElementById('show-favorites');
-
-    if (showAllButton && showFavoritesButton) {
-        if (showFavoritesOnly) {
-            showAllButton.classList.remove('active');
-            showAllButton.setAttribute('aria-pressed', 'false');
-            showFavoritesButton.classList.add('active');
-            showFavoritesButton.setAttribute('aria-pressed', 'true');
-        } else {
-            showAllButton.classList.add('active');
-            showAllButton.setAttribute('aria-pressed', 'true');
-            showFavoritesButton.classList.remove('active');
-            showFavoritesButton.setAttribute('aria-pressed', 'false');
-        }
-    }
-
-    populateSubstanceSelector();
-}
+// handleFavoritesFilterChange replaced by FilterManager.setShowFavoritesOnly(bool).
 
 /**
  * Handle favorite toggle button

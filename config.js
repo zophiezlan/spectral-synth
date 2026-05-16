@@ -26,8 +26,6 @@ const CONFIG = {
     // Audio synthesis parameters
     audio: {
         DEFAULT_VOLUME: 0.3,         // Default master volume (0-1)
-        DEFAULT_FADE_IN: 0.05,       // Fade in duration in seconds (deprecated - use ADSR)
-        DEFAULT_FADE_OUT: 0.1,       // Fade out duration in seconds (deprecated - use ADSR)
         REVERB_DURATION: 2,          // Reverb impulse duration in seconds
         FFT_SIZE: 2048,              // FFT size for analyser
         ANALYSER_SMOOTHING: 0.8,     // Analyser smoothing time constant

@@ -1,46 +1,30 @@
 /**
- * Import/Export Handlers Module
+ * Import/Export Handlers
  *
- * Purpose: Handles all data import and audio export operations
- *
- * Dependencies:
- * - CSVImporter (for CSV parsing)
- * - JCAMPImporter (for JCAMP-DX parsing)
- * - MP3Encoder (for MP3 encoding, optional)
- * - audioEngine (for audio generation)
- * - LoadingOverlay (for progress indication)
- * - Toast (for user feedback)
- * - ErrorHandler (for error handling)
- * - MicroInteractions (for button feedback)
- *
- * Exports:
- * - handleCSVImport(event, context) - Import FTIR data from CSV
- * - handleJCAMPImport(event, context) - Import FTIR data from JCAMP-DX
- * - handleWAVExport() - Export synthesized audio as WAV
- * - handleMP3Export() - Export synthesized audio as MP3 (requires lamejs)
- * - handleDownloadTemplate() - Download CSV template file
- *
- * File Formats Supported:
- * - CSV: Two-column format (wavenumber, transmittance OR absorbance)
- * - JCAMP-DX: Standard spectroscopy format (.jdx, .dx, .jcamp)
- * - WAV: Uncompressed audio (works without dependencies)
- * - MP3: Compressed audio (requires lamejs library)
- *
- * Usage:
- * These handlers are wired to file input change events and export buttons
- * during initialization in event-handlers.js.
+ * Wired by event-handlers.js (setupImportExportListeners). Operate on globals
+ * (libraryData, audioEngine, currentPeaks, durationSlider, substanceSelect) and
+ * delegate selector population to FilterManager.
  */
+
+/* global libraryData, audioEngine, currentPeaks, durationSlider, substanceSelect,
+          CSVImporter, JCAMPImporter, FilterManager, LoadingOverlay, Toast,
+          ErrorHandler, MicroInteractions, handleSubstanceChange, lamejs */
 
 /**
- * Handle CSV import
- * @param {Event} e - File input change event
- * @param {Object} context - Application context with libraryData, selectors, and handlers
+ * Enable a button by id, if present.
  */
-async function handleCSVImport(e, context) {
+function enableExportButton(id) {
+    const btn = document.getElementById(id);
+    if (btn) btn.disabled = false;
+}
+
+/**
+ * Handle CSV import (file input 'change')
+ * @param {Event} e
+ */
+async function handleCSVImport(e) {
     const file = e.target.files[0];
     if (!file) return;
-
-    const { libraryData, substanceSelect, populateSubstanceSelector, handleSubstanceChange } = context;
 
     try {
         LoadingOverlay.show(`Importing ${file.name}...`);
@@ -48,21 +32,13 @@ async function handleCSVImport(e, context) {
         const data = await CSVImporter.parseCSV(file);
         CSVImporter.validate(data);
 
-        // Add to library
         libraryData.push(data);
+        FilterManager.setLibrary(libraryData);
 
-        // Repopulate selector
-        populateSubstanceSelector();
-
-        // Auto-select the imported substance
         substanceSelect.value = libraryData.length - 1;
         handleSubstanceChange();
 
-        // Enable export button
-        const exportWAV = document.getElementById('export-wav');
-        if (exportWAV) {
-            exportWAV.disabled = false;
-        }
+        enableExportButton('export-wav');
 
         LoadingOverlay.hide();
         Toast.success(`Successfully imported: ${data.name} (${data.metadata.finalPoints} data points)`);
@@ -74,58 +50,77 @@ async function handleCSVImport(e, context) {
         );
     }
 
-    // Clear the file input so the same file can be imported again
     e.target.value = '';
 }
 
 /**
- * Handle JCAMP-DX import
- * @param {Event} e - File input change event
- * @param {Object} context - Application context
+ * Handle JCAMP-DX import (file input 'change')
+ * @param {Event} e
  */
-async function handleJCAMPImport(e, context) {
+async function handleJCAMPImport(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const { libraryData, substanceSelect, populateSubstanceSelector, handleSubstanceChange } = context;
-
     try {
-        LoadingOverlay.show(`Importing ${file.name}...`);
+        LoadingOverlay.show(`Importing JCAMP-DX: ${file.name}...`);
 
         const data = await JCAMPImporter.parseJCAMP(file);
         JCAMPImporter.validate(data);
 
-        // Add to library
+        data.id = libraryData.length.toString();
         libraryData.push(data);
+        FilterManager.setLibrary(libraryData);
 
-        // Repopulate selector
-        populateSubstanceSelector();
-
-        // Auto-select the imported substance
-        substanceSelect.value = libraryData.length - 1;
+        substanceSelect.value = data.id;
         handleSubstanceChange();
 
+        enableExportButton('export-wav');
+        enableExportButton('export-mp3');
+
         LoadingOverlay.hide();
-        Toast.success(`Successfully imported: ${data.name} (${data.spectrum.length} data points)`);
+        Toast.success(`Successfully imported JCAMP-DX: ${data.name} (${data.metadata.finalPoints} data points)`);
     } catch (error) {
         LoadingOverlay.hide();
         ErrorHandler.handle(
             error,
-            `Failed to import JCAMP-DX: ${error.message}\n\nPlease ensure the file is in JCAMP-DX format.`
+            `Failed to import JCAMP-DX: ${error.message}\n\nPlease ensure your file is a valid JCAMP-DX format (.jdx, .dx, or .jcamp).`
         );
     }
 
-    // Clear the file input so the same file can be imported again
     e.target.value = '';
 }
 
 /**
- * Handle WAV export
- * @param {Object} context - Application context with currentPeaks, audioEngine, etc.
+ * Render an export-button busy/done cycle.
+ * @param {string} id Export button DOM id
+ * @param {string} busyLabel Label while operation runs
+ * @param {string} idleLabel Label after operation completes
+ * @param {() => Promise<void>} run Async operation
+ * @param {string} errorPrefix User-facing prefix for errors
  */
-async function handleExportWAV(context) {
-    const { currentPeaks, durationSlider, substanceSelect, audioEngine } = context;
+async function withExportButton(id, busyLabel, idleLabel, run, errorPrefix) {
+    const btn = document.getElementById(id);
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = busyLabel;
+        }
+        await run();
+    } catch (error) {
+        ErrorHandler.handle(error, `${errorPrefix}: ${error.message}`);
+    } finally {
+        LoadingOverlay.hide();
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = idleLabel;
+        }
+    }
+}
 
+/**
+ * Handle WAV export (button click)
+ */
+async function handleExportWAV() {
     if (!currentPeaks || currentPeaks.length === 0) {
         Toast.warning('Please select a substance first');
         return;
@@ -135,45 +130,30 @@ async function handleExportWAV(context) {
     const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
     const filename = `${substanceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${duration}s.wav`;
 
-    try {
-        const exportButton = document.getElementById('export-wav');
-        exportButton.disabled = true;
-        exportButton.textContent = '⏳ Exporting...';
-
-        LoadingOverlay.show(`Rendering audio: ${filename}`);
-
-        await audioEngine.exportWAV(currentPeaks, duration, filename);
-
-        LoadingOverlay.hide();
-        exportButton.disabled = false;
-        exportButton.textContent = '💾 Export WAV';
-
-        MicroInteractions.celebrate(`First export! Successfully exported: ${filename}`);
-    } catch (error) {
-        LoadingOverlay.hide();
-        const exportButton = document.getElementById('export-wav');
-        exportButton.disabled = false;
-        exportButton.textContent = '💾 Export WAV';
-
-        ErrorHandler.handle(error, `Failed to export audio: ${error.message}`);
-    }
+    await withExportButton(
+        'export-wav',
+        '⏳ Exporting...',
+        '💾 Export WAV',
+        async () => {
+            LoadingOverlay.show(`Rendering audio: ${filename}`);
+            await audioEngine.exportWAV(currentPeaks, duration, filename);
+            MicroInteractions.celebrate(`First export! Successfully exported: ${filename}`);
+        },
+        'Failed to export audio'
+    );
 }
 
 /**
- * Handle MP3 export
- * @param {Object} context - Application context
+ * Handle MP3 export (button click). Requires lamejs to be loaded.
  */
-async function handleExportMP3(context) {
-    const { currentPeaks, durationSlider, substanceSelect, audioEngine } = context;
-
+async function handleExportMP3() {
     if (!currentPeaks || currentPeaks.length === 0) {
         Toast.warning('Please select a substance first');
         return;
     }
 
-    // Check if MP3Encoder is available
-    if (typeof MP3Encoder === 'undefined') {
-        Toast.error('MP3 encoder not loaded. Please refresh the page.');
+    if (typeof lamejs === 'undefined') {
+        Toast.error('MP3 export requires the lamejs library. Please ensure the library is loaded.', 5000);
         return;
     }
 
@@ -181,38 +161,15 @@ async function handleExportMP3(context) {
     const substanceName = substanceSelect.options[substanceSelect.selectedIndex].text;
     const filename = `${substanceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${duration}s.mp3`;
 
-    try {
-        const exportButton = document.getElementById('export-mp3');
-        exportButton.disabled = true;
-        exportButton.textContent = '⏳ Encoding...';
-
-        LoadingOverlay.show(`Encoding MP3: ${filename}`);
-
-        // Render audio to buffer first
-        const audioBuffer = await audioEngine.renderToBuffer(currentPeaks, duration);
-
-        // Encode to MP3
-        const mp3Blob = await MP3Encoder.encode(audioBuffer);
-
-        // Download
-        const url = URL.createObjectURL(mp3Blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        LoadingOverlay.hide();
-        exportButton.disabled = false;
-        exportButton.textContent = '🎵 Export MP3';
-
-        Toast.success(`Successfully exported: ${filename}`);
-    } catch (error) {
-        LoadingOverlay.hide();
-        const exportButton = document.getElementById('export-mp3');
-        exportButton.disabled = false;
-        exportButton.textContent = '🎵 Export MP3';
-
-        ErrorHandler.handle(error, `Failed to export MP3: ${error.message}`);
-    }
+    await withExportButton(
+        'export-mp3',
+        '⏳ Encoding MP3...',
+        '🎵 Export MP3',
+        async () => {
+            LoadingOverlay.show(`Encoding MP3: ${filename}`);
+            await audioEngine.exportMP3(currentPeaks, duration, filename, 128);
+            MicroInteractions.celebrate(`First MP3 export! Successfully exported: ${filename}`);
+        },
+        'Failed to export MP3'
+    );
 }
