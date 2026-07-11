@@ -75,6 +75,13 @@ class AudioEngine {
         // Looping parameters
         this.loopEnabled = CONFIG.looping.DEFAULT_LOOP_ENABLED;  // Enable looping for arpeggios
         this.loopTimeoutId = null;  // Store timeout ID for loop control
+        this.chordTimeoutId = null; // Timeout ID for chord playback end
+
+        // Fired when playback ends on its own (chord finished, or a looping
+        // arpeggio was allowed to wind down). NOT fired by stop() — callers
+        // of stop() manage their own UI. With looping enabled this may never
+        // fire, so UI must not assume playback ends after `duration`.
+        this.onPlaybackEnded = null;
 
         // ADSR envelope parameters
         this.attackTime = CONFIG.adsr.DEFAULT_ATTACK;
@@ -271,10 +278,28 @@ class AudioEngine {
             };
         });
 
-        // Set flag to false after duration
-        setTimeout(() => {
-            this.isPlaying = false;
+        // End playback after duration (tracked so stop()/replay can cancel
+        // a stale timer from a previous chord)
+        if (this.chordTimeoutId) {
+            clearTimeout(this.chordTimeoutId);
+        }
+        this.chordTimeoutId = setTimeout(() => {
+            this.chordTimeoutId = null;
+            this.finishPlayback();
         }, duration * 1000);
+    }
+
+    /**
+     * Mark playback as naturally finished and notify the UI.
+     * Idempotent: no-ops if playback already ended.
+     * @private
+     */
+    finishPlayback() {
+        if (!this.isPlaying) return;
+        this.isPlaying = false;
+        if (this.onPlaybackEnded) {
+            this.onPlaybackEnded();
+        }
     }
 
     /**
@@ -379,8 +404,8 @@ class AudioEngine {
                 // Restart the arpeggio with the same peaks
                 this.playArpeggio(peaks, duration);
             } else {
-                this.isPlaying = false;
                 this.loopTimeoutId = null;
+                this.finishPlayback();
             }
         }, duration * 1000);
     }
@@ -451,10 +476,14 @@ class AudioEngine {
     stop() {
         const currentTime = this.audioContext ? this.audioContext.currentTime : 0;
 
-        // Clear any pending loop timeout
+        // Clear any pending playback-end/loop timeouts
         if (this.loopTimeoutId) {
             clearTimeout(this.loopTimeoutId);
             this.loopTimeoutId = null;
+        }
+        if (this.chordTimeoutId) {
+            clearTimeout(this.chordTimeoutId);
+            this.chordTimeoutId = null;
         }
 
         this.oscillators.forEach(({osc, gain}) => {
@@ -472,6 +501,86 @@ class AudioEngine {
 
         this.oscillators = [];
         this.isPlaying = false;
+    }
+
+    /**
+     * Start a sustained voice from a set of peaks
+     *
+     * Independent of the one-shot play()/stop() path: voices manage their own
+     * oscillators, so several can sound at once (MIDI keyboard polyphony,
+     * per-peak audition) without disturbing normal playback state.
+     *
+     * The voice sounds at attack→decay→sustain and holds until release() is
+     * called, which applies the release ramp and cleans up.
+     *
+     * @param {Array} peaks - Array of {audioFreq, absorbance} objects
+     * @param {Object} [options]
+     * @param {number} [options.rate=1] - Frequency multiplier (e.g. 2^(semitones/12) for transposition)
+     * @param {number} [options.gainScale=1] - Amplitude scale (e.g. MIDI velocity / 127)
+     * @returns {Object|null} Voice handle with release(), or null if the engine isn't initialized
+     */
+    startVoice(peaks, { rate = 1, gainScale = 1 } = {}) {
+        if (!this.audioContext || !Array.isArray(peaks) || peaks.length === 0) {
+            return null;
+        }
+
+        const now = this.audioContext.currentTime;
+        const nodes = [];
+
+        peaks.forEach((peak, idx) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+
+            const freq = peak.audioFreq * rate;
+            // Keep transposed frequencies in a safe audible range
+            if (freq < 20 || freq > 16000) return;
+            osc.frequency.value = freq;
+
+            // Same waveform mix as chord playback
+            const waveforms = ['sine', 'triangle', 'square'];
+            osc.type = waveforms[idx % 3 === 2 ? 2 : (idx % 2)];
+
+            const baseGain = (peak.absorbance * 0.8) / peaks.length;
+            const freqCorrection = Math.min(1.0, 1000 / freq);
+            const peakGain = baseGain * freqCorrection * gainScale;
+
+            // Attack → decay → hold at sustain until released
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(peakGain, now + this.attackTime);
+            gain.gain.linearRampToValueAtTime(peakGain * this.sustainLevel, now + this.attackTime + this.decayTime);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+
+            nodes.push({ osc, gain });
+        });
+
+        let released = false;
+        const releaseTime = this.releaseTime;
+        const ctx = this.audioContext;
+
+        return {
+            release: () => {
+                if (released) return;
+                released = true;
+                const t = ctx.currentTime;
+                nodes.forEach(({ osc, gain }) => {
+                    try {
+                        gain.gain.cancelScheduledValues(t);
+                        gain.gain.setValueAtTime(gain.gain.value, t);
+                        gain.gain.linearRampToValueAtTime(0, t + releaseTime);
+                        osc.stop(t + releaseTime + 0.01);
+                        osc.onended = () => {
+                            osc.disconnect();
+                            gain.disconnect();
+                        };
+                    } catch (e) {
+                        // Oscillator may already be stopped
+                    }
+                });
+            }
+        };
     }
 
     /**

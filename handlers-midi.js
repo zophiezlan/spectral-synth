@@ -2,14 +2,42 @@
  * MIDI Handlers
  *
  * Wired by event-handlers.js (setupMIDIListeners). Operate on globals
- * (midiOutput, currentPeaks, substanceSelect, audioEngine).
+ * (midiOutput, midiInput, currentPeaks, substanceSelect, audioEngine).
  */
 
-/* global midiOutput, currentPeaks, substanceSelect, audioEngine,
+/* global midiOutput, midiInput, currentPeaks, substanceSelect, audioEngine,
           Toast, ErrorHandler, MicroInteractions */
 
 /**
- * Refresh the MIDI device list and repopulate the dropdown.
+ * Fill a device dropdown with options.
+ * @param {HTMLSelectElement} select
+ * @param {Array} devices - {id, name, manufacturer} entries
+ * @param {string} placeholderText
+ */
+function populateDeviceSelect(select, devices, placeholderText) {
+    const previous = select.value;
+    select.innerHTML = '';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = devices.length === 0 ? '-- No MIDI devices found --' : placeholderText;
+    select.appendChild(placeholder);
+
+    devices.forEach((device) => {
+        const option = document.createElement('option');
+        option.value = device.id;
+        option.textContent = `${device.name} (${device.manufacturer})`;
+        select.appendChild(option);
+    });
+
+    // Keep the previous selection if the device is still present
+    if (previous && devices.some(d => d.id === previous)) {
+        select.value = previous;
+    }
+}
+
+/**
+ * Refresh the MIDI device lists (output + input) and repopulate the dropdowns.
  */
 async function refreshMIDIDevices() {
     const midiDeviceSelect = document.getElementById('midi-device-select');
@@ -26,32 +54,58 @@ async function refreshMIDIDevices() {
         }
 
         const devices = midiOutput.getOutputDevices();
-        midiDeviceSelect.innerHTML = '';
+        populateDeviceSelect(midiDeviceSelect, devices, '-- Select MIDI Device --');
 
-        if (devices.length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = '-- No MIDI devices found --';
-            midiDeviceSelect.appendChild(option);
-            Toast.info('No MIDI output devices found. Connect a MIDI device and refresh.', 3000);
+        // Input devices (MIDI keyboard) share the same MIDIAccess
+        let inputCount = 0;
+        const midiInputSelect = document.getElementById('midi-input-select');
+        if (midiInputSelect && typeof midiInput !== 'undefined' && midiInput) {
+            if (!midiInput.midiAccess) {
+                await midiInput.init(midiOutput.midiAccess);
+            }
+            const inputDevices = midiInput.getInputDevices();
+            inputCount = inputDevices.length;
+            populateDeviceSelect(midiInputSelect, inputDevices, '-- Select MIDI Input --');
+        }
+
+        if (devices.length === 0 && inputCount === 0) {
+            Toast.info('No MIDI devices found. Connect a MIDI device and refresh.', 3000);
             return;
         }
 
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '-- Select MIDI Device --';
-        midiDeviceSelect.appendChild(placeholder);
-
-        devices.forEach((device) => {
-            const option = document.createElement('option');
-            option.value = device.id;
-            option.textContent = `${device.name} (${device.manufacturer})`;
-            midiDeviceSelect.appendChild(option);
-        });
-
-        Toast.success(`Found ${devices.length} MIDI device(s)`, 2000);
+        Toast.success(`Found ${devices.length} output and ${inputCount} input MIDI device(s)`, 2000);
     } catch (error) {
         ErrorHandler.handle(error, `Failed to access MIDI devices: ${error.message}`);
+    }
+}
+
+/**
+ * Handle the MIDI-input enable checkbox.
+ * Initializes the audio engine on first enable (user gesture unlocks audio).
+ * @param {Event} e
+ */
+async function handleMIDIInputEnabled(e) {
+    if (!midiInput) return;
+
+    if (e.target.checked) {
+        try {
+            await audioEngine.init();
+            if (!midiInput.midiAccess) {
+                if (!midiOutput.midiAccess) await midiOutput.init();
+                await midiInput.init(midiOutput.midiAccess);
+            }
+            midiInput.setEnabled(true);
+            if (!midiInput.hasSelectedDevice()) {
+                Toast.info('MIDI input enabled — select an input device to start playing', 3000);
+            } else {
+                Toast.success('MIDI input enabled. C4 plays the spectrum at native pitch.', 3000);
+            }
+        } catch (error) {
+            e.target.checked = false;
+            ErrorHandler.handle(error, `Failed to enable MIDI input: ${error.message}`);
+        }
+    } else {
+        midiInput.setEnabled(false);
     }
 }
 

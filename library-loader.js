@@ -23,7 +23,7 @@
  * ```
  */
 
-/* global IndexedDBStorage */
+/* global IndexedDBStorage, SpectrumCodec */
 
 const LibraryLoader = (function() {
     'use strict';
@@ -44,30 +44,22 @@ const LibraryLoader = (function() {
 
     /**
      * Initialize the library loader
-     * Load the index file to get category metadata
+     *
+     * Always fetches the (tiny) network index first so a new deploy's
+     * content-hash version reaches clients immediately; the IndexedDB
+     * copy is only used as an offline fallback. Category caches are
+     * validated against the index version, so stale data self-invalidates.
+     *
      * @returns {Promise<Object>} Library index
      */
     async function init() {
-        // Initialize IndexedDB if available
+        // Initialize IndexedDB if available (used for offline caching)
+        let idbAvailable = false;
         if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
             try {
                 await IndexedDBStorage.init();
-
-                // Try to load index from IndexedDB first
-                const cachedIndex = await IndexedDBStorage.getIndex();
-                if (cachedIndex) {
-                    libraryIndex = cachedIndex;
-                    isInitialized = true;
-                    useLazyLoading = true;
-
-                    if (typeof Logger !== 'undefined') {
-                        Logger.log(`✓ Library index loaded from IndexedDB: ${libraryIndex.totalSubstances} substances`);
-                    }
-
-                    return libraryIndex;
-                }
+                idbAvailable = true;
             } catch (error) {
-                // IndexedDB initialization failed, continue without it
                 if (typeof Logger !== 'undefined') {
                     Logger.debug('IndexedDB initialization failed:', error.message);
                 }
@@ -75,7 +67,7 @@ const LibraryLoader = (function() {
         }
 
         try {
-            // Try to load the library index for lazy loading
+            // Network-first: the index is tiny and carries the current version
             const response = await fetch(`${LIBRARY_BASE_PATH}index.json`);
 
             if (!response.ok) {
@@ -87,7 +79,7 @@ const LibraryLoader = (function() {
             useLazyLoading = true;
 
             // Store index in IndexedDB for offline use
-            if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
+            if (idbAvailable) {
                 try {
                     await IndexedDBStorage.storeIndex(libraryIndex);
                 } catch (error) {
@@ -99,11 +91,33 @@ const LibraryLoader = (function() {
             }
 
             if (typeof Logger !== 'undefined') {
-                Logger.log(`✓ Library index loaded: ${libraryIndex.totalSubstances} substances in ${libraryIndex.categories.length} categories`);
+                Logger.log(`✓ Library index loaded: ${libraryIndex.totalSubstances} substances in ${libraryIndex.categories.length} categories (v${libraryIndex.version})`);
             }
 
             return libraryIndex;
-        } catch (error) {
+        } catch (_networkError) {
+            // Offline (or no build): fall back to the cached index
+            if (idbAvailable) {
+                try {
+                    const cachedIndex = await IndexedDBStorage.getIndex();
+                    if (cachedIndex) {
+                        libraryIndex = cachedIndex;
+                        isInitialized = true;
+                        useLazyLoading = true;
+
+                        if (typeof Logger !== 'undefined') {
+                            Logger.log(`✓ Library index loaded from IndexedDB (offline): ${libraryIndex.totalSubstances} substances`);
+                        }
+
+                        return libraryIndex;
+                    }
+                } catch (error) {
+                    if (typeof Logger !== 'undefined') {
+                        Logger.debug('IndexedDB index fallback failed:', error.message);
+                    }
+                }
+            }
+
             // Fallback to monolithic library
             if (typeof Logger !== 'undefined') {
                 Logger.info('Library index not found, using monolithic library');
@@ -134,16 +148,18 @@ const LibraryLoader = (function() {
             throw new Error(`Category not found: ${categoryName}`);
         }
 
-        // Try to load from IndexedDB first (offline-first strategy)
+        // Try to load from IndexedDB first (offline-first strategy).
+        // The version check against the network index invalidates stale caches.
         if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
             try {
                 const cachedSubstances = await IndexedDBStorage.getCategory(categoryName, libraryIndex.version);
                 if (cachedSubstances) {
-                    loadedCategories[categoryName] = cachedSubstances;
+                    const decoded = SpectrumCodec.decodeLibrary(cachedSubstances);
+                    loadedCategories[categoryName] = decoded;
                     if (typeof Logger !== 'undefined') {
-                        Logger.log(`✓ Loaded ${cachedSubstances.length} substances from IndexedDB (offline cache)`);
+                        Logger.log(`✓ Loaded ${decoded.length} substances from IndexedDB (offline cache)`);
                     }
-                    return cachedSubstances;
+                    return decoded;
                 }
             } catch (error) {
                 // IndexedDB failed, continue to network fetch
@@ -167,10 +183,8 @@ const LibraryLoader = (function() {
 
             const substances = await response.json();
 
-            // Cache the loaded category in memory
-            loadedCategories[categoryName] = substances;
-
-            // Store in IndexedDB for offline use
+            // Store the compact wire format in IndexedDB (smaller on disk);
+            // it gets decoded again on retrieval.
             if (typeof IndexedDBStorage !== 'undefined' && IndexedDBStorage.isSupported()) {
                 try {
                     await IndexedDBStorage.storeCategory(categoryName, substances, libraryIndex.version);
@@ -182,11 +196,15 @@ const LibraryLoader = (function() {
                 }
             }
 
+            // Decode compact spectra to runtime point arrays and cache in memory
+            const decoded = SpectrumCodec.decodeLibrary(substances);
+            loadedCategories[categoryName] = decoded;
+
             if (typeof Logger !== 'undefined') {
-                Logger.log(`✓ Loaded ${substances.length} substances from category '${categoryName}' (network)`);
+                Logger.log(`✓ Loaded ${decoded.length} substances from category '${categoryName}' (network)`);
             }
 
-            return substances;
+            return decoded;
         } catch (error) {
             if (typeof Logger !== 'undefined') {
                 Logger.error(`Failed to load category ${categoryName}:`, error);
@@ -217,7 +235,7 @@ const LibraryLoader = (function() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const library = await response.json();
+                const library = SpectrumCodec.decodeLibrary(await response.json());
 
                 if (typeof Logger !== 'undefined') {
                     Logger.log(`✓ Loaded ${library.length} spectra from monolithic library`);
@@ -231,17 +249,14 @@ const LibraryLoader = (function() {
             }
         }
 
-        // Load all categories and combine
-        const allSubstances = [];
+        // Load all categories concurrently and combine
+        const results = await Promise.all(
+            libraryIndex.categories
+                .filter(categoryInfo => categoryInfo.count > 0)
+                .map(categoryInfo => loadCategory(categoryInfo.name))
+        );
 
-        for (const categoryInfo of libraryIndex.categories) {
-            if (categoryInfo.count > 0) {
-                const substances = await loadCategory(categoryInfo.name);
-                allSubstances.push(...substances);
-            }
-        }
-
-        return allSubstances;
+        return results.flat();
     }
 
     /**

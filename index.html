@@ -169,6 +169,9 @@
                 <select id="substance">
                     <option value="">-- Loading library... --</option>
                 </select>
+                <button id="browse-library-btn" class="secondary-button browse-button" type="button" aria-label="Browse library with spectrum previews">
+                    🔬 Browse
+                </button>
             </div>
 
             <div class="playback-controls" role="group" aria-label="Playback buttons">
@@ -434,7 +437,51 @@
                 <p class="import-export-info">Audio exports (WAV/MP3) use the current Playback Mode setting from Settings.</p>
             </div>
 
+            <div class="import-export-section">
+                <h3>📊 Export Data</h3>
+                <div class="export-buttons">
+                    <button id="export-peaks-csv" disabled class="secondary-button" aria-label="Export peak table as CSV">
+                        📋 Peak Table (CSV)
+                    </button>
+                    <button id="export-peaks-json" disabled class="secondary-button" aria-label="Export peak analysis as JSON">
+                        🧾 Peak Analysis (JSON)
+                    </button>
+                    <button id="export-spectrum-csv" disabled class="secondary-button" aria-label="Export spectrum as CSV">
+                        📈 Spectrum (CSV)
+                    </button>
+                </div>
+                <p class="import-export-info">Peak exports include wavenumber, intensity, prominence, width, mapped audio frequency, MIDI note, and functional group. The JSON export adds full provenance (substance metadata + mapping parameters). Spectrum CSV round-trips with the CSV importer.</p>
+            </div>
+
             <button id="import-export-ok" class="primary-button modal-action-button">Done</button>
+        </div>
+    </div>
+
+    <!-- Browse Library Modal -->
+    <div id="browse-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="browse-title" aria-modal="true">
+        <div class="modal-content browse-modal">
+            <button class="modal-close" id="browse-close" aria-label="Close library browser">&times;</button>
+            <h2 id="browse-title">🔬 Browse Library</h2>
+
+            <div class="browse-controls">
+                <input type="text" id="browse-search" placeholder="Search by name or formula..." aria-label="Search substances" />
+                <select id="browse-category" aria-label="Filter by category">
+                    <option value="all">All Categories</option>
+                    <option value="opioids">Opioids</option>
+                    <option value="stimulants">Stimulants</option>
+                    <option value="benzodiazepines">Benzodiazepines</option>
+                    <option value="psychedelics">Psychedelics</option>
+                    <option value="cannabinoids">Cannabinoids</option>
+                    <option value="dissociatives">Dissociatives</option>
+                    <option value="tryptamines">Tryptamines</option>
+                    <option value="steroids">Steroids</option>
+                    <option value="precursors">Precursors</option>
+                    <option value="other">Other</option>
+                </select>
+                <span id="browse-count" class="browse-count" aria-live="polite"></span>
+            </div>
+
+            <div id="browse-grid" class="browse-grid" role="list"></div>
         </div>
     </div>
 
@@ -442,19 +489,50 @@
     <div id="midi-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="midi-title" aria-modal="true">
         <div class="modal-content midi-modal">
             <button class="modal-close" id="midi-close" aria-label="Close MIDI options">&times;</button>
-            <h2 id="midi-title">🎹 MIDI Output</h2>
+            <h2 id="midi-title">🎹 MIDI</h2>
 
             <div class="midi-section">
                 <h3>Device Selection</h3>
                 <div class="midi-device-selector">
-                    <label for="midi-device-select">MIDI Device:</label>
+                    <label for="midi-device-select">Output Device:</label>
                     <select id="midi-device-select" aria-label="Select MIDI output device">
+                        <option value="">-- No MIDI devices found --</option>
+                    </select>
+                    <label for="midi-input-select">Input Device (keyboard):</label>
+                    <select id="midi-input-select" aria-label="Select MIDI input device">
                         <option value="">-- No MIDI devices found --</option>
                     </select>
                     <button id="refresh-midi-devices" class="secondary-button" aria-label="Refresh MIDI device list">
                         🔄 Refresh Devices
                     </button>
                 </div>
+            </div>
+
+            <div class="midi-section">
+                <h3>Play from MIDI Keyboard</h3>
+                <label class="midi-checkbox-label">
+                    <input type="checkbox" id="midi-input-enabled">
+                    Enable MIDI input
+                </label>
+                <p class="midi-info">Play the selected substance from a MIDI keyboard. Middle C (C4) plays the spectrum at its native pitch; other keys transpose it. Velocity controls loudness, and notes sustain until released.</p>
+            </div>
+
+            <div class="midi-section">
+                <h3>Pitch Accuracy</h3>
+                <label class="midi-checkbox-label">
+                    <input type="checkbox" id="midi-pitch-bend" checked>
+                    Pitch-accurate output (per-note pitch bend)
+                </label>
+                <div class="slider-control">
+                    <label for="midi-bend-range">Bend Range: <span id="midi-bend-range-value">2</span> semitones</label>
+                    <select id="midi-bend-range" aria-label="Pitch bend range in semitones">
+                        <option value="2" selected>±2 (standard)</option>
+                        <option value="12">±12</option>
+                        <option value="24">±24</option>
+                        <option value="48">±48 (MPE)</option>
+                    </select>
+                </div>
+                <p class="midi-info">Spectral peaks rarely fall on exact semitones — the microtonal offsets are part of the molecular fingerprint. Pitch-accurate mode spreads notes across MIDI channels with per-note pitch bends so peaks keep their exact frequencies. Disable for synths that only listen on a single channel (notes then quantize to the nearest semitone).</p>
             </div>
 
             <div class="midi-section">
@@ -691,6 +769,7 @@
     <script src="performance-monitor.js"></script>
     
     <!-- Core modules -->
+    <script src="spectrum-codec.js"></script>
     <script src="indexeddb-storage.js"></script>
     <script src="library-loader.js"></script>
     <script src="frequency-mapper.js"></script>
@@ -700,6 +779,7 @@
     <script src="jcamp-importer.js"></script>
     <script src="mp3-encoder.js"></script>
     <script src="midi-output.js"></script>
+    <script src="midi-input.js"></script>
     
     <!-- DOM and event handling -->
     <script src="dom-elements.js"></script>
@@ -709,6 +789,7 @@
 
     <!-- Feature modules -->
     <script src="filter-manager.js"></script>
+    <script src="browse-manager.js"></script>
     <script src="onboarding.js"></script>
     <script src="playback-controller.js"></script>
     <script src="theme-manager.js"></script>

@@ -38,6 +38,12 @@
  * @returns {string} Category name
  */
 function categorizeSubstance(item) {
+    // Prefer the category baked into the library data at build time;
+    // fall back to keyword matching for user-imported substances.
+    if (item.category) {
+        return item.category;
+    }
+
     const name = item.name.toLowerCase();
     // Formula reserved for future enhanced categorization
     const _formula = (item.formula || '').toLowerCase();
@@ -112,4 +118,9 @@ function categorizeSubstance(item) {
     }
 
     return 'other';
+}
+
+// Also usable from Node (build-library.js, split-library.js, migrate-library.js)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { categorizeSubstance };
 }

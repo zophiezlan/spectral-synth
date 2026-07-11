@@ -314,4 +314,73 @@ describe('FrequencyMapper', () => {
             expect(group1050.length).toBeGreaterThan(0);
         });
     });
+
+    describe('prominence-based peak detection', () => {
+        /**
+         * Build a spectrum (in transmittance) from an absorbance profile:
+         * transmittance = 100 * (1 - absorbance)
+         */
+        function spectrumFromAbsorbance(absorbances, firstX = 400, step = 10) {
+            return absorbances.map((a, i) => ({
+                wavenumber: firstX + i * step,
+                transmittance: 100 * (1 - a),
+            }));
+        }
+
+        it('reports prominence and width on detected peaks', () => {
+            // Single clean peak rising from a flat baseline
+            const spectrum = spectrumFromAbsorbance([0.1, 0.1, 0.3, 0.7, 0.9, 0.7, 0.3, 0.1, 0.1]);
+            const peaks = mapper.extractPeaks(spectrum, 0.15);
+
+            expect(peaks).toHaveLength(1);
+            expect(peaks[0].prominence).toBeCloseTo(0.8, 5); // 0.9 peak − 0.1 base
+            expect(peaks[0].width).toBeGreaterThan(0);
+        });
+
+        it('rejects low-prominence shoulder ripples that pass the height threshold', () => {
+            // Tall peak with a tiny ripple on its shoulder: the ripple is a
+            // local maximum above the threshold, but its prominence is ~0.02
+            const spectrum = spectrumFromAbsorbance([
+                0.05, 0.2, 0.6, 0.9, 0.6, 0.42, 0.44, 0.42, 0.2, 0.05,
+            ]);
+            const peaks = mapper.extractPeaks(spectrum, 0.15, 20, 0.05);
+
+            expect(peaks).toHaveLength(1);
+            expect(peaks[0].absorbance).toBeCloseTo(0.9, 5);
+        });
+
+        it('keeps both peaks of a genuine doublet', () => {
+            // Two peaks separated by a deep valley — both prominent
+            const spectrum = spectrumFromAbsorbance([
+                0.05, 0.3, 0.8, 0.3, 0.1, 0.3, 0.7, 0.3, 0.05,
+            ]);
+            const peaks = mapper.extractPeaks(spectrum, 0.15, 20, 0.05);
+
+            expect(peaks).toHaveLength(2);
+            const heights = peaks.map(p => p.absorbance).sort((a, b) => b - a);
+            expect(heights[0]).toBeCloseTo(0.8, 5);
+            expect(heights[1]).toBeCloseTo(0.7, 5);
+        });
+
+        it('measures broader peaks as wider', () => {
+            const sharp = spectrumFromAbsorbance([0.05, 0.05, 0.9, 0.05, 0.05]);
+            const broad = spectrumFromAbsorbance([0.05, 0.4, 0.7, 0.85, 0.9, 0.85, 0.7, 0.4, 0.05]);
+
+            const sharpPeak = mapper.extractPeaks(sharp, 0.15)[0];
+            const broadPeak = mapper.extractPeaks(broad, 0.15)[0];
+
+            expect(broadPeak.width).toBeGreaterThan(sharpPeak.width);
+        });
+
+        it('still sorts by intensity and honors maxPeaks', () => {
+            const spectrum = spectrumFromAbsorbance([
+                0.05, 0.5, 0.05, 0.9, 0.05, 0.7, 0.05, 0.3, 0.05,
+            ]);
+            const peaks = mapper.extractPeaks(spectrum, 0.15, 2, 0.05);
+
+            expect(peaks).toHaveLength(2);
+            expect(peaks[0].absorbance).toBeGreaterThan(peaks[1].absorbance);
+            expect(peaks[0].absorbance).toBeCloseTo(0.9, 5);
+        });
+    });
 });

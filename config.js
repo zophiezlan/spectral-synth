@@ -19,8 +19,11 @@ const CONFIG = {
 
     // Peak detection parameters
     peakDetection: {
-        DEFAULT_THRESHOLD: 0.15,  // Minimum absorption intensity (0-1)
-        DEFAULT_MAX_PEAKS: 20,    // Maximum number of peaks to extract
+        DEFAULT_THRESHOLD: 0.15,   // Minimum absorption intensity (0-1)
+        DEFAULT_MAX_PEAKS: 20,     // Maximum number of peaks to extract
+        MIN_PROMINENCE: 0.03,      // Minimum peak prominence (0-1) — rejects
+        // noise ripples and shoulders that a plain
+        // local-maximum test would report as peaks
     },
 
     // Audio synthesis parameters

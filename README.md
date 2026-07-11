@@ -31,7 +31,7 @@ A drug's spectral fingerprint is literally a frequency spectrum—just like audi
 
 The app works in two modes:
 
-**Quick start (no build):** Open `index.html` in a modern browser. Everything works, but the full 39 MB FTIR library loads up-front.
+**Quick start (no build):** Open `index.html` in a modern browser. Everything works, but the full FTIR library (~2.6 MB) loads up-front.
 
 ```bash
 git clone https://github.com/yourusername/spectral-synth.git
@@ -39,7 +39,7 @@ cd spectral-synth
 open index.html  # or just double-click the file
 ```
 
-**Production / fast load:** Run the build once. This bundles + minifies the JS/CSS and splits the library into per-category chunks that load on demand (~hundreds of KB instead of 39 MB).
+**Production / fast load:** Run the build once. This bundles + minifies the JS/CSS and splits the library into per-category chunks that load on demand, with IndexedDB offline caching and content-hash cache invalidation.
 
 ```bash
 npm install
@@ -52,7 +52,7 @@ npx serve dist          # or deploy dist/ to Vercel / any static host
 ## How It Works
 
 ### 1. Data Input
-Real FTIR spectra from the ENFSI library, parsed from JCAMP-DX format and converted to JSON arrays of `{wavenumber, transmittance}` pairs. Lower transmittance = higher absorption = stronger peak.
+Real FTIR spectra from the ENFSI library, parsed from JCAMP-DX format. On disk each spectrum is stored compactly as a linear wavenumber grid plus an array of transmittance values (`{firstX, lastX, y[]}`, 2-decimal precision — ~15x smaller than point objects); `spectrum-codec.js` expands it to `{wavenumber, transmittance}` points at load time. Lower transmittance = higher absorption = stronger peak.
 
 ### 2. Frequency Mapping
 ```
@@ -62,7 +62,7 @@ IR wavenumbers (400-4000 cm⁻¹) → Audio frequencies (100-8000 Hz)
 Uses **logarithmic scaling** to preserve perceptual relationships. High IR frequencies map to high audio frequencies.
 
 ### 3. Peak Detection
-Algorithm identifies local maxima in absorption spectrum—these are the characteristic peaks that define each molecule.
+Prominence-based peak detection (scipy-style): a local maximum only counts if it rises far enough above the surrounding baseline, which rejects noise ripples and shoulder artifacts. Each peak carries its prominence and width (full width at half prominence), and width is reported in the peak table and data exports.
 
 ### 4. Additive Synthesis
 Each absorption peak becomes an oscillator:
@@ -85,12 +85,18 @@ Both visualizations use the same mathematical transformation, just on different 
 index.html           - Main UI structure
 style.css            - Styling and layout
 config.js            - Centralized configuration and constants
-ftir-library.json    - Real FTIR spectra (943 substances, 37MB)
-frequency-mapper.js  - IR → audio conversion algorithms
-audio-engine.js      - Web Audio API synthesis
+ftir-library.json    - Real FTIR spectra (943 substances, ~2.6MB compact format)
+spectrum-codec.js    - Compact spectrum format encoder/decoder
+frequency-mapper.js  - IR → audio conversion + prominence-based peak detection
+audio-engine.js      - Web Audio API synthesis (one-shot playback + sustained voices)
+midi-output.js       - Pitch-accurate MIDI out (per-note pitch bend) + .mid export
+midi-input.js        - Play substances from a MIDI keyboard
+browse-manager.js    - Visual library browser with spectrum sparklines
 visualizer.js        - Canvas-based visualization
 app.js               - Main application coordinator
 build-library.js     - JCAMP-DX parser & library builder (Node.js)
+split-library.js     - Category chunking + content-hash versioning (Node.js)
+migrate-library.js   - One-off converter: legacy point arrays → compact format
 CONTRIBUTING.md      - Contribution guidelines
 LICENSE              - MIT License
 ```
@@ -104,10 +110,11 @@ The application follows a modular architecture with clear separation of concerns
    - Easy customization without touching code
    - Immutable configuration to prevent accidents
 
-2. **Data Layer** (`ftir-library.json`)
+2. **Data Layer** (`ftir-library.json` + `spectrum-codec.js`)
    - Real FTIR spectra from ENFSI database
-   - Pre-processed for web performance
-   - Loaded asynchronously on startup
+   - Compact storage format: linear grid + rounded transmittance values, category baked in
+   - Decoded at the load boundary; the rest of the app sees plain point arrays
+   - Lazy-loaded per category in production, cached in IndexedDB, invalidated by content hash
 
 3. **Core Modules**
    - `frequency-mapper.js` - Handles IR to audio frequency conversion and peak detection
@@ -217,7 +224,11 @@ The builder:
 1. Parses JCAMP-DX format (.JDX files)
 2. Converts absorbance → transmittance
 3. Downsamples to ~400 points per spectrum
-4. Outputs `ftir-library.json`
+4. Categorizes each substance and encodes spectra in the compact grid format
+5. Outputs `ftir-library.json`
+
+If you have an older `ftir-library.json` with point-array spectra, run
+`node migrate-library.js` once to convert it in place (~15x smaller).
 
 Edit `build-library.js` to customize which substances are included.
 
@@ -322,6 +333,21 @@ Six curated presets for different sonic characteristics:
 
 Use the preset dropdown to quickly apply professional effect combinations!
 
+### Data Export
+Export the analysis, not just the audio:
+- **Peak Table (CSV)** - wavenumber, intensity, prominence, width, mapped audio frequency, MIDI note + cent offset, functional group
+- **Peak Analysis (JSON)** - the peak table plus full provenance: substance metadata, mapping parameters, and detection settings for reproducibility
+- **Spectrum (CSV)** - the current spectrum as `wavenumber,transmittance`, round-trippable with the CSV importer
+
+### MIDI
+- **Pitch-accurate output** (default) - spectral peaks rarely land on 12-TET semitones, and those microtonal offsets are part of the molecular fingerprint. Notes are spread across MIDI channels with per-note pitch bends (MPE-style, bend range configurable and announced via RPN 0), so external synths and DAWs play the exact peak frequencies. Disable for single-channel synths (quantizes to nearest semitone).
+- **MIDI file export** - Standard MIDI File (.mid) with the same pitch-bend treatment, honoring the current playback mode and tempo
+- **MIDI input** - play the selected substance from a MIDI keyboard: C4 = native pitch, other keys transpose the whole peak set, velocity controls loudness, notes sustain until released (polyphonic)
+- Note timing uses Web MIDI timestamped sends, so notes don't stick when the tab is backgrounded
+
+### Library Browser
+Click **🔬 Browse** for a searchable card grid of all 943 substances with lazily rendered spectrum sparklines, formula/MW metadata, and category chips. Clicking any peak row in the mapping table auditions that single peak.
+
 ### Playback Modes
 Six different ways to experience molecular fingerprints:
 - **Chord** - All peaks play simultaneously (traditional mode)
@@ -343,7 +369,12 @@ Arpeggiation creates melodic sequences from spectral data, offering a completely
 - Arpeggiation and playback modes
 - Mobile-optimized touch interface
 - Mix multiple substances (spectral blending)
-- MIDI output for external synthesizers
+- MIDI output for external synthesizers (pitch-accurate, per-note pitch bend)
+- MIDI input — play substances from a keyboard
+- Peak table / spectrum data export with provenance
+- Visual library browser with spectrum sparklines
+- Prominence-based peak detection with width estimates
+- Compact library format (~2.6 MB) with content-hash cache invalidation
 
 ### Future Enhancements
 

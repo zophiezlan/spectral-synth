@@ -76,6 +76,8 @@ export default [
                 FrequencyMapper: 'readonly',
                 Visualizer: 'readonly',
                 MIDIOutput: 'readonly',
+                MIDIInput: 'readonly',
+                SpectrumCodec: 'readonly',
                 CSVImporter: 'readonly',
                 JCAMPImporter: 'readonly',
                 MP3Encoder: 'readonly',
@@ -85,6 +87,7 @@ export default [
                 KeyboardShortcuts: 'readonly',
                 ModalManager: 'readonly',
                 FilterManager: 'readonly',
+                BrowseManager: 'readonly',
                 TutorialManager: 'readonly',
                 Onboarding: 'readonly',
                 SmartSuggestions: 'readonly',
@@ -104,10 +107,12 @@ export default [
                 handleKeyboardShortcut: 'readonly',
                 handleFavoriteToggle: 'readonly',
                 updateFavoritesList: 'readonly',
-                FilterManager: 'readonly',
                 
                 // Import/Export handlers
                 handleCSVImport: 'readonly',
+                handleExportPeaksCSV: 'readonly',
+                handleExportPeaksJSON: 'readonly',
+                handleExportSpectrumCSV: 'readonly',
                 handleJCAMPImport: 'readonly',
                 handleExportWAV: 'readonly',
                 handleExportMP3: 'readonly',
@@ -116,6 +121,8 @@ export default [
                 handleSendMIDI: 'readonly',
                 handleExportMIDIFile: 'readonly',
                 refreshMIDIDevices: 'readonly',
+                handleMIDIInputEnabled: 'readonly',
+                populateDeviceSelect: 'readonly',
                 updateMIDISendButton: 'readonly',
                 
                 // DOM elements (exported from dom-elements.js)
@@ -151,6 +158,9 @@ export default [
                 
                 // Third-party libraries
                 lamejs: 'readonly',
+
+                // CommonJS export guard (dual browser/Node modules)
+                module: 'readonly',
                 
                 // Writable globals (for instances)
                 visualizer: 'writable',
@@ -158,7 +168,8 @@ export default [
                 visualizerB: 'writable',
                 audioEngine: 'writable',
                 frequencyMapper: 'writable',
-                midiOutput: 'writable'
+                midiOutput: 'writable',
+                midiInput: 'writable'
             }
         },
         rules: {
@@ -184,7 +195,7 @@ export default [
     },
     // Node.js files (build scripts)
     {
-        files: ['build.js', 'build-library.js', 'split-library.js'],
+        files: ['build.js', 'build-library.js', 'split-library.js', 'migrate-library.js'],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'commonjs',

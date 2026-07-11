@@ -8,13 +8,14 @@
  * loaded from separate files for better maintainability.
  */
 
-/* global handlePeakSelectionChange, setupThemeToggle, LibraryLoader, PerformanceMonitor */
+/* global handlePeakSelectionChange, setupThemeToggle, LibraryLoader, PerformanceMonitor, SpectrumCodec */
 
 // Global instances
 let audioEngine;
 let visualizer;
 let frequencyMapper;
 let midiOutput;
+let midiInput;
 let currentSpectrum = null;
 let currentPeaks = null;
 let libraryData = null;
@@ -56,13 +57,22 @@ async function init() {
         audioEngine = new AudioEngine();
         frequencyMapper = new FrequencyMapper();
 
-        // Create MIDI output instance (optional, may not be supported)
+        // Create MIDI instances (optional, may not be supported)
         try {
             if (typeof MIDIOutput !== 'undefined') {
                 midiOutput = new MIDIOutput();
+                if (typeof MIDIInput !== 'undefined') {
+                    midiInput = new MIDIInput({
+                        audioEngine,
+                        getPeaks: () => currentPeaks,
+                    });
+                }
                 // Try to initialize MIDI (don't fail if not supported)
                 try {
                     await midiOutput.init();
+                    if (midiInput) {
+                        await midiInput.init(midiOutput.midiAccess);
+                    }
                     refreshMIDIDevices();
                 } catch (midiError) {
                     Logger.info('MIDI not available:', midiError.message);
@@ -92,6 +102,7 @@ async function init() {
 
         // Set up event listeners (FilterManager owns its own — wired in loadLibrary)
         setupEventListeners();
+        setupPeakAudition();
 
         // Set up onboarding and keyboard shortcuts
         setupOnboarding();
@@ -182,7 +193,7 @@ async function loadLibrary() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            libraryData = await response.json();
+            libraryData = SpectrumCodec.decodeLibrary(await response.json());
 
             Logger.log(`✓ Loaded ${libraryData.length} spectra from ENFSI library`);
 
@@ -194,6 +205,22 @@ async function loadLibrary() {
 
         // Hand the library off to FilterManager, which owns the selector + filter UI.
         FilterManager.init(libraryData);
+
+        // Visual library browser (sparkline grid)
+        if (typeof BrowseManager !== 'undefined') {
+            BrowseManager.init({
+                getLibrary: () => libraryData,
+                onSelect: (substance) => {
+                    substanceSelect.value = substance.id;
+                    if (substanceSelect.value !== substance.id) {
+                        // Active filters hide this substance — clear them and retry
+                        FilterManager.clearAll();
+                        substanceSelect.value = substance.id;
+                    }
+                    handleSubstanceChange();
+                },
+            });
+        }
     } catch (error) {
         ErrorHandler.handle(
             error,
@@ -260,12 +287,12 @@ function handleSubstanceChange() {
         visualizer.clear();
         visualizer.clearSelection();
         playButton.disabled = true;
-        selectAllButton.disabled = true;
-        clearSelectionButton.disabled = true;
-        const exportWAV = document.getElementById('export-wav');
-        if (exportWAV) {
-            exportWAV.disabled = true;
-        }
+        if (selectAllButton) selectAllButton.disabled = true;
+        if (clearSelectionButton) clearSelectionButton.disabled = true;
+        ['export-wav', 'export-peaks-csv', 'export-peaks-json', 'export-spectrum-csv'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.disabled = true;
+        });
         // Hide favorite button
         const favoriteButton = document.getElementById('favorite-toggle');
         if (favoriteButton) {
@@ -310,18 +337,18 @@ function handleSubstanceChange() {
 
     // Enable playback and selection controls
     playButton.disabled = false;
-    selectAllButton.disabled = false;
-    clearSelectionButton.disabled = false;
+    if (selectAllButton) selectAllButton.disabled = false;
+    if (clearSelectionButton) clearSelectionButton.disabled = false;
 
     // Enable export buttons
-    const exportWAV = document.getElementById('export-wav');
     const exportMP3 = document.getElementById('export-mp3');
-    if (exportWAV) {
-        exportWAV.disabled = false;
-    }
     if (exportMP3) {
         exportMP3.disabled = false;
     }
+    ['export-wav', 'export-peaks-csv', 'export-peaks-json', 'export-spectrum-csv'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = false;
+    });
 
     // Update MIDI send button
     updateMIDISendButton();
@@ -355,25 +382,28 @@ function updateMappingInfo(data, peaks) {
 
     let html = `<p><strong>${data.name}</strong></p>`;
     html += `<p>${data.description}</p>`;
-    html += `<p>Detected ${peaks.length} significant absorption peaks:</p>`;
+    html += `<p>Detected ${peaks.length} significant absorption peaks <span style="font-size: 0.85em; color: #888;">(click a row to hear that peak)</span>:</p>`;
     html += '<table style="width: 100%; margin-top: 10px; font-size: 0.9em;">';
     html += '<tr style="border-bottom: 1px solid #444;">';
     html += '<th style="text-align: left; padding: 5px;">IR (cm⁻¹)</th>';
     html += '<th style="text-align: left; padding: 5px;">Audio (Hz)</th>';
     html += '<th style="text-align: left; padding: 5px;">Intensity</th>';
+    html += '<th style="text-align: left; padding: 5px;">Width</th>';
     html += '<th style="text-align: left; padding: 5px;">Functional Group</th>';
     html += '</tr>';
 
-    peaks.slice(0, 10).forEach(peak => {
+    peaks.slice(0, 10).forEach((peak, idx) => {
         const wavenumberStr = peak.wavenumber.toFixed(0);
         const audioFreqStr = peak.audioFreq.toFixed(1);
         const intensityPercent = (peak.absorbance * 100).toFixed(0);
+        const widthStr = peak.width !== undefined ? peak.width.toFixed(0) : '—';
         const functionalGroup = frequencyMapper.getFunctionalGroup(peak.wavenumber);
 
-        html += '<tr style="border-bottom: 1px solid #333;">';
+        html += `<tr class="peak-row" data-peak-idx="${idx}" title="Click to audition this peak" style="border-bottom: 1px solid #333; cursor: pointer;">`;
         html += `<td style="padding: 5px;">${wavenumberStr}</td>`;
         html += `<td style="padding: 5px;">${audioFreqStr}</td>`;
         html += `<td style="padding: 5px;">${intensityPercent}%</td>`;
+        html += `<td style="padding: 5px;">${widthStr}</td>`;
         html += `<td style="padding: 5px; color: #a78bfa;">${functionalGroup}</td>`;
         html += '</tr>';
     });
@@ -412,6 +442,33 @@ function updateMappingInfo(data, peaks) {
 
 // MIDI handlers moved to handlers-midi.js
 // Functions: refreshMIDIDevices, updateMIDISendButton, handleSendMIDI, handleExportMIDIFile
+
+/**
+ * Set up click-to-audition on the peak table rows.
+ * Rows in the mapping info tables carry data-peak-idx into currentPeaks.
+ */
+function setupPeakAudition() {
+    [mappingInfo, mappingInfoModal].forEach(container => {
+        if (!container) return;
+        container.addEventListener('click', async (e) => {
+            const row = e.target.closest('tr[data-peak-idx]');
+            if (!row || !currentPeaks) return;
+            const peak = currentPeaks[Number(row.dataset.peakIdx)];
+            if (!peak) return;
+
+            try {
+                await audioEngine.init();
+                // Single-peak voice, boosted since one oscillator carries the sound
+                const voice = audioEngine.startVoice([peak], { gainScale: 1.5 });
+                if (voice) {
+                    setTimeout(() => voice.release(), 700);
+                }
+            } catch (error) {
+                Logger.debug('Peak audition failed:', error.message);
+            }
+        });
+    });
+}
 
 /**
  * Set up onboarding modal

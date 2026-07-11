@@ -5,17 +5,19 @@
  * Splits the monolithic ftir-library.json into category-based chunks
  * for lazy loading and reduced initial bundle size.
  *
+ * Categories come from the `category` field baked into each substance
+ * record (see migrate-library.js / build-library.js); substances without
+ * one are categorized via substance-utilities.js keyword matching.
+ *
+ * The index version is a content hash of the library, so clients'
+ * IndexedDB caches invalidate automatically whenever the data changes.
+ *
  * Output Structure:
  * dist/
  *   library/
- *     index.json        - Metadata and category list
- *     opioids.json      - Opioid substances
- *     stimulants.json   - Stimulant substances
- *     benzodiazepines.json
- *     psychedelics.json
- *     cannabinoids.json
- *     steroids.json
- *     other.json
+ *     index.json         - Metadata, category list, content-hash version
+ *     <category>.json    - One file per category present in the data
+ *     search-index.json  - Name/formula lookup
  */
 
 /* eslint-env node */
@@ -23,65 +25,8 @@
 
 const fs = require('fs');
 const path = require('path');
-
-// Same categorization logic as substance-utilities.js
-function categorizeSubstance(item) {
-    const name = item.name.toLowerCase();
-    // Note: Formula could be used for future categorization logic based on
-    // molecular structure (e.g., identifying benzene rings, functional groups)
-
-    // Opioids
-    const opioidKeywords = ['morphine', 'heroin', 'codeine', 'fentanyl', 'oxycodone',
-        'hydrocodone', 'buprenorphine', 'methadone', 'tramadol',
-        'diacetylmorphine', 'acetylmorphine', 'alfentanil', 'sufentanil',
-        'remifentanil', 'carfentanil', 'acetylfentanyl', 'furanylfentanyl',
-        'acrylfentanyl', 'butyrfentanyl', 'valerylfentanyl'];
-    if (opioidKeywords.some(keyword => name.includes(keyword))) {
-        return 'opioids';
-    }
-
-    // Stimulants
-    const stimulantKeywords = ['cocaine', 'amphetamine', 'methamphetamine', 'mdma',
-        'mephedrone', 'caffeine', 'methylphenidate', 'cathinone',
-        'methcathinone', 'ecstasy', 'speed', 'crystal',
-        'ethylone', 'methylone', 'butylone', 'pentedrone',
-        'ephedrine', 'pseudoephedrine', 'benzoylecgonine'];
-    if (stimulantKeywords.some(keyword => name.includes(keyword))) {
-        return 'stimulants';
-    }
-
-    // Benzodiazepines
-    const benzoKeywords = ['diazepam', 'alprazolam', 'clonazepam', 'lorazepam',
-        'temazepam', 'oxazepam', 'nitrazepam', 'flunitrazepam',
-        'bromazepam', 'lormetazepam', 'etizolam', 'flubromazolam'];
-    if (benzoKeywords.some(keyword => name.includes(keyword))) {
-        return 'benzodiazepines';
-    }
-
-    // Psychedelics
-    const psychedelicKeywords = ['lsd', 'lysergic', 'psilocybin', 'dmt', 'mescaline',
-        '2c-b', '2c-i', '2c-e', 'nbome', 'dom', 'doi'];
-    if (psychedelicKeywords.some(keyword => name.includes(keyword))) {
-        return 'psychedelics';
-    }
-
-    // Cannabinoids
-    const cannabinoidKeywords = ['thc', 'cbd', 'cannabinol', 'cannabidiol', 'cannabis',
-        'jwh', 'am-2201', 'cp-47', 'hu-210'];
-    if (cannabinoidKeywords.some(keyword => name.includes(keyword))) {
-        return 'cannabinoids';
-    }
-
-    // Steroids
-    const steroidKeywords = ['testosterone', 'stanozolol', 'nandrolone', 'methandienone',
-        'boldenone', 'trenbolone', 'oxandrolone', 'methenolone',
-        'drostanolone', 'mesterolone'];
-    if (steroidKeywords.some(keyword => name.includes(keyword))) {
-        return 'steroids';
-    }
-
-    return 'other';
-}
+const crypto = require('crypto');
+const { categorizeSubstance } = require('./substance-utilities.js');
 
 /**
  * Split library into category-based files
@@ -93,8 +38,13 @@ function splitLibrary() {
 
     // Read the full library
     console.log('\nReading ftir-library.json...');
-    const library = JSON.parse(fs.readFileSync('ftir-library.json', 'utf8'));
+    const rawLibrary = fs.readFileSync('ftir-library.json', 'utf8');
+    const library = JSON.parse(rawLibrary);
     console.log(`  Total substances: ${library.length}`);
+
+    // Version = content hash, so any data change invalidates client caches
+    const version = crypto.createHash('sha256').update(rawLibrary).digest('hex').slice(0, 12);
+    console.log(`  Library version (content hash): ${version}`);
 
     // Create output directory
     const outputDir = path.join('dist', 'library');
@@ -103,31 +53,22 @@ function splitLibrary() {
         console.log(`\nCreated directory: ${outputDir}`);
     }
 
-    // Categorize substances
+    // Group substances by their baked-in category
     console.log('\nCategorizing substances...');
-    const categories = {
-        opioids: [],
-        stimulants: [],
-        benzodiazepines: [],
-        psychedelics: [],
-        cannabinoids: [],
-        steroids: [],
-        other: []
-    };
-
+    const categories = {};
     library.forEach(substance => {
         const category = categorizeSubstance(substance);
-        categories[category].push(substance);
+        (categories[category] = categories[category] || []).push(substance);
     });
 
-    // Write category files
+    // Write category files (compact JSON — no pretty-printing)
     console.log('\nWriting category files...');
     const categoryStats = {};
 
     for (const [category, substances] of Object.entries(categories)) {
         const filename = `${category}.json`;
         const filepath = path.join(outputDir, filename);
-        const content = JSON.stringify(substances, null, 2);
+        const content = JSON.stringify(substances);
 
         fs.writeFileSync(filepath, content, 'utf8');
 
@@ -144,21 +85,23 @@ function splitLibrary() {
     // Create index file with metadata
     console.log('\nCreating index file...');
     const index = {
-        version: '1.0.0',
+        version: version,
         totalSubstances: library.length,
-        categories: Object.entries(categoryStats).map(([name, stats]) => ({
-            name: name,
-            displayName: name.charAt(0).toUpperCase() + name.slice(1),
-            count: stats.count,
-            sizeBytes: stats.sizeBytes,
-            filename: stats.filename
-        })),
+        categories: Object.entries(categoryStats)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([name, stats]) => ({
+                name: name,
+                displayName: name.charAt(0).toUpperCase() + name.slice(1),
+                count: stats.count,
+                sizeBytes: stats.sizeBytes,
+                filename: stats.filename
+            })),
         generatedAt: new Date().toISOString(),
         note: 'Load category files on-demand to reduce initial bundle size'
     };
 
     const indexPath = path.join(outputDir, 'index.json');
-    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf8');
+    fs.writeFileSync(indexPath, JSON.stringify(index), 'utf8');
     console.log(`  ✓ index.json (${(Buffer.byteLength(JSON.stringify(index), 'utf8') / 1024).toFixed(2)} KB)`);
 
     // Create search index
@@ -167,41 +110,28 @@ function splitLibrary() {
 
     library.forEach(substance => {
         const category = categorizeSubstance(substance);
-        const nameKey = substance.name.toLowerCase();
-
-        // Store minimal info for each substance: category and id
-        // Use array to handle potential duplicates
-        if (!searchIndex[nameKey]) {
-            searchIndex[nameKey] = [];
-        }
-        searchIndex[nameKey].push({
+        const entry = {
             category: category,
             id: substance.id,
             name: substance.name,
             formula: substance.formula || ''
-        });
+        };
 
-        // Add formula as searchable if present
+        const nameKey = substance.name.toLowerCase();
+        (searchIndex[nameKey] = searchIndex[nameKey] || []).push(entry);
+
         if (substance.formula) {
             const formulaKey = substance.formula.toLowerCase();
-            if (!searchIndex[formulaKey]) {
-                searchIndex[formulaKey] = [];
-            }
-            searchIndex[formulaKey].push({
-                category: category,
-                id: substance.id,
-                name: substance.name,
-                formula: substance.formula
-            });
+            (searchIndex[formulaKey] = searchIndex[formulaKey] || []).push(entry);
         }
     });
 
     const searchIndexPath = path.join(outputDir, 'search-index.json');
-    const searchIndexContent = JSON.stringify(searchIndex, null, 2);
+    const searchIndexContent = JSON.stringify(searchIndex);
     fs.writeFileSync(searchIndexPath, searchIndexContent, 'utf8');
     console.log(`  ✓ search-index.json (${(Buffer.byteLength(searchIndexContent, 'utf8') / 1024).toFixed(2)} KB)`);
 
-    // Calculate savings
+    // Summary
     console.log('\n' + '='.repeat(60));
     console.log('Results:');
     console.log('='.repeat(60));
@@ -209,12 +139,9 @@ function splitLibrary() {
     const originalSize = fs.statSync('ftir-library.json').size;
     const totalSplitSize = Object.values(categoryStats).reduce((sum, s) => sum + s.sizeBytes, 0);
 
-    console.log(`Original library size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
-    console.log(`Split library total: ${(totalSplitSize / 1024 / 1024).toFixed(2)} MB`);
-    console.log(`Overhead: ${(((totalSplitSize - originalSize) / originalSize) * 100).toFixed(1)}%`);
-    console.log(`\nTypical initial load (2-3 categories): ${((categoryStats.other.sizeBytes + categoryStats.stimulants.sizeBytes) / 1024).toFixed(2)} KB`);
-    console.log(`vs. full library: ${(originalSize / 1024).toFixed(2)} KB`);
-    console.log(`Savings: ${((1 - (categoryStats.other.sizeBytes + categoryStats.stimulants.sizeBytes) / originalSize) * 100).toFixed(1)}%`);
+    console.log(`Library size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`Split library total: ${(totalSplitSize / 1024 / 1024).toFixed(2)} MB across ${Object.keys(categoryStats).length} categories`);
+    console.log(`Largest chunk: ${Math.max(...Object.values(categoryStats).map(s => s.sizeBytes)) / 1024 | 0} KB`);
 
     console.log('\n✅ Library split complete!');
 }

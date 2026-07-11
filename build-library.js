@@ -20,6 +20,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const SpectrumCodec = require('./spectrum-codec.js');
+const { categorizeSubstance } = require('./substance-utilities.js');
 
 /**
  * Parse a JCAMP-DX file
@@ -276,16 +278,19 @@ function buildLibrary() {
 
             // Store if not duplicate or if this is a better version (more metadata)
             if (!library[id] || data.molForm) {
-                library[id] = {
+                const record = {
                     id: id,
                     name: data.name,
                     formula: data.molForm,
                     mw: data.mw,
                     casName: data.casName,
                     description: data.description || `FTIR spectrum of ${data.name}`,
-                    source: 'ENFSI DWG IR Library',
-                    spectrum: downsampled
+                    source: 'ENFSI DWG IR Library'
                 };
+                record.category = categorizeSubstance(record);
+                // Compact storage format: linear grid + rounded transmittance
+                record.spectrum = SpectrumCodec.encodeSpectrum(downsampled);
+                library[id] = record;
                 processedCount++;
             }
         } catch (error) {
@@ -298,8 +303,8 @@ function buildLibrary() {
         a.name.localeCompare(b.name)
     );
 
-    // Write output
-    fs.writeFileSync(outputFile, JSON.stringify(libraryArray, null, 2));
+    // Write output (compact JSON — the spectra are already size-optimized)
+    fs.writeFileSync(outputFile, JSON.stringify(libraryArray));
 
     console.log('\n✓ Library built successfully!');
     console.log(`  Processed: ${processedCount} substances`);

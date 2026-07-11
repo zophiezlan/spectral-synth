@@ -60,6 +60,15 @@ async function handlePlay() {
         // Ensure audio context is active (especially for iOS)
         await iOSAudioHelper.ensureAudioContext(audioEngine);
 
+        // Reset UI when playback actually ends. A fixed duration timer is
+        // wrong here: looping arpeggios keep playing past `duration`, which
+        // used to freeze the FFT after the first cycle while audio continued.
+        audioEngine.onPlaybackEnded = () => {
+            playButton.textContent = '▶ Play Sound';
+            visualizer.stopAudioAnimation();
+            ScreenReader.announce('Playback finished');
+        };
+
         // Start audio with selected or all peaks
         await audioEngine.play(peaksToPlay, duration);
 
@@ -75,17 +84,6 @@ async function handlePlay() {
         );
 
         Logger.log(`Playing ${peaksToPlay.length} frequencies${(selectedPeaks && selectedPeaks.length > 0) ? ' (selected)' : ''} for ${duration}s`);
-
-        // Reset button after duration (with buffer for audio to fully stop)
-        const playbackBuffer = typeof CONSTANTS !== 'undefined'
-            ? CONSTANTS.TIMING.PLAYBACK_END_BUFFER
-            : 100;
-        setTimeout(() => {
-            playButton.textContent = '▶ Play Sound';
-            visualizer.stopAudioAnimation();
-            ScreenReader.announce('Playback finished');
-        }, duration * 1000 + playbackBuffer);
-
     } catch (error) {
         playButton.textContent = '▶ Play Sound';
         visualizer.stopAudioAnimation();

@@ -299,6 +299,22 @@ function setupImportExportListeners() {
     if (exportMP3) {
         exportMP3.addEventListener('click', handleExportMP3);
     }
+
+    // Data exports (peak table / peak analysis / spectrum)
+    const exportPeaksCSV = document.getElementById('export-peaks-csv');
+    if (exportPeaksCSV) {
+        exportPeaksCSV.addEventListener('click', handleExportPeaksCSV);
+    }
+
+    const exportPeaksJSON = document.getElementById('export-peaks-json');
+    if (exportPeaksJSON) {
+        exportPeaksJSON.addEventListener('click', handleExportPeaksJSON);
+    }
+
+    const exportSpectrumCSV = document.getElementById('export-spectrum-csv');
+    if (exportSpectrumCSV) {
+        exportSpectrumCSV.addEventListener('click', handleExportSpectrumCSV);
+    }
 }
 
 /**
@@ -359,6 +375,45 @@ function setupMIDIListeners() {
     if (midiTempoSlider) {
         midiTempoSlider.addEventListener('input', (e) => {
             midiTempoValue.textContent = e.target.value;
+        });
+    }
+
+    // MIDI input (play from keyboard)
+    const midiInputSelect = document.getElementById('midi-input-select');
+    if (midiInputSelect) {
+        midiInputSelect.addEventListener('change', (e) => {
+            if (typeof midiInput !== 'undefined' && midiInput) {
+                midiInput.selectInput(e.target.value);
+            }
+        });
+    }
+
+    const midiInputEnabled = document.getElementById('midi-input-enabled');
+    if (midiInputEnabled) {
+        midiInputEnabled.addEventListener('change', handleMIDIInputEnabled);
+    }
+
+    // Pitch accuracy controls
+    const midiPitchBend = document.getElementById('midi-pitch-bend');
+    if (midiPitchBend) {
+        midiPitchBend.addEventListener('change', (e) => {
+            if (midiOutput) {
+                midiOutput.setPitchBendEnabled(e.target.checked);
+            }
+        });
+    }
+
+    const midiBendRange = document.getElementById('midi-bend-range');
+    const midiBendRangeValue = document.getElementById('midi-bend-range-value');
+    if (midiBendRange) {
+        midiBendRange.addEventListener('change', (e) => {
+            const range = parseInt(e.target.value, 10);
+            if (midiBendRangeValue) {
+                midiBendRangeValue.textContent = range;
+            }
+            if (midiOutput) {
+                midiOutput.setBendRange(range);
+            }
         });
     }
 }

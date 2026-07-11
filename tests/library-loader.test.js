@@ -58,6 +58,8 @@ function makeFetch(routes) {
 function freshLoader(fetchMock) {
     const { LibraryLoader } = loadBrowserModule('library-loader.js', {
         fetch: fetchMock,
+        // Real codec: the loader decodes spectra at the load boundary.
+        SpectrumCodec: require('../spectrum-codec.js'),
         // IndexedDBStorage intentionally undefined so the loader skips it.
         // `window` undefined too — the file's bottom branch noops in that case.
     });

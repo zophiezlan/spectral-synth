@@ -4,7 +4,7 @@
  * Provides offline functionality and caching for improved performance
  */
 
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const CACHE_NAME = `spectral-synth-v${VERSION}`;
 
 // Minimal pre-cache list: only assets that exist in BOTH dev (source layout) and
@@ -105,28 +105,27 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Handle library files (lazy loading) with cache-first strategy
+    // Handle library files (lazy loading) with network-first strategy.
+    // The app's IndexedDB layer is the fast path for library data; the app
+    // only hits the network when its cache is missing or stale, so serving
+    // cache-first here would pin clients to outdated data. The cached copy
+    // is kept purely as an offline fallback.
     if (url.pathname.startsWith(LIBRARY_PATH)) {
         event.respondWith((async () => {
             const cache = await caches.open(DYNAMIC_CACHE);
 
-            // Try cache first
-            const cachedResponse = await cache.match(request);
-            if (cachedResponse) {
-                console.log(`[Service Worker] Serving ${url.pathname} from cache`);
-                return cachedResponse;
-            }
-
-            // Fetch from network and cache
             try {
                 const response = await fetch(request);
                 if (response.ok) {
-                    console.log(`[Service Worker] Caching ${url.pathname}`);
                     cache.put(request, response.clone());
                 }
                 return response;
             } catch (error) {
-                console.error(`[Service Worker] Failed to fetch ${url.pathname}:`, error);
+                const cachedResponse = await cache.match(request);
+                if (cachedResponse) {
+                    console.log(`[Service Worker] Offline — serving ${url.pathname} from cache`);
+                    return cachedResponse;
+                }
                 throw error;
             }
         })());
