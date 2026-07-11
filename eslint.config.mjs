@@ -195,7 +195,7 @@ export default [
     },
     // Node.js files (build scripts)
     {
-        files: ['build.js', 'build-library.js', 'split-library.js', 'migrate-library.js'],
+        files: ['build.js', 'build-library.js', 'split-library.js', 'migrate-library.js', 'batch-export-midi.js'],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'commonjs',

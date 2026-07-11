@@ -13,6 +13,7 @@
     "build": "node build.js && node split-library.js",
     "build:fast": "node build.js",
     "split-library": "node split-library.js",
+    "export-midi": "node batch-export-midi.js",
     "clean": "rm -rf dist",
     "prepare": "husky"
   },

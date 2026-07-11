@@ -348,11 +348,48 @@ class MIDIOutput {
      * @throws {Error} If peaks are invalid or mode is unsupported
      */
     exportMIDIFile(peaks, mode = 'sequential', tempo = 120, filename = 'spectrum.mid') {
+        const midiData = this.createMIDIFileData(peaks, mode, tempo);
+
+        // Create blob and download
+        const blob = new Blob([midiData], { type: 'audio/midi' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        Logger.log(`Exported MIDI file: ${filename} (${peaks.length} notes, mode: ${mode})`);
+    }
+
+    /**
+     * Build Standard MIDI File bytes for peaks in a playback mode.
+     * DOM-free — usable from Node for batch export (batch-export-midi.js).
+     *
+     * @param {Array} peaks - Array of peak objects with audioFreq and absorbance
+     * @param {string} mode - 'chord', 'sequential', 'arpeggio-up', 'arpeggio-down', 'arpeggio-updown', 'random'
+     * @param {number} tempo - Tempo in BPM
+     * @returns {Uint8Array} MIDI file binary data
+     * @throws {Error} If peaks are invalid or mode is unsupported
+     */
+    createMIDIFileData(peaks, mode = 'sequential', tempo = 120) {
         if (!Array.isArray(peaks) || peaks.length === 0) {
             throw new Error('Invalid peaks: must be a non-empty array');
         }
 
-        // Sort/arrange peaks based on mode
+        return this.buildMIDIFile(this.orderPeaksForMode(peaks, mode), mode, tempo);
+    }
+
+    /**
+     * Sort/arrange peaks according to a playback mode
+     *
+     * @param {Array} peaks - Array of peak objects
+     * @param {string} mode - Playback mode
+     * @returns {Array} Ordered copy of the peaks
+     * @throws {Error} If the mode is unsupported
+     * @private
+     */
+    orderPeaksForMode(peaks, mode) {
         let orderedPeaks = [...peaks];
 
         switch (mode) {
@@ -382,19 +419,7 @@ class MIDIOutput {
                 throw new Error(`Unsupported mode: ${mode}`);
         }
 
-        // Build MIDI file
-        const midiData = this.buildMIDIFile(orderedPeaks, mode, tempo);
-
-        // Create blob and download
-        const blob = new Blob([midiData], { type: 'audio/midi' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        Logger.log(`Exported MIDI file: ${filename} (${orderedPeaks.length} notes, mode: ${mode})`);
+        return orderedPeaks;
     }
 
     /**

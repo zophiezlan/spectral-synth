@@ -274,3 +274,8 @@ class FrequencyMapper {
         return 'Fingerprint region';
     }
 }
+
+// Also usable from Node (requires a CONFIG global, e.g. global.CONFIG = require('./config.js'))
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { FrequencyMapper };
+}

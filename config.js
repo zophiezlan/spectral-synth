@@ -187,3 +187,8 @@ Object.keys(CONFIG.presets).forEach(key => Object.freeze(CONFIG.presets[key]));
 Object.freeze(CONFIG.playbackModes);
 Object.keys(CONFIG.playbackModes).forEach(key => Object.freeze(CONFIG.playbackModes[key]));
 Object.freeze(CONFIG.looping);
+
+// Also usable from Node (batch-export-midi.js and other tooling)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = CONFIG;
+}
