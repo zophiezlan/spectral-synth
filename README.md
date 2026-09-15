@@ -288,6 +288,16 @@ The application features comprehensive mobile enhancements:
 - Swipe and scroll smoothly through substance lists
 - All controls are easily reachable with one hand
 
+**iPhone & iPad audio:**
+
+iOS mutes web audio in ways other platforms do not, so the synthesiser asks for
+the `playback` audio session category on load. That means sound plays even with
+the ringer/silent switch on, exactly like a music app — check your volume rather
+than the mute switch if you hear nothing. Audio also starts on your first tap
+anywhere on the page, and recovers by itself after a phone call, Siri, or
+switching apps. On iOS versions older than 16.4 the same result is achieved with
+a looping silent audio clip. See `src/audio/ios-audio.js` for the details.
+
 ## New Features
 
 ### Import & Export

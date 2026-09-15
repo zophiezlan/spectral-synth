@@ -11,6 +11,7 @@ import { CONFIG } from './core/config.js';
 import { Logger } from './core/logger.js';
 import { PerformanceMonitor } from './core/performance-monitor.js';
 import { AudioEngine } from './audio/audio-engine.js';
+import { iOSAudio } from './audio/ios-audio.js';
 import { FrequencyMapper } from './audio/frequency-mapper.js';
 import { handlePlay, handleStop, handleSelectAll, handleClearSelection, handlePeakSelectionChange } from './audio/playback-controller.js';
 import { SpectrumCodec } from './data/spectrum-codec.js';
@@ -62,6 +63,14 @@ async function init() {
         // Create instances
         ctx.audioEngine = new AudioEngine();
         ctx.frequencyMapper = new FrequencyMapper();
+
+        // iOS needs audio set up before anything tries to play. The session
+        // category has to be requested up front so the ringer switch does not
+        // silence us, and the context has to be created inside the very first
+        // user gesture — not once playback is already being awaited.
+        iOSAudio.configureSession();
+        iOSAudio.installUnlockHandlers(ctx.audioEngine);
+        iOSAudio.watchInterruptions(ctx.audioEngine);
 
         // MIDI is optional — the browser may not support Web MIDI at all
         ctx.midiOutput = new MIDIOutput();
