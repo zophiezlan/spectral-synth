@@ -327,6 +327,7 @@ export function setupPeakAudition() {
                 // Single-peak voice, boosted since one oscillator carries the sound
                 const voice = ctx.audioEngine.startVoice([peak], { gainScale: 1.5 });
                 if (voice) {
+                    ctx.visualizer?.startNoteGlow();
                     setTimeout(() => voice.release(), 700);
                 }
             } catch (error) {

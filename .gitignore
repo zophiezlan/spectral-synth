@@ -18,4 +18,4 @@ dist/
 .DS_Store
 Thumbs.db
 midi-export/
-spectral-synth-midi.zip
+*.zip

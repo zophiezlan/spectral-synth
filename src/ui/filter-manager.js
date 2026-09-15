@@ -39,6 +39,7 @@
 import { CONFIG } from '../core/config.js';
 import { Favorites } from '../core/favorites.js';
 import { categorizeSubstance } from '../data/substance-utilities.js';
+import { isCommonSubstance } from '../data/common-substances.js';
 import { Toast } from './ui-utilities.js';
 
 export const FilterManager = (function() {
@@ -54,6 +55,7 @@ export const FilterManager = (function() {
     let currentSearchTerm = '';
     let currentCategory = 'all';
     let showFavoritesOnly = false;
+    let showCommonOnly = true; // default view: the substances people recognise
 
     // DOM element references (cached for performance)
     let elements = null;
@@ -78,6 +80,7 @@ export const FilterManager = (function() {
             substanceSelector: document.querySelector('.substance-selector'),
             showAllButton: document.getElementById('show-all'),
             showFavoritesButton: document.getElementById('show-favorites'),
+            showCommonButton: document.getElementById('show-common'),
             categoryChips: Array.from(document.querySelectorAll('.chip[data-category]')),
         };
     }
@@ -91,9 +94,17 @@ export const FilterManager = (function() {
 
         const favoritesList = typeof Favorites !== 'undefined' ? Favorites.getAll() : [];
 
+        // Typing a search bypasses the Common filter so a search can't hit a wall
+        const applyCommon = showCommonOnly && !currentSearchTerm;
+
         return libraryData.filter(item => {
             // Favorites filter
             if (showFavoritesOnly && !favoritesList.includes(item.name)) {
+                return false;
+            }
+
+            // Common filter
+            if (applyCommon && !isCommonSubstance(item)) {
                 return false;
             }
 
@@ -150,6 +161,7 @@ export const FilterManager = (function() {
         // Update filter status display
         updateFilterStatus(filteredData.length);
         syncCategoryChips();
+        updateFavoritesButtons();
     }
 
     /**
@@ -203,6 +215,10 @@ export const FilterManager = (function() {
         // Show/hide no results state
         if (elements.noResultsDiv) {
             if (resultCount === 0) {
+                const btn = elements.noResultsDiv.querySelector('#clear-search-btn');
+                if (btn) {
+                    btn.textContent = (showCommonOnly && !currentSearchTerm) ? 'Show all substances' : 'Clear filters';
+                }
                 elements.noResultsDiv.classList.remove('hidden');
                 if (elements.substanceSelector) {
                     elements.substanceSelector.style.display = 'none';
@@ -228,6 +244,12 @@ export const FilterManager = (function() {
         if (elements.showFavoritesButton) {
             elements.showFavoritesButton.classList.toggle('active', showFavoritesOnly);
             elements.showFavoritesButton.setAttribute('aria-pressed', String(showFavoritesOnly));
+        }
+        if (elements.showCommonButton) {
+            elements.showCommonButton.classList.toggle('active', showCommonOnly);
+            elements.showCommonButton.setAttribute('aria-pressed', String(showCommonOnly));
+            // Dim the chip while a search bypasses it
+            elements.showCommonButton.classList.toggle('bypassed', showCommonOnly && !!currentSearchTerm);
         }
     }
 
@@ -311,10 +333,20 @@ export const FilterManager = (function() {
                 clearAllButton.addEventListener('click', () => this.clearAll());
             }
 
-            // Clear search button in no results state
+            // No-results action: widen the Common filter first, otherwise clear everything
             const clearSearchBtn = document.getElementById('clear-search-btn');
             if (clearSearchBtn) {
-                clearSearchBtn.addEventListener('click', () => this.clearAll());
+                clearSearchBtn.addEventListener('click', () => {
+                    if (showCommonOnly && !currentSearchTerm) {
+                        this.setShowCommonOnly(false);
+                    } else {
+                        this.clearAll();
+                    }
+                });
+            }
+
+            if (elements.showCommonButton) {
+                elements.showCommonButton.addEventListener('click', () => this.setShowCommonOnly(!showCommonOnly));
             }
 
             // Category chips (the native select stays in the DOM for state/tests)
@@ -394,8 +426,19 @@ export const FilterManager = (function() {
         },
 
         /**
+         * Set whether to show only the common/recognisable substances
+         * @param {boolean} value
+         */
+        setShowCommonOnly(value) {
+            showCommonOnly = value;
+            updateFavoritesButtons();
+            populateSubstanceSelector();
+            checkCurrentSelection();
+        },
+
+        /**
          * Clear a specific filter
-         * @param {string} filterType - 'search', 'category', or 'favorites'
+         * @param {string} filterType - 'search', 'category', 'favorites' or 'common'
          */
         clearFilter(filterType) {
             switch (filterType) {
@@ -408,6 +451,9 @@ export const FilterManager = (function() {
                 case 'favorites':
                     this.setShowFavoritesOnly(false);
                     break;
+                case 'common':
+                    this.setShowCommonOnly(false);
+                    break;
             }
         },
 
@@ -418,6 +464,7 @@ export const FilterManager = (function() {
             currentSearchTerm = '';
             currentCategory = 'all';
             showFavoritesOnly = false;
+            showCommonOnly = false;
 
             if (elements.searchInput) elements.searchInput.value = '';
             if (elements.categorySelect) elements.categorySelect.value = 'all';
@@ -455,6 +502,7 @@ export const FilterManager = (function() {
                 searchTerm: currentSearchTerm,
                 category: currentCategory,
                 showFavoritesOnly,
+                showCommonOnly,
             };
         },
     };

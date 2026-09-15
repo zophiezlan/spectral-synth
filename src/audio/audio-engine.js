@@ -81,6 +81,12 @@ export class AudioEngine {
         this.loopTimeoutId = null;  // Store timeout ID for loop control
         this.chordTimeoutId = null; // Timeout ID for chord playback end
 
+        // Notes currently scheduled on the audio clock: [{ peak, start, end }]
+        // (context time, seconds). Read by the visualiser to light up peaks in
+        // sync with what's sounding. Voices (MIDI/audition) use end = Infinity
+        // until released.
+        this.noteSchedule = [];
+
         // Fired when playback ends on its own (chord finished, or a looping
         // arpeggio was allowed to wind down). NOT fired by stop() — callers
         // of stop() manage their own UI. With looping enabled this may never
@@ -234,6 +240,7 @@ export class AudioEngine {
 
         this.isPlaying = true;
         this.oscillators = [];
+        this.noteSchedule = peaks.map(peak => ({ peak, start: currentTime, end: currentTime + duration }));
 
         // Create oscillators for each peak using additive synthesis
         // Each FTIR peak becomes one oscillator in the audio output
@@ -355,12 +362,14 @@ export class AudioEngine {
         const actualNoteDuration = Math.min(noteDuration + noteOverlap, 0.5); // Cap at 0.5s
 
         // Create oscillators for each note in sequence
+        this.noteSchedule = [];
         orderedPeaks.forEach((peak, idx) => {
             const osc = this.audioContext.createOscillator();
             const gain = this.audioContext.createGain();
 
             const startTime = currentTime + (idx * noteDuration);
             const endTime = startTime + actualNoteDuration;
+            this.noteSchedule.push({ peak, start: startTime, end: endTime });
 
             // Set frequency
             osc.frequency.value = peak.audioFreq;
@@ -504,6 +513,7 @@ export class AudioEngine {
         });
 
         this.oscillators = [];
+        this.noteSchedule = this.noteSchedule.filter(n => n.voice); // keep held voices
         this.isPlaying = false;
     }
 
@@ -563,28 +573,53 @@ export class AudioEngine {
         let released = false;
         const releaseTime = this.releaseTime;
         const ctx = this.audioContext;
+        const voice = {};
+        const entries = peaks.map(peak => ({ peak, start: now, end: Infinity, voice }));
+        this.noteSchedule.push(...entries);
 
-        return {
-            release: () => {
-                if (released) return;
-                released = true;
-                const t = ctx.currentTime;
-                nodes.forEach(({ osc, gain }) => {
-                    try {
-                        gain.gain.cancelScheduledValues(t);
-                        gain.gain.setValueAtTime(gain.gain.value, t);
-                        gain.gain.linearRampToValueAtTime(0, t + releaseTime);
-                        osc.stop(t + releaseTime + 0.01);
-                        osc.onended = () => {
-                            osc.disconnect();
-                            gain.disconnect();
-                        };
-                    } catch {
-                        // Oscillator may already be stopped
-                    }
-                });
-            }
+        voice.release = () => {
+            if (released) return;
+            released = true;
+            const t = ctx.currentTime;
+            entries.forEach(n => { n.end = t + releaseTime; });
+            nodes.forEach(({ osc, gain }) => {
+                try {
+                    gain.gain.cancelScheduledValues(t);
+                    gain.gain.setValueAtTime(gain.gain.value, t);
+                    gain.gain.linearRampToValueAtTime(0, t + releaseTime);
+                    osc.stop(t + releaseTime + 0.01);
+                    osc.onended = () => {
+                        osc.disconnect();
+                        gain.disconnect();
+                    };
+                } catch {
+                    // Oscillator may already be stopped
+                }
+            });
         };
+        return voice;
+    }
+
+    /**
+     * Notes sounding right now, with how far through their window they are.
+     * Cheap enough to call every animation frame.
+     *
+     * @returns {Array<{peak: Object, progress: number}>} progress is 0 at
+     *   note-on and 1 at note-off (held voices report 0 until released)
+     */
+    getActiveNotes() {
+        if (!this.audioContext || this.noteSchedule.length === 0) return [];
+        const now = this.audioContext.currentTime;
+
+        // Drop finished notes so the list can't grow across loops
+        this.noteSchedule = this.noteSchedule.filter(n => n.end > now);
+
+        return this.noteSchedule
+            .filter(n => n.start <= now)
+            .map(n => ({
+                peak: n.peak,
+                progress: n.end === Infinity ? 0 : (now - n.start) / (n.end - n.start),
+            }));
     }
 
     /**

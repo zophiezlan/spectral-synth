@@ -20,6 +20,13 @@ jest.unstable_mockModule('../src/core/favorites.js', () => ({
 jest.unstable_mockModule('../src/ui/ui-utilities.js', () => ({ ...uiStubs(), Toast: ToastStub }));
 jest.unstable_mockModule('../src/data/substance-utilities.js', () => ({ categorizeSubstance: categorizeSubstanceStub }));
 
+// The Common filter is on by default; most tests want the whole fixture visible,
+// so "common" means everything unless a test narrows it.
+const commonState = { names: null };
+jest.unstable_mockModule('../src/data/common-substances.js', () => ({
+    isCommonSubstance: (item) => commonState.names === null || commonState.names.includes(item.name),
+}));
+
 const LIBRARY_FIXTURE = [
     { id: '0', name: 'Caffeine', formula: 'C8H10N4O2' },
     { id: '1', name: 'Morphine', formula: 'C17H19NO3' },
@@ -74,11 +81,13 @@ function setupDOM() {
         </div>
         <button id="show-all" class="active" aria-pressed="true">All</button>
         <button id="show-favorites" aria-pressed="false">Favorites</button>
+        <button id="show-common" aria-pressed="true">Common</button>
     `;
 }
 
-async function loadFilterManager(favoriteNames = []) {
+async function loadFilterManager(favoriteNames = [], commonNames = null) {
     favoritesState.names = favoriteNames;
+    commonState.names = commonNames;
     const { FilterManager } = await loadFresh('../src/ui/filter-manager.js');
     return { FilterManager, Toast: ToastStub };
 }
@@ -185,6 +194,57 @@ describe('FilterManager', () => {
         });
     });
 
+    describe('common filtering', () => {
+        it('shows only common substances by default', async () => {
+            const { FilterManager } = await loadFilterManager([], ['Caffeine', 'Cocaine']);
+            FilterManager.init(LIBRARY_FIXTURE);
+
+            expect(selectorOptions(document.getElementById('substance'))).toEqual(['-- Select a Substance --', 'Caffeine', 'Cocaine']);
+            expect(document.getElementById('show-common').getAttribute('aria-pressed')).toBe('true');
+        });
+
+        it('is bypassed while a search term is active', async () => {
+            const { FilterManager } = await loadFilterManager([], ['Caffeine']);
+            FilterManager.init(LIBRARY_FIXTURE);
+
+            FilterManager.setSearch('morph');
+
+            expect(selectorOptions(document.getElementById('substance'))).toContain('Morphine');
+            expect(document.getElementById('show-common').classList.contains('bypassed')).toBe(true);
+
+            FilterManager.setSearch('');
+            expect(selectorOptions(document.getElementById('substance'))).not.toContain('Morphine');
+            expect(document.getElementById('show-common').classList.contains('bypassed')).toBe(false);
+        });
+
+        it('setShowCommonOnly(false) shows everything and the chip toggles it back', async () => {
+            const { FilterManager } = await loadFilterManager([], ['Caffeine']);
+            FilterManager.init(LIBRARY_FIXTURE);
+
+            FilterManager.setShowCommonOnly(false);
+            expect(selectorOptions(document.getElementById('substance'))).toHaveLength(LIBRARY_FIXTURE.length + 1);
+
+            document.getElementById('show-common').click();
+            expect(selectorOptions(document.getElementById('substance'))).toEqual(['-- Select a Substance --', 'Caffeine']);
+        });
+
+        it('offers "Show all substances" when Common hides a whole category', async () => {
+            const { FilterManager } = await loadFilterManager([], ['Caffeine']);
+            FilterManager.init(LIBRARY_FIXTURE);
+
+            FilterManager.setCategory('opioids');
+
+            const btn = document.getElementById('clear-search-btn');
+            expect(document.getElementById('no-results').classList.contains('hidden')).toBe(false);
+            expect(btn.textContent).toBe('Show all substances');
+
+            btn.click();
+            expect(FilterManager.getState().showCommonOnly).toBe(false);
+            expect(FilterManager.getState().category).toBe('opioids');
+            expect(selectorOptions(document.getElementById('substance'))).toContain('Morphine');
+        });
+    });
+
     describe('favorites filtering', () => {
         it('shows only favorited substances when enabled', async () => {
             const { FilterManager } = await loadFilterManager(['Morphine', 'Diazepam']);
@@ -267,6 +327,7 @@ describe('FilterManager', () => {
                 searchTerm: '',
                 category: 'all',
                 showFavoritesOnly: false,
+                showCommonOnly: false,
             });
             expect(Toast.info).toHaveBeenCalledWith('All filters cleared');
         });

@@ -183,6 +183,18 @@ footer p {
     border-color: #b7791f;
 }
 
+.chip-common.active {
+    background: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    color: #06251f;
+}
+
+/* Common is ignored while a search is typed */
+.chip-common.bypassed {
+    opacity: 0.45;
+    text-decoration: line-through;
+}
+
 .chip-divider {
     width: 1px;
     height: 18px;

@@ -99,6 +99,12 @@ export class Visualizer {
         this.audioStaticCanvas = null;
         this.audioStaticCached = false;
 
+        // Snapshot of the drawn FTIR spectrum so note glows can be painted over
+        // it every frame without re-plotting 1000+ points
+        this.ftirBaseCanvas = null;
+        this.glowAnimationId = null;
+        this.glowVisible = false;
+
         // Bound event handlers for cleanup
         this._boundHandlers = {
             click: null,
@@ -512,6 +518,96 @@ export class Visualizer {
 
         // Draw axes labels
         this.drawFTIRAxes(ctx, width, height, minWavenumber, maxWavenumber);
+
+        this.cacheFTIRBase();
+    }
+
+    /**
+     * Snapshot the FTIR canvas so glows can be layered on top each frame
+     * @private
+     */
+    cacheFTIRBase() {
+        const canvas = this.ftirCanvas;
+        if (!this.ftirBaseCanvas) {
+            this.ftirBaseCanvas = document.createElement('canvas');
+        }
+        this.ftirBaseCanvas.width = canvas.width;
+        this.ftirBaseCanvas.height = canvas.height;
+        this.ftirBaseCanvas.getContext('2d').drawImage(canvas, 0, 0);
+        this.glowVisible = false;
+    }
+
+    /**
+     * Light up the peaks that are sounding right now.
+     *
+     * Runs its own requestAnimationFrame loop, driven by the audio engine's
+     * note schedule (AudioContext clock), so highlights land exactly when the
+     * oscillators start. Per frame it blits the cached spectrum and draws one
+     * halo per active note — a handful of arcs, negligible cost. The loop
+     * stops itself once nothing is sounding.
+     */
+    startNoteGlow() {
+        if (this.glowAnimationId) return;
+        const tick = () => {
+            this.glowAnimationId = null;
+            if (!this.audioEngine || !this.ftirBaseCanvas || !this.currentPeaks) return;
+
+            const notes = this.audioEngine.getActiveNotes();
+            if (notes.length === 0) {
+                if (this.glowVisible) {
+                    this.ftirCtx.drawImage(this.ftirBaseCanvas, 0, 0);
+                    this.glowVisible = false;
+                }
+                // Keep polling briefly while playback continues (next arpeggio note)
+                if (this.audioEngine.getIsPlaying() || this.audioEngine.noteSchedule.length > 0) {
+                    this.glowAnimationId = requestAnimationFrame(tick);
+                }
+                return;
+            }
+
+            const ctx = this.ftirCtx;
+            ctx.drawImage(this.ftirBaseCanvas, 0, 0);
+            this.glowVisible = true;
+
+            for (const { peak, progress } of notes) {
+                const idx = this.currentPeaks.indexOf(peak);
+                const pos = this.peakPositions[idx];
+                if (!pos) continue;
+
+                // Flash: bright and tight at note-on, swelling and fading out
+                const fade = 1 - Math.min(1, Math.max(0, progress));
+                const base = this.PEAK_MARKER_SIZE;
+                const radius = base * 1.4 + (1 - fade) * base * 1.5;
+
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${(0.55 * fade).toFixed(3)})`;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius + 3, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 212, 170, ${(0.9 * fade).toFixed(3)})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            this.glowAnimationId = requestAnimationFrame(tick);
+        };
+        this.glowAnimationId = requestAnimationFrame(tick);
+    }
+
+    /**
+     * Stop the glow loop and restore the plain spectrum
+     */
+    stopNoteGlow() {
+        if (this.glowAnimationId) {
+            cancelAnimationFrame(this.glowAnimationId);
+            this.glowAnimationId = null;
+        }
+        if (this.glowVisible && this.ftirBaseCanvas) {
+            this.ftirCtx.drawImage(this.ftirBaseCanvas, 0, 0);
+            this.glowVisible = false;
+        }
     }
 
     /**
@@ -602,6 +698,7 @@ export class Visualizer {
             cancelAnimationFrame(this.animationId);
         }
         this.drawAudioFFT();
+        this.startNoteGlow();
     }
 
     /**
@@ -612,6 +709,7 @@ export class Visualizer {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
         }
+        this.stopNoteGlow();
 
         // Use cached static elements if available
         if (this.audioStaticCached && this.audioStaticCanvas) {
@@ -735,6 +833,8 @@ export class Visualizer {
         this.currentSpectrum = null;
         this.currentPeaks = null;
         this.peakPositions = [];
+        this.stopNoteGlow();
+        this.ftirBaseCanvas = null;
 
         // Draw empty state instead of blank canvas
         this.drawEmptyStateFTIR();
@@ -893,8 +993,11 @@ export class Visualizer {
         this.selectedPeakIndices.clear();
         this.onPeakSelectionChange = null;
 
+        this.stopNoteGlow();
+
         // Clear cached canvas
         this.audioStaticCanvas = null;
+        this.ftirBaseCanvas = null;
         this.audioStaticCached = false;
 
         // Hide tooltip if visible
