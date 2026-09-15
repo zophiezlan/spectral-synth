@@ -383,15 +383,14 @@ function updateMappingInfo(data, peaks) {
 
     let html = `<p><strong>${data.name}</strong></p>`;
     html += `<p>${data.description}</p>`;
-    html += `<p>Detected ${peaks.length} significant absorption peaks <span style="font-size: 0.85em; color: #888;">(click a row to hear that peak)</span>:</p>`;
-    html += '<table style="width: 100%; margin-top: 10px; font-size: 0.9em;">';
-    html += '<tr style="border-bottom: 1px solid #444;">';
-    html += '<th style="text-align: left; padding: 5px;">IR (cm⁻¹)</th>';
-    html += '<th style="text-align: left; padding: 5px;">Audio (Hz)</th>';
-    html += '<th style="text-align: left; padding: 5px;">Intensity</th>';
-    html += '<th style="text-align: left; padding: 5px;">Width</th>';
-    html += '<th style="text-align: left; padding: 5px;">Functional Group</th>';
-    html += '</tr>';
+    html += `<p>${peaks.length} significant absorption peaks <span class="mapping-note">(click a row to hear that peak)</span></p>`;
+    html += '<table class="peak-table"><thead><tr>';
+    html += '<th>IR (cm⁻¹)</th>';
+    html += '<th>Audio (Hz)</th>';
+    html += '<th>Intensity</th>';
+    html += '<th>Width</th>';
+    html += '<th>Functional group</th>';
+    html += '</tr></thead><tbody>';
 
     peaks.slice(0, 10).forEach((peak, idx) => {
         const wavenumberStr = peak.wavenumber.toFixed(0);
@@ -400,24 +399,24 @@ function updateMappingInfo(data, peaks) {
         const widthStr = peak.width !== undefined ? peak.width.toFixed(0) : '—';
         const functionalGroup = frequencyMapper.getFunctionalGroup(peak.wavenumber);
 
-        html += `<tr class="peak-row" data-peak-idx="${idx}" title="Click to audition this peak" style="border-bottom: 1px solid #333; cursor: pointer;">`;
-        html += `<td style="padding: 5px;">${wavenumberStr}</td>`;
-        html += `<td style="padding: 5px;">${audioFreqStr}</td>`;
-        html += `<td style="padding: 5px;">${intensityPercent}%</td>`;
-        html += `<td style="padding: 5px;">${widthStr}</td>`;
-        html += `<td style="padding: 5px; color: #a78bfa;">${functionalGroup}</td>`;
+        html += `<tr class="peak-row" data-peak-idx="${idx}" title="Click to audition this peak">`;
+        html += `<td>${wavenumberStr}</td>`;
+        html += `<td>${audioFreqStr}</td>`;
+        html += `<td>${intensityPercent}%</td>`;
+        html += `<td>${widthStr}</td>`;
+        html += `<td class="peak-group">${functionalGroup}</td>`;
         html += '</tr>';
     });
 
-    html += '</table>';
+    html += '</tbody></table>';
 
     if (peaks.length > 10) {
-        html += `<p style="margin-top: 10px; font-size: 0.9em; color: #888;">... and ${peaks.length - 10} more peaks</p>`;
+        html += `<p class="mapping-note">… and ${peaks.length - 10} more peaks</p>`;
     }
 
-    html += '<p style="margin-top: 15px; font-size: 0.9em;">';
-    html += `Mapping: ${frequencyMapper.IR_MIN}-${frequencyMapper.IR_MAX} cm⁻¹ → `;
-    html += `${frequencyMapper.AUDIO_MIN}-${frequencyMapper.AUDIO_MAX} Hz (logarithmic scale)`;
+    html += '<p class="mapping-note">';
+    html += `Mapping: ${frequencyMapper.IR_MIN}–${frequencyMapper.IR_MAX} cm⁻¹ → `;
+    html += `${frequencyMapper.AUDIO_MIN}–${frequencyMapper.AUDIO_MAX} Hz (logarithmic)`;
     html += '</p>';
 
     if (mappingInfo) {

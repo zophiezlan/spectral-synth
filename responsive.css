@@ -189,27 +189,42 @@
    ========================================================================== */
 
 @media (max-width: 768px) {
-    .modal-content {
-        margin: 0.75rem;
-        max-width: calc(100% - 1.5rem);
-        padding: 1.25rem;
-        max-height: calc(100vh - 1.5rem);
-        max-height: calc(100dvh - 1.5rem);
-        overflow-y: auto;
+    /* Modals become bottom sheets */
+    .modal-overlay {
+        align-items: flex-end;
+        padding: 0;
     }
 
-    .settings-modal,
-    .import-export-modal,
-    .midi-modal,
-    .help-modal {
-        padding: 1.25rem;
-        max-width: 95vw;
+    .modal-content {
+        max-width: 100%;
+        max-height: 92vh;
+        max-height: 92dvh;
+        padding: var(--space-lg);
+        border-radius: 14px 14px 0 0;
+        border-bottom: none;
+        animation: sheetIn 0.25s ease-out;
+    }
+
+    @keyframes sheetIn {
+        from { transform: translateY(40px); opacity: 0; }
+        to   { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-content > h2 {
+        margin-bottom: var(--space-md);
     }
 
     .modal-close {
-        width: 36px;
-        height: 36px;
-        font-size: 1.5rem;
+        top: 14px;
+        right: 14px;
+    }
+
+    .browse-modal {
+        height: 92dvh;
+    }
+
+    .shortcuts-grid {
+        grid-template-columns: 1fr;
     }
 
     .effects-grid,

@@ -239,29 +239,29 @@
     <div id="onboarding-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="onboarding-title" aria-modal="true">
         <div class="modal-content onboarding-modal">
             <button class="modal-close" id="onboarding-close" aria-label="Close welcome message">&times;</button>
-            <h2 id="onboarding-title">Welcome to Spectral Synthesiser! 🎵</h2>
+            <h2 id="onboarding-title">Welcome to Spectral Synthesiser!</h2>
 
             <div class="onboarding-section">
                 <div class="onboarding-illustration">
                     <svg width="300" height="150" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
                         <!-- Molecule -->
-                        <circle cx="50" cy="75" r="15" fill="#8b5cf6" opacity="0.8"/>
-                        <circle cx="80" cy="60" r="12" fill="#a78bfa" opacity="0.8"/>
-                        <circle cx="80" cy="90" r="12" fill="#a78bfa" opacity="0.8"/>
-                        <line x1="50" y1="75" x2="80" y2="60" stroke="#c4b5fd" stroke-width="3"/>
-                        <line x1="50" y1="75" x2="80" y2="90" stroke="#c4b5fd" stroke-width="3"/>
+                        <circle cx="50" cy="75" r="15" fill="#00a8e8" opacity="0.8"/>
+                        <circle cx="80" cy="60" r="12" fill="#00c4d8" opacity="0.8"/>
+                        <circle cx="80" cy="90" r="12" fill="#00c4d8" opacity="0.8"/>
+                        <line x1="50" y1="75" x2="80" y2="60" stroke="#7fd9ff" stroke-width="3"/>
+                        <line x1="50" y1="75" x2="80" y2="90" stroke="#7fd9ff" stroke-width="3"/>
 
                         <!-- Arrow -->
-                        <path d="M 110 75 L 130 75 L 125 70 M 130 75 L 125 80" stroke="#ec4899" stroke-width="2" fill="none"/>
-                        <text x="140" y="80" fill="#ec4899" font-size="14" font-weight="bold">FFT</text>
+                        <path d="M 110 75 L 130 75 L 125 70 M 130 75 L 125 80" stroke="#00d4aa" stroke-width="2" fill="none"/>
+                        <text x="140" y="80" fill="#00d4aa" font-size="14" font-weight="bold">FFT</text>
 
                         <!-- Spectrum waves -->
-                        <path d="M 180 75 Q 190 60, 200 75 T 220 75 Q 230 90, 240 75 T 260 75" stroke="#8b5cf6" stroke-width="2" fill="none"/>
-                        <path d="M 180 85 Q 190 70, 200 85 T 220 85 Q 230 100, 240 85 T 260 85" stroke="#a78bfa" stroke-width="2" fill="none" opacity="0.6"/>
+                        <path d="M 180 75 Q 190 60, 200 75 T 220 75 Q 230 90, 240 75 T 260 75" stroke="#00a8e8" stroke-width="2" fill="none"/>
+                        <path d="M 180 85 Q 190 70, 200 85 T 220 85 Q 230 100, 240 85 T 260 85" stroke="#00c4d8" stroke-width="2" fill="none" opacity="0.6"/>
 
                         <!-- Sound waves -->
-                        <circle cx="280" cy="75" r="8" fill="none" stroke="#ec4899" stroke-width="1.5" opacity="0.8"/>
-                        <circle cx="280" cy="75" r="15" fill="none" stroke="#ec4899" stroke-width="1" opacity="0.4"/>
+                        <circle cx="280" cy="75" r="8" fill="none" stroke="#00d4aa" stroke-width="1.5" opacity="0.8"/>
+                        <circle cx="280" cy="75" r="15" fill="none" stroke="#00d4aa" stroke-width="1" opacity="0.4"/>
                     </svg>
                 </div>
 
@@ -280,16 +280,16 @@
                 <div class="onboarding-quick-tips">
                     <h4>Quick Navigation:</h4>
                     <ul>
-                        <li>⚙️ <strong>Settings</strong> - Adjust audio effects, ADSR envelope, playback mode</li>
-                        <li>📥 <strong>Import/Export</strong> - Load your own data or save audio</li>
-                        <li>🎹 <strong>MIDI</strong> - Connect to external synthesisers</li>
-                        <li>❓ <strong>Help</strong> - Learn the science and keyboard shortcuts</li>
+                        <li><strong>Settings</strong> - Adjust audio effects, ADSR envelope, playback mode</li>
+                        <li><strong>Import/Export</strong> - Load your own data or save audio</li>
+                        <li><strong>MIDI</strong> - Connect to external synthesisers</li>
+                        <li><strong>Help</strong> - Learn the science and keyboard shortcuts</li>
                     </ul>
                 </div>
             </div>
 
             <div class="onboarding-suggestions">
-                <h3>Try These First:</h3>
+                <h3>Try these first</h3>
                 <div class="suggestion-pills">
                     <button class="suggestion-pill" data-substance-id="mdma">MDMA</button>
                     <button class="suggestion-pill" data-substance-id="cocaine">Cocaine</button>
@@ -313,10 +313,10 @@
     <div id="settings-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="settings-title" aria-modal="true">
         <div class="modal-content settings-modal">
             <button class="modal-close" id="settings-close" aria-label="Close settings">&times;</button>
-            <h2 id="settings-title">⚙️ Settings</h2>
+            <h2 id="settings-title">Settings</h2>
 
             <div class="settings-section">
-                <h3>🎚️ Playback Controls</h3>
+                <h3>Playback Controls</h3>
                 <div class="effects-grid">
                     <div class="slider-control">
                         <label for="duration">Duration: <span id="duration-value">2.0</span>s</label>
@@ -330,7 +330,7 @@
             </div>
 
             <div class="settings-section">
-                <h3>🎚️ Audio Effects</h3>
+                <h3>Audio Effects</h3>
                 <div class="effects-grid">
                     <div class="slider-control">
                         <label for="reverb">Reverb: <span id="reverb-value">0</span>%</label>
@@ -342,7 +342,7 @@
                     </div>
                 </div>
                 <div class="preset-controls">
-                    <label for="preset-select">Presets:</label>
+                    <label for="preset-select">Preset</label>
                     <select id="preset-select" aria-label="Select audio effect preset">
                         <option value="">-- Select Preset --</option>
                     </select>
@@ -350,7 +350,7 @@
             </div>
 
             <div class="settings-section">
-                <h3>📊 ADSR Envelope</h3>
+                <h3>ADSR Envelope</h3>
                 <div class="adsr-grid">
                     <div class="slider-control">
                         <label for="attack">Attack: <span id="attack-value">50</span> ms</label>
@@ -370,7 +370,7 @@
                     </div>
                 </div>
                 <div class="adsr-curve-controls">
-                    <label for="adsr-curve-select">Curve Type:</label>
+                    <label for="adsr-curve-select">Curve type</label>
                     <select id="adsr-curve-select" aria-label="Select ADSR curve type">
                         <!-- Options populated dynamically from config.js -->
                     </select>
@@ -378,9 +378,9 @@
             </div>
 
             <div class="settings-section">
-                <h3>🎵 Playback Mode</h3>
+                <h3>Playback Mode</h3>
                 <div class="playback-mode-selector">
-                    <label for="playback-mode-select">Mode:</label>
+                    <label for="playback-mode-select">Mode</label>
                     <select id="playback-mode-select" aria-label="Select playback mode">
                         <!-- Options populated dynamically from config.js -->
                     </select>
@@ -402,49 +402,49 @@
     <div id="import-export-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="import-export-title" aria-modal="true">
         <div class="modal-content import-export-modal">
             <button class="modal-close" id="import-export-close" aria-label="Close import/export">&times;</button>
-            <h2 id="import-export-title">📥 Import & Export</h2>
+            <h2 id="import-export-title">Import & Export</h2>
 
             <div class="import-export-section">
-                <h3>📁 Import Data</h3>
+                <h3>Import Data</h3>
                 <div class="import-buttons">
                     <label for="csv-import" class="file-label">
-                        📁 Import CSV
+                        Import CSV
                     </label>
                     <input type="file" id="csv-import" accept=".csv" class="hidden" aria-label="Import FTIR data from CSV file">
                     <label for="jcamp-import" class="file-label">
-                        📊 Import JCAMP-DX
+                        Import JCAMP-DX
                     </label>
                     <input type="file" id="jcamp-import" accept=".jdx,.dx,.jcamp" class="hidden" aria-label="Import FTIR data from JCAMP-DX file">
                     <button id="download-template" class="secondary-button" aria-label="Download CSV template">
-                        📋 Download Template
+                        Download Template
                     </button>
                 </div>
             </div>
 
             <div class="import-export-section">
-                <h3>💾 Export Audio</h3>
+                <h3>Export Audio</h3>
                 <div class="export-buttons">
                     <button id="export-wav" disabled class="secondary-button" aria-label="Export audio as WAV file">
-                        💾 Export WAV
+                        Export WAV
                     </button>
                     <button id="export-mp3" disabled class="secondary-button" aria-label="Export audio as MP3 file">
-                        🎵 Export MP3
+                        Export MP3
                     </button>
                 </div>
                 <p class="import-export-info">Audio exports (WAV/MP3) use the current Playback Mode setting from Settings.</p>
             </div>
 
             <div class="import-export-section">
-                <h3>📊 Export Data</h3>
+                <h3>Export Data</h3>
                 <div class="export-buttons">
                     <button id="export-peaks-csv" disabled class="secondary-button" aria-label="Export peak table as CSV">
-                        📋 Peak Table (CSV)
+                        Peak Table (CSV)
                     </button>
                     <button id="export-peaks-json" disabled class="secondary-button" aria-label="Export peak analysis as JSON">
-                        🧾 Peak Analysis (JSON)
+                        Peak Analysis (JSON)
                     </button>
                     <button id="export-spectrum-csv" disabled class="secondary-button" aria-label="Export spectrum as CSV">
-                        📈 Spectrum (CSV)
+                        Spectrum (CSV)
                     </button>
                 </div>
                 <p class="import-export-info">Peak exports include wavenumber, intensity, prominence, width, mapped audio frequency, MIDI note, and functional group. The JSON export adds full provenance (substance metadata + mapping parameters). Spectrum CSV round-trips with the CSV importer.</p>
@@ -458,7 +458,7 @@
     <div id="browse-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="browse-title" aria-modal="true">
         <div class="modal-content browse-modal">
             <button class="modal-close" id="browse-close" aria-label="Close library browser">&times;</button>
-            <h2 id="browse-title">🔬 Browse Library</h2>
+            <h2 id="browse-title">Browse Library</h2>
 
             <div class="browse-controls">
                 <input type="text" id="browse-search" placeholder="Search by name or formula..." aria-label="Search substances" />
@@ -486,21 +486,21 @@
     <div id="midi-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="midi-title" aria-modal="true">
         <div class="modal-content midi-modal">
             <button class="modal-close" id="midi-close" aria-label="Close MIDI options">&times;</button>
-            <h2 id="midi-title">🎹 MIDI</h2>
+            <h2 id="midi-title">MIDI</h2>
 
             <div class="midi-section">
                 <h3>Device Selection</h3>
                 <div class="midi-device-selector">
-                    <label for="midi-device-select">Output Device:</label>
+                    <label for="midi-device-select">Output device</label>
                     <select id="midi-device-select" aria-label="Select MIDI output device">
                         <option value="">-- No MIDI devices found --</option>
                     </select>
-                    <label for="midi-input-select">Input Device (keyboard):</label>
+                    <label for="midi-input-select">Input device (keyboard)</label>
                     <select id="midi-input-select" aria-label="Select MIDI input device">
                         <option value="">-- No MIDI devices found --</option>
                     </select>
                     <button id="refresh-midi-devices" class="secondary-button" aria-label="Refresh MIDI device list">
-                        🔄 Refresh Devices
+                        ↻ Refresh devices
                     </button>
                 </div>
             </div>
@@ -554,10 +554,10 @@
                 <h3>Actions</h3>
                 <div class="midi-action-buttons">
                     <button id="send-midi-notes" disabled class="secondary-button" aria-label="Send spectrum as MIDI notes">
-                        🎹 Send to MIDI Device
+                        Send to MIDI Device
                     </button>
                     <button id="export-midi-file" disabled class="secondary-button" aria-label="Export spectrum as MIDI file">
-                        💾 Export MIDI File
+                        Export MIDI File
                     </button>
                 </div>
                 <p class="midi-info">Send spectral peaks as MIDI notes to external synthesisers or export as Standard MIDI File (.mid). Uses the Playback Mode setting. Requires Web MIDI API support for device output.</p>
@@ -571,24 +571,24 @@
     <div id="help-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="help-title" aria-modal="true">
         <div class="modal-content help-modal">
             <button class="modal-close" id="help-close" aria-label="Close help">&times;</button>
-            <h2 id="help-title">❓ Help & Information</h2>
+            <h2 id="help-title">Help & Information</h2>
 
             <div class="help-section">
-                <h3>🔬 About This Tool</h3>
+                <h3>About This Tool</h3>
                 <p>
                     FTIR spectroscopy and audio both use <strong>Fourier transforms</strong> to decompose signals
                     into frequency components. This tool maps infrared absorption spectra (molecular vibrations)
                     down to audible frequencies, revealing what molecules "sound like".
                 </p>
-                <p class="info-highlight" style="margin-top: 1rem; padding: 0.75rem; background: rgba(139, 92, 246, 0.1); border-radius: 6px; border-left: 3px solid var(--accent-primary);">
-                    <strong>Now using real data!</strong> This version includes 943 authentic FTIR spectra from the
-                    <a href="https://enfsi.eu/" target="_blank" style="color: var(--accent-secondary); text-decoration: underline;">ENFSI DWG IR Library</a>
-                    (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints.
+                <p class="info-highlight">
+                    <strong>Real data.</strong> 943 authentic FTIR spectra from the
+                    <a href="https://enfsi.eu/" target="_blank" rel="noopener">ENFSI DWG IR Library</a>
+                    (European Network of Forensic Science Institutes).
                 </p>
             </div>
 
             <div class="help-section">
-                <h3>⌨️ Keyboard Shortcuts</h3>
+                <h3>Keyboard Shortcuts</h3>
                 <div class="shortcuts-grid">
                     <div class="shortcut-row">
                         <kbd>Space</kbd>
@@ -618,15 +618,13 @@
             </div>
 
             <div class="help-section">
-                <h3>🎓 Getting Started</h3>
-                <button id="restart-tutorial" class="primary-button">
-                    🎓 Take the Tutorial
-                </button>
-                <p class="help-description">Learn how to use the synthesiser with a guided tour.</p>
+                <h3>Getting Started</h3>
+                <button id="restart-tutorial" class="secondary-button">Take the tutorial</button>
+                <span class="help-description">A 3-minute guided tour of the synthesiser.</span>
             </div>
 
             <div class="help-section">
-                <h3>🔬 The Science</h3>
+                <h3>The Science</h3>
                 <div class="science-explanation">
                     <h4>Why molecules absorb infrared light</h4>
                     <p>
@@ -639,7 +637,7 @@
                     <p>
                         Both FTIR and audio analysis use the same mathematical tool: the Fourier Transform.
                         It decomposes complex signals into individual frequency components. In FTIR, we're
-                        analysing molecular vibrations (~10¹³ Hz). In audio, we're analyzsng sound waves (~100-10000 Hz).
+                        analysing molecular vibrations (~10¹³ Hz). In audio, we're analysing sound waves (~100-10000 Hz).
                     </p>
 
                     <h4>The sonification process</h4>
@@ -653,14 +651,14 @@
             </div>
 
             <div class="help-section">
-                <h3>📊 Understanding the Mapping</h3>
+                <h3>Understanding the Mapping</h3>
                 <div id="mapping-info-modal" class="mapping-info">
                     <p>Select a substance to see how infrared frequencies map to audio frequencies.</p>
                 </div>
             </div>
 
             <div class="help-section">
-                <h3>📖 Glossary</h3>
+                <h3>Glossary</h3>
                 <dl class="glossary">
                     <div class="glossary-entry">
                         <dt>FTIR</dt>
@@ -705,7 +703,7 @@
     <div id="favorites-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="favorites-title" aria-modal="true">
         <div class="modal-content favorites-modal">
             <button class="modal-close" id="favorites-close" aria-label="Close favorites">&times;</button>
-            <h2 id="favorites-title">⭐ Favorites</h2>
+            <h2 id="favorites-title">Favorites</h2>
 
             <div id="favorites-list" class="favorites-list">
                 <p class="empty-favorites">No favorites yet. Click the ⭐ button next to any substance to add it to your favorites.</p>
@@ -719,7 +717,7 @@
     <div id="tutorial-path-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="tutorial-path-title" aria-modal="true">
         <div class="modal-content tutorial-path-modal">
             <button class="modal-close" id="tutorial-path-close" aria-label="Close tutorial selection">&times;</button>
-            <h2 id="tutorial-path-title">Choose Your Learning Path 🎓</h2>
+            <h2 id="tutorial-path-title">Choose Your Learning Path</h2>
             
             <p class="tutorial-intro-text">
                 Select the perspective that interests you most:

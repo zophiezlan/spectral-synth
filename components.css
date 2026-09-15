@@ -595,7 +595,8 @@ footer p {
     border: 1px solid rgba(0, 168, 232, 0.15);
 }
 
-canvas {
+/* Main chart canvases fill their wrapper; other canvases (sparklines) are untouched */
+.canvas-wrap > canvas {
     display: block;
     position: absolute;
     inset: 0;

@@ -55,8 +55,8 @@ const ThumbnailGenerator = {
         const bgColor = isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.5)';
         const lineColor = isDark ? '#8b5cf6' : '#7c3aed';
         const fillGradient = ctx.createLinearGradient(0, 0, 0, height);
-        fillGradient.addColorStop(0, isDark ? 'rgba(139, 92, 246, 0.6)' : 'rgba(124, 58, 237, 0.6)');
-        fillGradient.addColorStop(1, isDark ? 'rgba(236, 72, 153, 0.2)' : 'rgba(219, 39, 119, 0.2)');
+        fillGradient.addColorStop(0, isDark ? 'rgba(139, 92, 246, 0.55)' : 'rgba(124, 58, 237, 0.5)');
+        fillGradient.addColorStop(1, isDark ? 'rgba(139, 92, 246, 0.05)' : 'rgba(124, 58, 237, 0.05)');
 
         // Fill background
         ctx.fillStyle = bgColor;
