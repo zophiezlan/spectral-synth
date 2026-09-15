@@ -86,6 +86,7 @@ async function init() {
         visualizer = new Visualizer(ftirCanvas, audioCanvas);
         visualizer.setAudioEngine(audioEngine);
         visualizer.onPeakSelectionChange = handlePeakSelectionChange;
+        visualizer.clear(); // draw the empty-state hints while the library loads
 
         // Initialize library loader
         libraryIndex = await LibraryLoader.init();
@@ -298,7 +299,7 @@ function handleSubstanceChange() {
         if (favoriteButton) {
             favoriteButton.classList.add('hidden');
         }
-        selectionCount.textContent = 'Click peaks on the FTIR spectrum to select them';
+        selectionCount.textContent = 'Click peaks to isolate them';
         const defaultMessage = '<p>Select a substance to see how infrared frequencies map to audio frequencies.</p>';
         if (mappingInfo) {
             mappingInfo.innerHTML = defaultMessage;
@@ -979,7 +980,7 @@ function showSmartSuggestions(currentSubstance) {
     const suggestionsList = document.getElementById('suggestions-list');
 
     if (!libraryData || libraryData.length < 2) {
-        suggestionsContainer.style.display = 'none';
+        suggestionsContainer.classList.add('hidden');
         return;
     }
 
@@ -1008,12 +1009,15 @@ function showSmartSuggestions(currentSubstance) {
             substanceSelect.value = substance.id;
             handleSubstanceChange();
             // Scroll to top
+            // Desktop scrolls inside <main>; mobile scrolls the page
+            document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
         suggestionsList.appendChild(item);
     });
 
-    suggestionsContainer.style.display = 'block';
+    // .hidden is display:none !important, so inline display can't override it
+    suggestionsContainer.classList.remove('hidden');
 }
 
 /**

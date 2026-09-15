@@ -33,7 +33,7 @@
             </button>
             <div class="header-title">
                 <h1>Spectral Synthesiser</h1>
-                <p class="tagline">Making molecular fingerprints audible through sonification</p>
+                <p class="tagline">Hear what molecules look like</p>
             </div>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle theme">
                 <span class="theme-icon">☀️</span>
@@ -82,35 +82,32 @@
         </ul>
     </nav>
 
-    <main role="main">
-        <!-- Quick Start Panel -->
+    <main role="main" class="app-layout">
+        <!-- Quick Start banner (first visit only) -->
         <div id="quick-start-panel" class="quick-start-panel hidden" aria-labelledby="quick-start-title">
-            <button id="hide-quick-start" class="quick-start-close" aria-label="Close quick start guide">&times;</button>
             <div class="quick-start-content">
-                <h3 id="quick-start-title">🚀 Quick Start</h3>
-                <p>New here? Try these 3 simple steps:</p>
-                <ol class="quick-start-steps">
-                    <li><strong>Select a substance</strong> below (try "Caffeine" 👇)</li>
-                    <li><strong>Click "▶ Play Sound"</strong> to hear it</li>
-                    <li><strong>Watch the visualisations</strong> - left shows molecular vibrations, right shows audio</li>
-                </ol>
+                <span id="quick-start-title" class="quick-start-text">
+                    <strong>New here?</strong> Pick a substance and hit <strong>Play</strong> to hear its molecular fingerprint.
+                </span>
                 <div class="quick-start-actions">
-                    <button id="try-caffeine" class="quick-start-button">☕ Try Caffeine Now</button>
-                    <button id="start-tour-from-quickstart" class="quick-start-button secondary">🎓 Take Guided Tour</button>
+                    <button id="try-caffeine" class="quick-start-button">☕ Try caffeine</button>
+                    <button id="start-tour-from-quickstart" class="quick-start-button secondary">🎓 Tour</button>
                 </div>
             </div>
+            <button id="hide-quick-start" class="quick-start-close" aria-label="Close quick start guide">&times;</button>
         </div>
 
-        <section class="controls" id="single-controls" aria-label="Playback controls">
+        <section class="controls picker" id="single-controls" aria-label="Playback controls">
             <div class="filter-controls" role="group" aria-label="Substance filters">
                 <div class="search-box">
-                    <label for="search">Search substances:</label>
-                    <input type="text" id="search" placeholder="Type to search..." />
+                    <label for="search" class="sr-only">Search substances</label>
+                    <span class="search-icon" aria-hidden="true">⌕</span>
+                    <input type="text" id="search" placeholder="Search by name or formula…" autocomplete="off" />
                 </div>
 
                 <div class="category-filter">
-                    <label for="category">Filter by category:</label>
-                    <select id="category">
+                    <label for="category" class="sr-only">Filter by category</label>
+                    <select id="category" class="sr-only" tabindex="-1" aria-hidden="true">
                         <option value="all">All Categories</option>
                         <option value="opioids">Opioids</option>
                         <option value="stimulants">Stimulants</option>
@@ -123,102 +120,102 @@
                         <option value="precursors">Precursors</option>
                         <option value="other">Other</option>
                     </select>
-                </div>
-
-                <div class="favorites-filter-buttons">
-                    <button id="show-all" class="filter-button active" aria-pressed="true">All</button>
-                    <button id="show-favorites" class="filter-button" aria-pressed="false">⭐ Favorites</button>
+                    <div class="chip-row" role="group" aria-label="Category">
+                        <button type="button" class="chip active" data-category="all" aria-pressed="true">All</button>
+                        <button type="button" class="chip" data-category="stimulants" aria-pressed="false">Stimulants</button>
+                        <button type="button" class="chip" data-category="opioids" aria-pressed="false">Opioids</button>
+                        <button type="button" class="chip" data-category="psychedelics" aria-pressed="false">Psychedelics</button>
+                        <button type="button" class="chip" data-category="benzodiazepines" aria-pressed="false">Benzos</button>
+                        <button type="button" class="chip" data-category="cannabinoids" aria-pressed="false">Cannabinoids</button>
+                        <button type="button" class="chip" data-category="dissociatives" aria-pressed="false">Dissociatives</button>
+                        <button type="button" class="chip" data-category="tryptamines" aria-pressed="false">Tryptamines</button>
+                        <button type="button" class="chip" data-category="steroids" aria-pressed="false">Steroids</button>
+                        <button type="button" class="chip" data-category="precursors" aria-pressed="false">Precursors</button>
+                        <button type="button" class="chip" data-category="other" aria-pressed="false">Other</button>
+                        <span class="chip-divider" aria-hidden="true"></span>
+                        <button type="button" id="show-favorites" class="chip chip-fav" aria-pressed="false" title="Show favourites only">★ Favourites</button>
+                    </div>
                 </div>
 
                 <div class="filter-status-bar">
-                    <div class="results-count">
-                        <span id="results-count" aria-live="polite" aria-atomic="true">Loading…</span>
-                    </div>
+                    <span id="results-count" class="results-count" aria-live="polite" aria-atomic="true">Loading…</span>
                     <div id="active-filters" class="active-filters hidden">
-                        <span class="filter-label">Filters:</span>
                         <span id="search-filter-tag" class="filter-tag hidden">
-                            <span class="filter-tag-text">Search: "<span id="search-term-display"></span>"</span>
+                            <span class="filter-tag-text">“<span id="search-term-display"></span>”</span>
                             <button class="filter-remove" data-filter="search" aria-label="Clear search">×</button>
                         </span>
                         <span id="category-filter-tag" class="filter-tag hidden">
-                            <span class="filter-tag-text">Category: <span id="category-name-display"></span></span>
+                            <span class="filter-tag-text"><span id="category-name-display"></span></span>
                             <button class="filter-remove" data-filter="category" aria-label="Clear category">×</button>
                         </span>
                         <span id="favorites-filter-tag" class="filter-tag hidden">
-                            <span class="filter-tag-text">Favorites only</span>
+                            <span class="filter-tag-text">★ only</span>
                             <button class="filter-remove" data-filter="favorites" aria-label="Clear favorites filter">×</button>
                         </span>
-                        <button id="clear-all-filters" class="clear-all-btn">Clear All</button>
+                        <button id="clear-all-filters" class="clear-all-btn">Clear</button>
                     </div>
                 </div>
 
                 <!-- No results state -->
                 <div id="no-results" class="no-results hidden" role="status" aria-live="polite">
-                    <div class="no-results-icon">🔍</div>
                     <p class="no-results-title">No substances found</p>
-                    <p class="no-results-message">Try adjusting your search or filters</p>
-                    <button id="clear-search-btn" class="secondary-button">Clear Filters</button>
+                    <button id="clear-search-btn" class="secondary-button">Clear filters</button>
                 </div>
             </div>
 
             <div class="substance-selector">
-                <label for="substance">
-                    Select a substance:
+                <label for="substance" class="field-label">Substance</label>
+                <div class="substance-row">
+                    <select id="substance">
+                        <option value="">-- Loading library... --</option>
+                    </select>
                     <button id="favorite-toggle" class="favorite-button hidden" type="button" aria-label="Toggle favorite">☆</button>
-                </label>
-                <select id="substance">
-                    <option value="">-- Loading library... --</option>
-                </select>
-                <button id="browse-library-btn" class="secondary-button browse-button" type="button" aria-label="Browse library with spectrum previews">
-                    🔬 Browse
-                </button>
+                    <button id="browse-library-btn" class="icon-button browse-button" type="button" aria-label="Browse library with spectrum previews" title="Browse library">
+                        🔬<span class="browse-label">Browse</span>
+                    </button>
+                </div>
             </div>
 
             <div class="playback-controls" role="group" aria-label="Playback buttons">
                 <button id="play" class="primary-button" disabled aria-label="Play sound from selected substance">▶ Play Sound</button>
             </div>
+
+            <div class="smart-suggestions hidden" id="smart-suggestions" role="group" aria-label="Similar substances">
+                <h4 class="section-title">Sounds similar</h4>
+                <div class="suggestions-list" id="suggestions-list"></div>
+            </div>
         </section>
 
-        <section class="visualisation single-visualisation" aria-label="Visualisation">
-            <div class="viz-panel">
+        <section class="visualisation" aria-label="Visualisation">
+            <div class="viz-panel" id="ftir-panel">
                 <div class="viz-header">
-                    <h3>FTIR Spectrum (Infrared)</h3>
-                    <button id="mapping-info-btn" class="info-icon-btn" aria-label="Understanding the mapping" title="Understanding the mapping">
-                        <span class="info-icon">ℹ️</span>
+                    <h3>FTIR Spectrum <span class="viz-sub">infrared · cm⁻¹</span></h3>
+                    <div class="peak-selection-info">
+                        <span id="selection-count" class="selection-status">Click peaks to isolate them</span>
+                        <button id="clear-selection" class="clear-selection-btn hidden" aria-label="Clear peak selection">Clear</button>
+                    </div>
+                    <button id="mapping-info-btn" class="info-icon-btn" aria-label="Understanding the mapping" title="How IR maps to audio">
+                        <span class="info-icon">i</span>
                     </button>
                 </div>
-                <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualisation"></canvas>
-                <div class="axis-labels">
-                    <span class="axis-label-x">Wavenumber (cm⁻¹)</span>
-                </div>
-                <div class="peak-selection-info">
-                    <span id="selection-count" class="selection-status">Click peaks to select specific frequencies</span>
-                    <button id="clear-selection" class="clear-selection-btn hidden" aria-label="Clear peak selection">Clear Selection</button>
+                <div class="canvas-wrap">
+                    <canvas id="ftir-canvas" width="600" height="300" role="img" aria-label="FTIR spectrum visualisation"></canvas>
                 </div>
             </div>
 
-            <div class="viz-panel">
-                <h3>Audio FFT (Audible)</h3>
-                <canvas id="audio-canvas" width="600" height="300" role="img" aria-label="Audio FFT visualisation"></canvas>
-                <div class="axis-labels">
-                    <span class="axis-label-x">Frequency (Hz)</span>
+            <div class="viz-panel" id="audio-panel">
+                <div class="viz-header">
+                    <h3>Audio FFT <span class="viz-sub">audible · Hz</span></h3>
+                </div>
+                <div class="canvas-wrap">
+                    <canvas id="audio-canvas" width="600" height="300" role="img" aria-label="Audio FFT visualisation"></canvas>
                 </div>
             </div>
         </section>
-
-        <div class="smart-suggestions hidden" id="smart-suggestions" role="group" aria-label="Similar substances">
-            <h4 class="section-title">✨ Similar Substances</h4>
-            <p class="suggestions-description">Based on spectral similarity</p>
-            <div class="suggestions-list" id="suggestions-list"></div>
-        </div>
-
     </main>
 
     <footer role="contentinfo">
-        <p>
-            <strong>Note:</strong> This is an educational/artistic tool, not for substance identification or drug checking.
-            FTIR data sourced from scientific databases.
-        </p>
+        <p>Educational/artistic tool — not for substance identification or drug checking. FTIR data from the ENFSI IR library.</p>
     </footer>
 
     <!-- Loading overlay -->
@@ -277,7 +274,7 @@
 
                 <div class="onboarding-highlight">
                     <strong>Same math (Fourier Transform), different data!</strong><br>
-                    Left panel: FTIR spectrum | Right panel: Audio FFT
+                    Top: FTIR spectrum · Bottom: live audio FFT
                 </div>
 
                 <div class="onboarding-quick-tips">

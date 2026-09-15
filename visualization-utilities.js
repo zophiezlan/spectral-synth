@@ -156,17 +156,22 @@ const ResponsiveCanvas = {
         // Define redraw handlers once to avoid repeated object creation
         const redrawHandlers = {
             'ftir-canvas': () => {
-                if (typeof visualizer !== 'undefined' && visualizer.currentSpectrum) {
+                if (typeof visualizer === 'undefined') return;
+                if (visualizer.currentSpectrum) {
                     visualizer.drawFTIRSpectrum(visualizer.currentSpectrum, visualizer.currentPeaks || []);
+                } else if (typeof visualizer.drawEmptyStateFTIR === 'function') {
+                    visualizer.drawEmptyStateFTIR();
                 }
             },
             'audio-canvas': () => {
-                // Only redraw if visualizer exists and audio engine is initialized
-                // Check for audioEngine property to ensure visualizer is fully initialized
-                if (typeof visualizer !== 'undefined' && visualizer.audioEngine) {
-                    // Clear audio canvas static cache and trigger immediate redraw
-                    visualizer.audioStaticCached = false;
-                    visualizer.stopAudioAnimation(); // Redraws with cleared cache
+                if (typeof visualizer === 'undefined') return;
+                // Static grid/axes are cached at the old size; drop the cache
+                visualizer.audioStaticCached = false;
+                if (visualizer.animationId) return; // live loop redraws every frame
+                if (visualizer.currentSpectrum && visualizer.audioEngine) {
+                    visualizer.stopAudioAnimation(); // Redraws axes at the new size
+                } else if (typeof visualizer.drawEmptyStateAudio === 'function') {
+                    visualizer.drawEmptyStateAudio();
                 }
             },
             'ftir-canvas-a': () => {
@@ -181,36 +186,26 @@ const ResponsiveCanvas = {
             }
         };
 
+        // Size the canvas's drawing buffer to the box its wrapper actually
+        // occupies. The wrapper's size is decided by CSS (it fills the
+        // remaining viewport height on desktop, fixed aspect on mobile), so
+        // the canvas just follows it. Drawing code reads canvas.width/height
+        // at draw time, so any resolution works.
         const resize = () => {
             const container = canvas.parentElement;
             if (!container) return;
 
-            // Get container width
-            const containerWidth = container.clientWidth;
+            let width = Math.floor(container.clientWidth);
+            let height = Math.floor(container.clientHeight);
 
-            // Calculate dimensions based on screen size
-            let canvasWidth, canvasHeight;
+            // Fallback (e.g. display:none or before layout): keep aspect ratio
+            if (width < 10) width = 600;
+            if (height < 10) height = Math.round(width / aspectRatio);
 
-            if (window.innerWidth <= 768) {
-                // Mobile: full container width, reduced height
-                canvasWidth = Math.min(containerWidth - 32, 600); // Subtract padding
-                canvasHeight = Math.min(canvasWidth / aspectRatio, 250);
+            if (canvas.width === width && canvas.height === height) return;
 
-                // Set canvas internal dimensions to match logical pixels
-                // This ensures drawing code coordinates match the display size
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-
-                // Set CSS size to match (no scaling needed)
-                canvas.style.width = canvasWidth + 'px';
-                canvas.style.height = canvasHeight + 'px';
-            } else {
-                // Desktop: standard size
-                canvas.width = 600;
-                canvas.height = 300;
-                canvas.style.width = '100%';
-                canvas.style.height = 'auto';
-            }
+            canvas.width = width;
+            canvas.height = height;
 
             // Trigger redraw of current visualization after resize
             const handler = redrawHandlers[canvas.id];
@@ -222,12 +217,21 @@ const ResponsiveCanvas = {
         // Initial resize
         resize();
 
-        // Debounce resize events
-        let resizeTimer;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(resize, 250);
-        });
+        // Follow the wrapper's box, not just the window
+        if (typeof ResizeObserver !== 'undefined' && canvas.parentElement) {
+            let resizeTimer;
+            const observer = new ResizeObserver(() => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(resize, 50);
+            });
+            observer.observe(canvas.parentElement);
+        } else {
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(resize, 150);
+            });
+        }
 
         // Also handle orientation change on mobile
         window.addEventListener('orientationchange', () => {

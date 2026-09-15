@@ -119,7 +119,7 @@ function handlePeakSelectionChange(selectedPeaks) {
     const clearBtn = clearSelectionButton;
 
     if (count === 0) {
-        selectionCount.textContent = 'Click peaks to select specific frequencies';
+        selectionCount.textContent = 'Click peaks to isolate them';
         if (clearBtn) clearBtn.classList.add('hidden');
     } else {
         selectionCount.textContent = `${count} peak${count !== 1 ? 's' : ''} selected`;

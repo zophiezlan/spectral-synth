@@ -71,8 +71,10 @@ Each absorption peak becomes an oscillator:
 - **Waveform**: Mix of sine, triangle, and square waves for richness
 
 ### 5. Dual Visualization
-- **Left panel**: FTIR spectrum showing molecular absorption patterns
-- **Right panel**: Real-time FFT of the generated audio signal
+- **FTIR Spectrum** (top): molecular absorption pattern; click peaks to isolate them
+- **Audio FFT** (bottom): real-time FFT of the generated audio signal
+
+On desktop the substance picker sits to the left and both charts fill the remaining height, so the whole tool is visible without scrolling. On phones it stacks into a single column.
 
 Both visualizations use the same mathematical transformation, just on different data!
 

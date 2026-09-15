@@ -373,6 +373,22 @@ class Visualizer {
     }
 
     /**
+     * Plot rectangle inside a canvas: leaves room for y-axis labels on the
+     * left and x-axis labels along the bottom. Every chart primitive (grid,
+     * ticks, line, bars) is positioned relative to this so they line up.
+     * @param {number} width - Canvas width
+     * @param {number} height - Canvas height
+     * @returns {{x0:number, x1:number, y0:number, y1:number, w:number, h:number}}
+     */
+    plotArea(width, height) {
+        const x0 = 42;
+        const x1 = width - 22;
+        const y0 = 10;
+        const y1 = height - 22;
+        return { x0, x1, y0, y1, w: x1 - x0, h: y1 - y0 };
+    }
+
+    /**
      * Draw FTIR spectrum
      * @param {Array} spectrum - Array of {wavenumber, transmittance} objects
      * @param {Array} peaks - Highlighted peaks (optional)
@@ -405,16 +421,15 @@ class Visualizer {
         const minWavenumber = Math.min(...wavenumbers);
         const maxWavenumber = Math.max(...wavenumbers);
 
-        // Scale functions for mapping data coordinates to canvas pixels
-        // X: Map wavenumber range to canvas width (with 20px margins)
+        // Scale functions for mapping data coordinates to the plot area
+        const plot = this.plotArea(width, height);
         const scaleX = (wavenumber) => {
-            return ((wavenumber - minWavenumber) / (maxWavenumber - minWavenumber)) * (width - 40) + 20;
+            return plot.x0 + ((wavenumber - minWavenumber) / (maxWavenumber - minWavenumber)) * plot.w;
         };
 
-        // Y: Map transmittance percentage to canvas height (inverted, with margins)
-        // High transmittance (100%) = top, low transmittance (0%) = bottom
+        // Y: high transmittance (100%) = top, low transmittance (0%) = bottom
         const scaleY = (transmittance) => {
-            return height - 20 - ((transmittance / 100) * (height - 40));
+            return plot.y1 - (transmittance / 100) * plot.h;
         };
 
         // Draw spectrum line
@@ -464,7 +479,7 @@ class Visualizer {
                         : CONFIG.visualization.PEAK_COLOR + '44';
                 }
                 ctx.lineWidth = isSelected ? 2 : 1;
-                ctx.moveTo(x, height - 20);
+                ctx.moveTo(x, plot.y1);
                 ctx.lineTo(x, y);
                 ctx.stroke();
 
@@ -552,18 +567,19 @@ class Visualizer {
         const maxFreq = 10000;
         const maxBin = Math.floor((maxFreq / sampleRate) * bufferLength * 2);
 
-        const barWidth = (width - 40) / maxBin;
-        let x = 20;
+        const plot = this.plotArea(width, height);
+        const barWidth = plot.w / maxBin;
+        let x = plot.x0;
 
         // Draw frequency bars only (dynamic content)
         for (let i = 0; i < maxBin; i++) {
-            const barHeight = (frequencyData[i] / 255) * (height - 40);
+            const barHeight = (frequencyData[i] / 255) * plot.h;
 
             // Color gradient based on frequency
             const hue = (i / maxBin) * 280; // Blue to purple
             ctx.fillStyle = `hsl(${hue}, 80%, 60%)`;
 
-            ctx.fillRect(x, height - 20 - barHeight, barWidth, barHeight);
+            ctx.fillRect(x, plot.y1 - barHeight, barWidth, barHeight);
 
             x += barWidth;
         }
@@ -614,72 +630,94 @@ class Visualizer {
      * Draw grid lines
      */
     drawGrid(ctx, width, height) {
-        ctx.strokeStyle = '#2a2a3a';
+        const plot = this.plotArea(width, height);
+        ctx.strokeStyle = '#1f2a38';
         ctx.lineWidth = 1;
 
-        // Horizontal lines
+        // Horizontal lines (aligned with the y-axis ticks)
         for (let i = 1; i < 5; i++) {
-            const y = (height / 5) * i;
+            const y = Math.round(plot.y1 - (plot.h / 5) * i) + 0.5;
             ctx.beginPath();
-            ctx.moveTo(20, y);
-            ctx.lineTo(width - 20, y);
+            ctx.moveTo(plot.x0, y);
+            ctx.lineTo(plot.x1, y);
             ctx.stroke();
         }
 
-        // Vertical lines
+        // Vertical lines (aligned with the x-axis ticks)
         for (let i = 1; i < 5; i++) {
-            const x = 20 + ((width - 40) / 5) * i;
+            const x = Math.round(plot.x0 + (plot.w / 5) * i) + 0.5;
             ctx.beginPath();
-            ctx.moveTo(x, 20);
-            ctx.lineTo(x, height - 20);
+            ctx.moveTo(x, plot.y0);
+            ctx.lineTo(x, plot.y1);
             ctx.stroke();
         }
+
+        // Axis baseline
+        ctx.strokeStyle = '#2e3d50';
+        ctx.beginPath();
+        ctx.moveTo(plot.x0 + 0.5, plot.y0);
+        ctx.lineTo(plot.x0 + 0.5, plot.y1 + 0.5);
+        ctx.lineTo(plot.x1, plot.y1 + 0.5);
+        ctx.stroke();
     }
 
     /**
      * Draw FTIR axes labels
      */
     drawFTIRAxes(ctx, width, height, minWavenumber, maxWavenumber) {
-        ctx.fillStyle = '#a0a0a0';
-        ctx.font = '12px monospace';
+        const plot = this.plotArea(width, height);
+        ctx.fillStyle = '#8a929c';
+        ctx.font = '11px monospace';
 
-        // X-axis labels (wavenumbers)
-        const step = Math.ceil((maxWavenumber - minWavenumber) / 5);
+        // X-axis labels (wavenumbers), centred on their tick
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
         for (let i = 0; i <= 5; i++) {
-            const wavenumber = Math.round(minWavenumber + (step * i));
-            const x = 20 + ((width - 40) / 5) * i;
-            ctx.fillText(wavenumber.toString(), x - 20, height - 5);
+            const wavenumber = Math.round(minWavenumber + ((maxWavenumber - minWavenumber) / 5) * i);
+            const x = plot.x0 + (plot.w / 5) * i;
+            ctx.fillText(wavenumber.toString(), x, height - 6);
         }
 
-        // Y-axis numeric markers (transmittance percentages)
+        // Y-axis numeric markers (transmittance percentages), right-aligned
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
         for (let i = 0; i <= 5; i++) {
             const transmittance = (i * 20);
-            const y = height - 20 - ((height - 40) / 5) * i;
-            ctx.fillText(transmittance + '%', 5, y + 5);
+            const y = plot.y1 - (plot.h / 5) * i;
+            ctx.fillText(transmittance + '%', plot.x0 - 6, y);
         }
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
     }
 
     /**
      * Draw audio FFT axes labels
      */
     drawAudioAxes(ctx, width, height, maxFreq) {
-        ctx.fillStyle = '#a0a0a0';
-        ctx.font = '12px monospace';
+        const plot = this.plotArea(width, height);
+        ctx.fillStyle = '#8a929c';
+        ctx.font = '11px monospace';
 
-        // X-axis labels (frequency in Hz)
+        // X-axis labels (frequency in Hz), centred on their tick
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
         for (let i = 0; i <= 5; i++) {
             const freq = Math.round((maxFreq / 5) * i);
-            const x = 20 + ((width - 40) / 5) * i;
-            const label = freq >= 1000 ? (freq / 1000).toFixed(1) + 'k' : freq.toString();
-            ctx.fillText(label, x - 15, height - 5);
+            const x = plot.x0 + (plot.w / 5) * i;
+            const label = freq >= 1000 ? (freq / 1000) + 'k' : freq.toString();
+            ctx.fillText(label, x, height - 6);
         }
 
-        // Y-axis numeric markers (amplitude scale 0-1)
+        // Y-axis numeric markers (amplitude scale 0-1), right-aligned
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
         for (let i = 0; i <= 5; i++) {
             const amplitude = (i * 0.2).toFixed(1);
-            const y = height - 20 - ((height - 40) / 5) * i;
-            ctx.fillText(amplitude, 5, y + 5);
+            const y = plot.y1 - (plot.h / 5) * i;
+            ctx.fillText(amplitude, plot.x0 - 6, y);
         }
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
     }
 
     /**
@@ -687,6 +725,12 @@ class Visualizer {
      */
     clear() {
         this.stopAudioAnimation();
+
+        // Forget the spectrum so a later resize redraws the empty state,
+        // not the substance that was just deselected
+        this.currentSpectrum = null;
+        this.currentPeaks = null;
+        this.peakPositions = [];
 
         // Draw empty state instead of blank canvas
         this.drawEmptyStateFTIR();
@@ -709,7 +753,7 @@ class Visualizer {
         this.drawGrid(ctx, width, height);
 
         // Draw example spectrum shape (dashed line)
-        ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
+        ctx.strokeStyle = 'rgba(0, 212, 170, 0.3)';
         ctx.lineWidth = 2;
         ctx.setLineDash([8, 8]);
         ctx.beginPath();
@@ -741,18 +785,20 @@ class Visualizer {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Draw helpful text with arrow
-        ctx.font = 'bold 24px "Segoe UI"';
-        ctx.fillStyle = 'rgba(167, 139, 250, 0.9)';
+        // Draw helpful text, scaled to the canvas so it fits small screens
+        const titleSize = Math.max(14, Math.min(22, width / 28));
+        const subSize = Math.max(11, Math.min(15, width / 42));
+        ctx.font = `600 ${titleSize}px "Segoe UI", sans-serif`;
+        ctx.fillStyle = 'rgba(0, 212, 170, 0.9)';
         ctx.textAlign = 'center';
 
-        const centerY = height / 2 + 60;
-        ctx.fillText('Select a substance above ↑', width / 2, centerY);
+        const centerY = height / 2 + titleSize * 1.5;
+        ctx.fillText('Pick a substance to see its fingerprint', width / 2, centerY);
 
         // Draw subtitle
-        ctx.font = '16px "Segoe UI"';
-        ctx.fillStyle = 'rgba(167, 139, 250, 0.6)';
-        ctx.fillText('to see its molecular fingerprint', width / 2, centerY + 30);
+        ctx.font = `${subSize}px "Segoe UI", sans-serif`;
+        ctx.fillStyle = 'rgba(0, 212, 170, 0.55)';
+        ctx.fillText('then click peaks to isolate individual vibrations', width / 2, centerY + subSize * 1.6);
     }
 
     /**
@@ -771,7 +817,7 @@ class Visualizer {
         this.drawGrid(ctx, width, height);
 
         // Draw example frequency bars (dashed)
-        ctx.fillStyle = 'rgba(236, 72, 153, 0.2)';
+        ctx.fillStyle = 'rgba(0, 168, 232, 0.18)';
         const barCount = 50;
         const padding = 40;
         const plotWidth = width - padding * 2;
@@ -787,18 +833,20 @@ class Visualizer {
             ctx.fillRect(x, y, barWidth - 2, barHeight);
         }
 
-        // Draw helpful text
-        ctx.font = 'bold 24px "Segoe UI"';
-        ctx.fillStyle = 'rgba(236, 72, 153, 0.9)';
+        // Draw helpful text, scaled to the canvas so it fits small screens
+        const titleSize = Math.max(14, Math.min(22, width / 28));
+        const subSize = Math.max(11, Math.min(15, width / 42));
+        ctx.font = `600 ${titleSize}px "Segoe UI", sans-serif`;
+        ctx.fillStyle = 'rgba(0, 168, 232, 0.9)';
         ctx.textAlign = 'center';
 
-        const centerY = height / 2 + 60;
-        ctx.fillText('Real-time audio FFT', width / 2, centerY);
+        const centerY = height / 2 + titleSize * 1.5;
+        ctx.fillText('Live audio spectrum', width / 2, centerY);
 
         // Draw subtitle
-        ctx.font = '16px "Segoe UI"';
-        ctx.fillStyle = 'rgba(236, 72, 153, 0.6)';
-        ctx.fillText('will appear here when you play', width / 2, centerY + 30);
+        ctx.font = `${subSize}px "Segoe UI", sans-serif`;
+        ctx.fillStyle = 'rgba(0, 168, 232, 0.55)';
+        ctx.fillText('appears here when you press Play', width / 2, centerY + subSize * 1.6);
     }
 
     /**

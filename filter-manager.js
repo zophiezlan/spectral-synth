@@ -42,6 +42,7 @@ const FilterManager = (function() {
     // Private state
     let libraryData = null;
     let searchDebounceTimer = null;
+    let lastSelectedId = null; // substance id chosen before the last repopulate
 
     // Filter state (mirrors AppState but kept locally for performance)
     let currentSearchTerm = '';
@@ -71,6 +72,7 @@ const FilterManager = (function() {
             substanceSelector: document.querySelector('.substance-selector'),
             showAllButton: document.getElementById('show-all'),
             showFavoritesButton: document.getElementById('show-favorites'),
+            categoryChips: Array.from(document.querySelectorAll('.chip[data-category]')),
         };
     }
 
@@ -114,6 +116,11 @@ const FilterManager = (function() {
 
         const filteredData = getFilteredLibrary();
 
+        // Rebuilding the options resets the select's value, so remember what
+        // was chosen and put it back if it survived the filter.
+        const previousId = elements.substanceSelect.value;
+        if (previousId) lastSelectedId = previousId;
+
         // Clear existing options except the first one
         elements.substanceSelect.innerHTML = '<option value="">-- Select a Substance --</option>';
 
@@ -125,6 +132,10 @@ const FilterManager = (function() {
             elements.substanceSelect.appendChild(option);
         });
 
+        if (previousId && filteredData.some(item => item.id === previousId)) {
+            elements.substanceSelect.value = previousId;
+        }
+
         // Update results count
         if (elements.resultsCount) {
             elements.resultsCount.textContent = `${filteredData.length} substance${filteredData.length !== 1 ? 's' : ''}`;
@@ -132,6 +143,7 @@ const FilterManager = (function() {
 
         // Update filter status display
         updateFilterStatus(filteredData.length);
+        syncCategoryChips();
 
         // Sync with AppState
         if (typeof AppState !== 'undefined') {
@@ -210,19 +222,27 @@ const FilterManager = (function() {
      * @private
      */
     function updateFavoritesButtons() {
-        if (elements.showAllButton && elements.showFavoritesButton) {
-            if (showFavoritesOnly) {
-                elements.showAllButton.classList.remove('active');
-                elements.showAllButton.setAttribute('aria-pressed', 'false');
-                elements.showFavoritesButton.classList.add('active');
-                elements.showFavoritesButton.setAttribute('aria-pressed', 'true');
-            } else {
-                elements.showAllButton.classList.add('active');
-                elements.showAllButton.setAttribute('aria-pressed', 'true');
-                elements.showFavoritesButton.classList.remove('active');
-                elements.showFavoritesButton.setAttribute('aria-pressed', 'false');
-            }
+        if (elements.showAllButton) {
+            elements.showAllButton.classList.toggle('active', !showFavoritesOnly);
+            elements.showAllButton.setAttribute('aria-pressed', String(!showFavoritesOnly));
         }
+        if (elements.showFavoritesButton) {
+            elements.showFavoritesButton.classList.toggle('active', showFavoritesOnly);
+            elements.showFavoritesButton.setAttribute('aria-pressed', String(showFavoritesOnly));
+        }
+    }
+
+    /**
+     * Mirror the (visually hidden) category <select> onto the chip row
+     * @private
+     */
+    function syncCategoryChips() {
+        if (!elements.categoryChips || elements.categoryChips.length === 0) return;
+        elements.categoryChips.forEach(chip => {
+            const isActive = chip.dataset.category === currentCategory;
+            chip.classList.toggle('active', isActive);
+            chip.setAttribute('aria-pressed', String(isActive));
+        });
     }
 
     /**
@@ -230,17 +250,16 @@ const FilterManager = (function() {
      * @private
      */
     function checkCurrentSelection() {
-        if (!elements.substanceSelect || !elements.substanceSelect.value) return;
+        if (!elements.substanceSelect) return;
 
-        const filteredData = getFilteredLibrary();
-        const stillExists = filteredData.some(item => item.id === elements.substanceSelect.value);
+        // populateSubstanceSelector() already restored the value if the
+        // substance is still in the filtered list; an empty value here means
+        // the previous selection was filtered out.
+        if (elements.substanceSelect.value || !lastSelectedId) return;
 
-        if (!stillExists) {
-            elements.substanceSelect.value = '';
-            // Trigger substance change handler if available
-            if (typeof handleSubstanceChange === 'function') {
-                handleSubstanceChange();
-            }
+        lastSelectedId = null;
+        if (typeof handleSubstanceChange === 'function') {
+            handleSubstanceChange();
         }
     }
 
@@ -295,12 +314,23 @@ const FilterManager = (function() {
                 clearSearchBtn.addEventListener('click', () => this.clearAll());
             }
 
-            // Favorites filter buttons
+            // Category chips (the native select stays in the DOM for state/tests)
+            if (elements.categoryChips) {
+                elements.categoryChips.forEach(chip => {
+                    chip.addEventListener('click', () => this.setCategory(chip.dataset.category));
+                });
+            }
+
+            // Favorites filter buttons. With a show-all partner the favourites
+            // button is one half of a pair; on its own it toggles.
             if (elements.showAllButton) {
                 elements.showAllButton.addEventListener('click', () => this.setShowFavoritesOnly(false));
             }
             if (elements.showFavoritesButton) {
-                elements.showFavoritesButton.addEventListener('click', () => this.setShowFavoritesOnly(true));
+                elements.showFavoritesButton.addEventListener('click', () => {
+                    const next = elements.showAllButton ? true : !showFavoritesOnly;
+                    this.setShowFavoritesOnly(next);
+                });
             }
         },
 

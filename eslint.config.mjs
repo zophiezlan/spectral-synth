@@ -51,6 +51,7 @@ export default [
                 FileReader: 'readonly',
                 URL: 'readonly',
                 IntersectionObserver: 'readonly',
+                ResizeObserver: 'readonly',
                 confirm: 'readonly',
                 alert: 'readonly',
                 prompt: 'readonly',
