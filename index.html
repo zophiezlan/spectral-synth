@@ -16,10 +16,7 @@
     <title>Spectral Synthesiser - Hear Molecules</title>
     <meta name="description" content="Making molecular fingerprints audible through sonification of FTIR spectroscopy data">
     <meta name="theme-color" content="#8b5cf6">
-    <link rel="stylesheet" href="base.css">
-    <link rel="stylesheet" href="components.css">
-    <link rel="stylesheet" href="modals.css">
-    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="src/styles/main.css">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
 </head>
@@ -302,10 +299,6 @@
                 <button id="skip-tour" class="secondary-button">Explore on My Own</button>
             </div>
 
-            <label class="onboarding-checkbox">
-                <input type="checkbox" id="dont-show-again">
-                Don't show this again
-            </label>
         </div>
     </div>
 
@@ -745,54 +738,6 @@
         </div>
     </div>
 
-    <!-- Configuration and constants must be loaded first -->
-    <script src="config.js"></script>
-    <script src="constants.js"></script>
-    <script src="debug-logger.js"></script>
-    <script src="app-state.js"></script>
-
-    <!-- Utility modules -->
-    <script src="ui-utilities.js"></script>
-    <script src="modal-manager.js"></script>
-    <script src="keyboard-shortcuts.js"></script>
-    <script src="visualization-utilities.js"></script>
-    <script src="storage-utilities.js"></script>
-    <script src="tutorial-manager.js"></script>
-    <script src="analysis-utilities.js"></script>
-    <script src="substance-utilities.js"></script>
-    <script src="performance-utilities.js"></script>
-    <script src="performance-monitor.js"></script>
-    
-    <!-- Core modules -->
-    <script src="spectrum-codec.js"></script>
-    <script src="indexeddb-storage.js"></script>
-    <script src="library-loader.js"></script>
-    <script src="frequency-mapper.js"></script>
-    <script src="audio-engine.js"></script>
-    <script src="visualizer.js"></script>
-    <script src="csv-importer.js"></script>
-    <script src="jcamp-importer.js"></script>
-    <script src="mp3-encoder.js"></script>
-    <script src="midi-output.js"></script>
-    <script src="midi-input.js"></script>
-    
-    <!-- DOM and event handling -->
-    <script src="dom-elements.js"></script>
-    <script src="event-handlers.js"></script>
-    <script src="handlers-import-export.js"></script>
-    <script src="handlers-midi.js"></script>
-
-    <!-- Feature modules -->
-    <script src="filter-manager.js"></script>
-    <script src="browse-manager.js"></script>
-    <script src="onboarding.js"></script>
-    <script src="playback-controller.js"></script>
-    <script src="theme-manager.js"></script>
-
-    <!-- Main application -->
-    <script src="app.js"></script>
-    
-    <!-- Service Worker Registration -->
-    <script src="sw-register.js"></script>
+    <script type="module" src="src/app.js"></script>
 </body>
 </html>

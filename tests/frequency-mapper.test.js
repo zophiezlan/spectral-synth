@@ -4,8 +4,8 @@
  * Tests the IR-to-audio frequency mapping and peak detection functionality.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
-const { FrequencyMapper } = loadBrowserModule('frequency-mapper.js');
+import { CONFIG } from '../src/core/config.js';
+import { FrequencyMapper } from '../src/audio/frequency-mapper.js';
 
 describe('FrequencyMapper', () => {
     let mapper;

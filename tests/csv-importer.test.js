@@ -4,8 +4,9 @@
  * Tests CSV file parsing, validation, and data processing for FTIR spectra.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
-const { CSVImporter } = loadBrowserModule('csv-importer.js');
+import { jest } from '@jest/globals';
+import { Logger } from '../src/core/logger.js';
+import { CSVImporter } from '../src/data/csv-importer.js';
 
 describe('CSVImporter', () => {
     // Helper to create mock File
@@ -140,6 +141,7 @@ describe('CSVImporter', () => {
         });
 
         it('should skip invalid lines gracefully', async () => {
+            const warnSpy = jest.spyOn(Logger, 'warn').mockImplementation(() => {});
             const csv = `wavenumber,transmittance
 400,95.0
 invalid,data
@@ -151,7 +153,7 @@ invalid,data
             const result = await CSVImporter.parseCSV(file);
 
             expect(result.spectrum).toHaveLength(3);
-            expect(Logger.warn).toHaveBeenCalled();
+            expect(warnSpy).toHaveBeenCalled();
         });
 
         it('should clamp transmittance to valid range', async () => {

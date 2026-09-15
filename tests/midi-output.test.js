@@ -6,8 +6,7 @@
  * pitch bends and RPN bend-range setup.
  */
 
-global.Logger = { log: jest.fn(), info: jest.fn(), error: jest.fn(), debug: jest.fn() };
-const { MIDIOutput } = require('../midi-output.js');
+import { MIDIOutput } from '../src/midi/midi-output.js';
 
 /** Reconstruct the frequency a synth would play from note + bend */
 function reconstructFrequency(note, bend, bendRange) {

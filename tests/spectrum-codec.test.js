@@ -5,7 +5,7 @@
  * behavior, non-uniform fallback, and legacy pass-through.
  */
 
-const SpectrumCodec = require('../spectrum-codec.js');
+import { SpectrumCodec } from '../src/data/spectrum-codec.js';
 
 /** Build a linear-grid spectrum of {wavenumber, transmittance} points */
 function gridSpectrum(firstX, step, values) {

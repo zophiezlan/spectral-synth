@@ -5,7 +5,10 @@
  * from Phase 1 (dist/library/ → library/) can't silently regress.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
+import { jest } from '@jest/globals';
+import { loadFresh, uiStubs } from './test-helpers.js';
+
+jest.unstable_mockModule('../src/ui/ui-utilities.js', () => uiStubs());
 
 const INDEX_FIXTURE = {
     version: '1.0.0',
@@ -55,14 +58,11 @@ function makeFetch(routes) {
  * Fresh LibraryLoader per test — its module-level state (libraryIndex,
  * loadedCategories, useLazyLoading, isInitialized) leaks across `init` calls.
  */
-function freshLoader(fetchMock) {
-    const { LibraryLoader } = loadBrowserModule('library-loader.js', {
-        fetch: fetchMock,
-        // Real codec: the loader decodes spectra at the load boundary.
-        SpectrumCodec: require('../spectrum-codec.js'),
-        // IndexedDBStorage intentionally undefined so the loader skips it.
-        // `window` undefined too — the file's bottom branch noops in that case.
-    });
+async function freshLoader(fetchMock) {
+    global.fetch = fetchMock;
+    // Real codec: the loader decodes spectra at the load boundary.
+    // jsdom has no indexedDB, so IndexedDBStorage.isSupported() is false and skipped.
+    const { LibraryLoader } = await loadFresh('../src/data/library-loader.js');
     return LibraryLoader;
 }
 
@@ -70,7 +70,7 @@ describe('LibraryLoader', () => {
     describe('init() — split mode', () => {
         it('loads library/index.json (not dist/library/)', async () => {
             const fetchMock = makeFetch({ 'library/index.json': INDEX_FIXTURE });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
 
             const index = await Loader.init();
 
@@ -84,7 +84,7 @@ describe('LibraryLoader', () => {
     describe('init() — fallback', () => {
         it('falls back to monolith when index.json 404s', async () => {
             const fetchMock = makeFetch({}); // everything 404s
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
 
             const index = await Loader.init();
 
@@ -94,7 +94,7 @@ describe('LibraryLoader', () => {
 
         it('falls back when network throws', async () => {
             const fetchMock = makeFetch({ 'library/index.json': 'NETWORK_ERROR' });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
 
             const index = await Loader.init();
 
@@ -109,7 +109,7 @@ describe('LibraryLoader', () => {
                 'library/index.json': INDEX_FIXTURE,
                 'library/opioids.json': OPIOIDS_FIXTURE,
             });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init();
 
             const substances = await Loader.loadCategory('opioids');
@@ -123,7 +123,7 @@ describe('LibraryLoader', () => {
                 'library/index.json': INDEX_FIXTURE,
                 'library/opioids.json': OPIOIDS_FIXTURE,
             });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init();
 
             await Loader.loadCategory('opioids');
@@ -135,7 +135,7 @@ describe('LibraryLoader', () => {
 
         it('throws when category is unknown', async () => {
             const fetchMock = makeFetch({ 'library/index.json': INDEX_FIXTURE });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init();
 
             await expect(Loader.loadCategory('nonexistent')).rejects.toThrow(
@@ -148,7 +148,7 @@ describe('LibraryLoader', () => {
                 'library/index.json': INDEX_FIXTURE,
                 'library/opioids.json': 'NETWORK_ERROR',
             });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init();
 
             await expect(Loader.loadCategory('opioids')).rejects.toThrow(/network down/);
@@ -162,7 +162,7 @@ describe('LibraryLoader', () => {
                 'library/opioids.json': OPIOIDS_FIXTURE,
                 'library/stimulants.json': STIMULANTS_FIXTURE,
             });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init();
 
             const all = await Loader.loadAll();
@@ -175,7 +175,7 @@ describe('LibraryLoader', () => {
             const fetchMock = makeFetch({
                 'ftir-library.json': MONOLITH_FIXTURE,
             });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init(); // index 404s → fallback mode
 
             const all = await Loader.loadAll();
@@ -192,7 +192,7 @@ describe('LibraryLoader', () => {
                 'library/opioids.json': OPIOIDS_FIXTURE,
                 'library/stimulants.json': STIMULANTS_FIXTURE,
             });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init();
 
             const all = await Loader.getSubstancesByCategory('all');
@@ -202,7 +202,7 @@ describe('LibraryLoader', () => {
 
         it('throws if called before init', async () => {
             const fetchMock = makeFetch({});
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
 
             await expect(Loader.getSubstancesByCategory('opioids')).rejects.toThrow(
                 /not initialized/
@@ -216,7 +216,7 @@ describe('LibraryLoader', () => {
                 'library/index.json': INDEX_FIXTURE,
                 'library/opioids.json': OPIOIDS_FIXTURE,
             });
-            const Loader = freshLoader(fetchMock);
+            const Loader = await freshLoader(fetchMock);
             await Loader.init();
 
             await Loader.loadCategory('opioids');

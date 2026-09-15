@@ -6,7 +6,21 @@
  * UI. These tests lock that contract in.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
+import { jest } from '@jest/globals';
+import { loadFresh, uiStubs } from './test-helpers.js';
+
+// Collaborators are mocked once; the jest.fn()s live here so tests can assert
+// on them, and `favoritesState` lets each test decide what Favorites returns.
+const favoritesState = { names: [] };
+const ToastStub = uiStubs().Toast;
+const AppStateStub = { set: jest.fn(), emit: jest.fn() };
+
+jest.unstable_mockModule('../src/core/favorites.js', () => ({
+    Favorites: { getAll: () => favoritesState.names, isFavorite: (n) => favoritesState.names.includes(n) },
+}));
+jest.unstable_mockModule('../src/ui/ui-utilities.js', () => ({ ...uiStubs(), Toast: ToastStub }));
+jest.unstable_mockModule('../src/core/app-state.js', () => ({ AppState: AppStateStub }));
+jest.unstable_mockModule('../src/data/substance-utilities.js', () => ({ categorizeSubstance: categorizeSubstanceStub }));
 
 const LIBRARY_FIXTURE = [
     { id: '0', name: 'Caffeine', formula: 'C8H10N4O2' },
@@ -65,29 +79,9 @@ function setupDOM() {
     `;
 }
 
-function loadFilterManager(favoriteNames = []) {
-    const FavoritesStub = {
-        getAll: () => favoriteNames,
-    };
-    const ToastStub = {
-        info: jest.fn(),
-        success: jest.fn(),
-        warning: jest.fn(),
-        error: jest.fn(),
-    };
-    const AppStateStub = {
-        set: jest.fn(),
-    };
-    const { FilterManager } = loadBrowserModule('filter-manager.js', {
-        document,
-        window,
-        Favorites: FavoritesStub,
-        Toast: ToastStub,
-        AppState: AppStateStub,
-        categorizeSubstance: categorizeSubstanceStub,
-        clearTimeout,
-        setTimeout,
-    });
+async function loadFilterManager(favoriteNames = []) {
+    favoritesState.names = favoriteNames;
+    const { FilterManager } = await loadFresh('../src/ui/filter-manager.js');
     return { FilterManager, Toast: ToastStub, AppState: AppStateStub };
 }
 
@@ -106,8 +100,8 @@ describe('FilterManager', () => {
     });
 
     describe('init()', () => {
-        it('populates the substance selector with every item', () => {
-            const { FilterManager } = loadFilterManager();
+        it('populates the substance selector with every item', async () => {
+            const { FilterManager } = await loadFilterManager();
 
             FilterManager.init(LIBRARY_FIXTURE);
 
@@ -119,16 +113,16 @@ describe('FilterManager', () => {
             expect(opts).toContain('Cannabidiol');
         });
 
-        it('reflects the total in the results count', () => {
-            const { FilterManager } = loadFilterManager();
+        it('reflects the total in the results count', async () => {
+            const { FilterManager } = await loadFilterManager();
 
             FilterManager.init(LIBRARY_FIXTURE);
 
             expect(document.getElementById('results-count').textContent).toBe('5 substances');
         });
 
-        it('syncs filter state to AppState', () => {
-            const { FilterManager, AppState } = loadFilterManager();
+        it('syncs filter state to AppState', async () => {
+            const { FilterManager, AppState } = await loadFilterManager();
 
             FilterManager.init(LIBRARY_FIXTURE);
 
@@ -139,8 +133,8 @@ describe('FilterManager', () => {
     });
 
     describe('search filtering', () => {
-        it('filters by name (case insensitive)', () => {
-            const { FilterManager } = loadFilterManager();
+        it('filters by name (case insensitive)', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setSearch('CAFF');
@@ -150,8 +144,8 @@ describe('FilterManager', () => {
             expect(opts).not.toContain('Morphine');
         });
 
-        it('filters by formula', () => {
-            const { FilterManager } = loadFilterManager();
+        it('filters by formula', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setSearch('C16H13ClN2O');
@@ -161,8 +155,8 @@ describe('FilterManager', () => {
             expect(opts).not.toContain('Caffeine');
         });
 
-        it('debounces input events', () => {
-            const { FilterManager } = loadFilterManager();
+        it('debounces input events', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             const input = document.getElementById('search');
@@ -178,8 +172,8 @@ describe('FilterManager', () => {
     });
 
     describe('category filtering', () => {
-        it('keeps only the chosen category', () => {
-            const { FilterManager } = loadFilterManager();
+        it('keeps only the chosen category', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setCategory('opioids');
@@ -190,8 +184,8 @@ describe('FilterManager', () => {
             expect(opts).not.toContain('Diazepam');
         });
 
-        it('combines with search filter (AND)', () => {
-            const { FilterManager } = loadFilterManager();
+        it('combines with search filter (AND)', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setCategory('stimulants');
@@ -204,8 +198,8 @@ describe('FilterManager', () => {
     });
 
     describe('favorites filtering', () => {
-        it('shows only favorited substances when enabled', () => {
-            const { FilterManager } = loadFilterManager(['Morphine', 'Diazepam']);
+        it('shows only favorited substances when enabled', async () => {
+            const { FilterManager } = await loadFilterManager(['Morphine', 'Diazepam']);
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setShowFavoritesOnly(true);
@@ -216,8 +210,8 @@ describe('FilterManager', () => {
             expect(opts).not.toContain('Caffeine');
         });
 
-        it('flips the show-all / show-favorites aria-pressed pair', () => {
-            const { FilterManager } = loadFilterManager();
+        it('flips the show-all / show-favorites aria-pressed pair', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setShowFavoritesOnly(true);
@@ -233,8 +227,8 @@ describe('FilterManager', () => {
     });
 
     describe('filter status UI', () => {
-        it('reveals the active-filters bar when a filter is set', () => {
-            const { FilterManager } = loadFilterManager();
+        it('reveals the active-filters bar when a filter is set', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             expect(document.getElementById('active-filters').classList.contains('hidden')).toBe(true);
@@ -246,8 +240,8 @@ describe('FilterManager', () => {
             expect(document.getElementById('search-term-display').textContent).toBe('caff');
         });
 
-        it('shows the no-results state and hides the selector when nothing matches', () => {
-            const { FilterManager } = loadFilterManager();
+        it('shows the no-results state and hides the selector when nothing matches', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setSearch('zzz-not-real');
@@ -258,8 +252,8 @@ describe('FilterManager', () => {
     });
 
     describe('clearFilter() / clearAll()', () => {
-        it('clears a single filter by type', () => {
-            const { FilterManager } = loadFilterManager();
+        it('clears a single filter by type', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setSearch('morph');
@@ -271,8 +265,8 @@ describe('FilterManager', () => {
             expect(state.category).toBe('opioids');
         });
 
-        it('clearAll() resets everything to defaults', () => {
-            const { FilterManager, Toast } = loadFilterManager(['Morphine']);
+        it('clearAll() resets everything to defaults', async () => {
+            const { FilterManager, Toast } = await loadFilterManager(['Morphine']);
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setSearch('morph');
@@ -291,8 +285,8 @@ describe('FilterManager', () => {
     });
 
     describe('setLibrary() / refresh()', () => {
-        it('rebinds the library and repopulates the selector', () => {
-            const { FilterManager } = loadFilterManager();
+        it('rebinds the library and repopulates the selector', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             const extended = [...LIBRARY_FIXTURE, { id: '99', name: 'Aspirin', formula: 'C9H8O4' }];
@@ -305,8 +299,8 @@ describe('FilterManager', () => {
     });
 
     describe('event wiring', () => {
-        it('responds to filter-remove button clicks (data-filter="category")', () => {
-            const { FilterManager } = loadFilterManager();
+        it('responds to filter-remove button clicks (data-filter="category")', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setCategory('opioids');
@@ -318,8 +312,8 @@ describe('FilterManager', () => {
             expect(FilterManager.getState().category).toBe('all');
         });
 
-        it('responds to clear-all-filters button', () => {
-            const { FilterManager } = loadFilterManager();
+        it('responds to clear-all-filters button', async () => {
+            const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
 
             FilterManager.setSearch('morph');

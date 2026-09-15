@@ -1,107 +1,11 @@
 /**
  * Jest Test Setup
  *
- * Sets up global mocks and configuration required for testing
- * the Spectral Synthesizer modules.
+ * Web Audio / File / URL mocks for the jsdom environment. Runs as native ESM
+ * (see the --experimental-vm-modules flag in package.json).
  */
 
-const fs = require('fs');
-const path = require('path');
-
-// Helper to load a module file
-global.loadModule = (filename) => {
-    const code = fs.readFileSync(path.join(__dirname, '..', filename), 'utf8');
-    eval(code);
-};
-
-// Mock CONFIG object (mimics config.js)
-global.CONFIG = {
-    frequency: {
-        IR_MIN: 400,
-        IR_MAX: 4000,
-        AUDIO_MIN: 100,
-        AUDIO_MAX: 8000,
-    },
-    peakDetection: {
-        DEFAULT_THRESHOLD: 0.15,
-        DEFAULT_MAX_PEAKS: 20,
-    },
-    audio: {
-        DEFAULT_VOLUME: 0.3,
-        REVERB_DURATION: 2,
-        FFT_SIZE: 2048,
-        ANALYSER_SMOOTHING: 0.8,
-        FILTER_Q_VALUE: 1,
-        DEFAULT_DURATION: 2.0,
-        MIN_DURATION: 0.5,
-        MAX_DURATION: 5.0,
-    },
-    adsr: {
-        DEFAULT_ATTACK: 0.05,
-        DEFAULT_DECAY: 0.1,
-        DEFAULT_SUSTAIN: 0.7,
-        DEFAULT_RELEASE: 0.1,
-        MIN_ATTACK: 0.001,
-        MAX_ATTACK: 2.0,
-        MIN_DECAY: 0.001,
-        MAX_DECAY: 2.0,
-        MIN_SUSTAIN: 0.0,
-        MAX_SUSTAIN: 1.0,
-        MIN_RELEASE: 0.001,
-        MAX_RELEASE: 3.0,
-        DEFAULT_CURVE: 'exponential',
-    },
-    adsrCurves: {
-        'linear': { name: 'Linear', description: 'Straight line transition' },
-        'exponential': { name: 'Exponential', description: 'Natural exponential curve' },
-        'logarithmic': { name: 'Logarithmic', description: 'Smooth exponential curve' },
-    },
-    visualization: {
-        CLICK_RADIUS: 20,
-        PEAK_MARKER_SIZE: 8,
-        GRID_COLOR: '#333',
-        SPECTRUM_COLOR: '#8b5cf6',
-        PEAK_COLOR: '#ec4899',
-        SELECTED_PEAK_COLOR: '#10b981',
-    },
-    ui: {
-        DEBOUNCE_DELAY: 300,
-        ANIMATION_BUFFER: 100,
-    },
-    library: {
-        LIBRARY_FILE: 'ftir-library.json',
-    },
-    presets: {
-        'clean': { name: 'Clean', description: 'No effects', reverb: 0, filterFreq: 8000 },
-        'ambient': { name: 'Ambient', description: 'Large reverb', reverb: 0.7, filterFreq: 6000 },
-        'warm': { name: 'Warm', description: 'Low-pass filter', reverb: 0.2, filterFreq: 2000 },
-    },
-    playbackModes: {
-        'chord': { name: 'Chord', description: 'All peaks play simultaneously' },
-        'arpeggio-up': { name: 'Arpeggio (Up)', description: 'Low to high' },
-        'sequential': { name: 'Sequential', description: 'By intensity' },
-        'random': { name: 'Random', description: 'Random order' },
-    },
-    looping: {
-        DEFAULT_LOOP_ENABLED: true,
-    },
-};
-
-// Freeze CONFIG like in production
-Object.freeze(global.CONFIG);
-Object.keys(global.CONFIG).forEach(key => {
-    if (typeof global.CONFIG[key] === 'object') {
-        Object.freeze(global.CONFIG[key]);
-    }
-});
-
-// Mock Logger object
-global.Logger = {
-    log: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    info: jest.fn(),
-};
+import { jest } from '@jest/globals';
 
 // Mock Web Audio API
 class MockAudioContext {

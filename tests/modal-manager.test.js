@@ -6,18 +6,11 @@
  * These tests lock that contract in.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
+import { jest } from '@jest/globals';
+import { loadFresh } from './test-helpers.js';
 
 function loadModal() {
-    return loadBrowserModule('modal-manager.js', {
-        document,
-        window,
-        HTMLElement,
-        Event,
-        KeyboardEvent,
-        MouseEvent,
-        AppState: undefined,
-    });
+    return loadFresh('../src/ui/modal-manager.js');
 }
 
 function setupDOM() {
@@ -41,8 +34,8 @@ describe('Modal', () => {
     let addSpy;
     let removeSpy;
 
-    beforeEach(() => {
-        ({ Modal } = loadModal());
+    beforeEach(async () => {
+        ({ Modal } = await loadModal());
         setupDOM();
         addSpy = jest.spyOn(document, 'addEventListener');
         removeSpy = jest.spyOn(document, 'removeEventListener');
@@ -218,8 +211,8 @@ describe('Modal', () => {
 describe('ModalManager', () => {
     let ModalManager;
 
-    beforeEach(() => {
-        ({ ModalManager } = loadModal());
+    beforeEach(async () => {
+        ({ ModalManager } = await loadModal());
         setupDOM();
     });
 

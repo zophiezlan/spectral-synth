@@ -31,12 +31,13 @@ A drug's spectral fingerprint is literally a frequency spectrum—just like audi
 
 The app works in two modes:
 
-**Quick start (no build):** Open `index.html` in a modern browser. Everything works, but the full FTIR library (~2.6 MB) loads up-front.
+**Development (no build):** serve the repo root with any static server — the browser loads the ES modules straight from `src/`. (Opening `index.html` from `file://` won't work: module scripts need an HTTP origin.) The full FTIR library (~2.6 MB) loads up-front in this mode.
 
 ```bash
 git clone https://github.com/yourusername/spectral-synth.git
 cd spectral-synth
-open index.html  # or just double-click the file
+npm install
+npm run dev             # http://localhost:4174
 ```
 
 **Production / fast load:** Run the build once. This bundles + minifies the JS/CSS and splits the library into per-category chunks that load on demand, with IndexedDB offline caching and content-hash cache invalidation.
@@ -52,7 +53,7 @@ npx serve dist          # or deploy dist/ to Vercel / any static host
 ## How It Works
 
 ### 1. Data Input
-Real FTIR spectra from the ENFSI library, parsed from JCAMP-DX format. On disk each spectrum is stored compactly as a linear wavenumber grid plus an array of transmittance values (`{firstX, lastX, y[]}`, 2-decimal precision — ~15x smaller than point objects); `spectrum-codec.js` expands it to `{wavenumber, transmittance}` points at load time. Lower transmittance = higher absorption = stronger peak.
+Real FTIR spectra from the ENFSI library, parsed from JCAMP-DX format. On disk each spectrum is stored compactly as a linear wavenumber grid plus an array of transmittance values (`{firstX, lastX, y[]}`, 2-decimal precision — ~15x smaller than point objects); `src/data/spectrum-codec.js` expands it to `{wavenumber, transmittance}` points at load time. Lower transmittance = higher absorption = stronger peak.
 
 ### 2. Frequency Mapping
 ```
@@ -82,56 +83,35 @@ Both visualizations use the same mathematical transformation, just on different 
 
 ### Architecture
 
-**Pure vanilla JavaScript** - no framework bloat:
+**Vanilla JavaScript, native ES modules, no framework.** esbuild bundles for production; in development the browser loads `src/` directly.
+
 ```
-index.html           - Main UI structure
-style.css            - Styling and layout
-config.js            - Centralized configuration and constants
-ftir-library.json    - Real FTIR spectra (943 substances, ~2.6MB compact format)
-spectrum-codec.js    - Compact spectrum format encoder/decoder
-frequency-mapper.js  - IR → audio conversion + prominence-based peak detection
-audio-engine.js      - Web Audio API synthesis (one-shot playback + sustained voices)
-midi-output.js       - Pitch-accurate MIDI out (per-note pitch bend) + .mid export
-midi-input.js        - Play substances from a MIDI keyboard
-browse-manager.js    - Visual library browser with spectrum sparklines
-visualizer.js        - Canvas-based visualization
-app.js               - Main application coordinator
-build-library.js     - JCAMP-DX parser & library builder (Node.js)
-split-library.js     - Category chunking + content-hash versioning (Node.js)
-migrate-library.js   - One-off converter: legacy point arrays → compact format
-CONTRIBUTING.md      - Contribution guidelines
-LICENSE              - MIT License
+index.html                  Page shell (markup for the app + all dialogs)
+service-worker.js           PWA offline cache
+data/ftir-library.json      Real FTIR spectra (943 substances, ~2.6 MB compact format)
+src/
+  app.js                    Entry point: creates instances, loads the library, wires modules
+  core/                     config, constants, logger, app-state, favorites, context (shared instances)
+  audio/                    audio-engine (Web Audio synthesis), frequency-mapper (IR → Hz + peaks),
+                            playback-controller, mp3-encoder
+  data/                     spectrum-codec, library-loader (lazy chunks + IndexedDB), importers
+                            (CSV, JCAMP-DX), substance categorisation, spectral similarity
+  midi/                     midi-output (pitch-accurate, per-note bend), midi-input, midi-handlers
+  ui/                       dom accessors, filter-manager, browse-manager, visualizer, modals,
+                            onboarding/tutorial, keyboard shortcuts, theme, event wiring
+  styles/                   base / components / modals / responsive (main.css imports them)
+scripts/                    Node tooling: build (esbuild), build-library, split-library,
+                            migrate-library, batch-export-midi
+tests/                      Jest (jsdom, native ESM)
 ```
 
-### Project Structure
+### How the pieces fit
 
-The application follows a modular architecture with clear separation of concerns:
-
-1. **Configuration Layer** (`config.js`)
-   - Centralized settings for all modules
-   - Easy customization without touching code
-   - Immutable configuration to prevent accidents
-
-2. **Data Layer** (`ftir-library.json` + `spectrum-codec.js`)
-   - Real FTIR spectra from ENFSI database
-   - Compact storage format: linear grid + rounded transmittance values, category baked in
-   - Decoded at the load boundary; the rest of the app sees plain point arrays
-   - Lazy-loaded per category in production, cached in IndexedDB, invalidated by content hash
-
-3. **Core Modules**
-   - `frequency-mapper.js` - Handles IR to audio frequency conversion and peak detection
-   - `audio-engine.js` - Manages Web Audio API synthesis and effects
-   - `visualizer.js` - Renders FTIR spectra and audio FFT visualizations
-
-4. **Application Layer** (`app.js`)
-   - Coordinates between all modules
-   - Manages UI state and user interactions
-   - Handles error recovery and edge cases
-
-5. **Presentation Layer** (`index.html`, `style.css`)
-   - Accessible, semantic HTML structure
-   - Responsive CSS design
-   - Progressive enhancement approach
+- **`src/core/context.js`** holds the handful of shared instances (`audioEngine`, `visualizer`, `frequencyMapper`, MIDI, the loaded library and the current spectrum/peaks). `app.js` fills it during `init()`; other modules read from it instead of reaching for globals.
+- **`src/ui/dom.js`** exposes the elements the app touches repeatedly as live getters (`dom.playButton`, `dom.substanceSelect`…), so modules can be imported before the DOM exists (tests, bundling).
+- **Data layer** — spectra are stored compactly (`{firstX, lastX, y[]}`, category baked in) and decoded at the load boundary by `spectrum-codec.js`; everything downstream sees `{wavenumber, transmittance}` arrays. Production loads per-category chunks lazily (`dist/library/`), caches them in IndexedDB, and invalidates by content hash.
+- **Feature modules** own their DOM and events: `filter-manager` (search/category chips/favourites → substance select), `substance-selection` (what happens on change), `playback-controller` (Play/Stop, peak selection), `browse-manager` (sparkline grid), `menu-modals` + `favorites-modal` + `onboarding`.
+- **Node scripts** import the same modules (`spectrum-codec`, `substance-utilities`, `frequency-mapper`, `midi-output`) — there is one implementation of each, shared between browser and tooling.
 
 ### Key Algorithms
 
@@ -189,7 +169,7 @@ The application uses data directly from the [ENFSI DWG IR Library](https://enfsi
   - CAS name and chemical identifiers
   - Source attribution: "ENFSI DWG IR Library"
 
-The `ftir-library.json` file was built by downloading the ENFSI library and processing it with `build-library.js`, which extracts and converts spectra from authentic forensic laboratory measurements.
+The `data/ftir-library.json` file was built by downloading the ENFSI library and processing it with `scripts/build-library.js`, which extracts and converts spectra from authentic forensic laboratory measurements.
 
 ## Educational Use
 
@@ -219,7 +199,7 @@ curl -L -o enfsi_library.zip "https://enfsi.eu/download/ENFSI_DWG_IR_Library_JCA
 unzip enfsi_library.zip -d enfsi_data
 
 # Run the library builder
-node build-library.js
+node scripts/build-library.js
 ```
 
 The builder:
@@ -227,16 +207,16 @@ The builder:
 2. Converts absorbance → transmittance
 3. Downsamples to ~400 points per spectrum
 4. Categorizes each substance and encodes spectra in the compact grid format
-5. Outputs `ftir-library.json`
+5. Outputs `data/ftir-library.json`
 
 If you have an older `ftir-library.json` with point-array spectra, run
-`node migrate-library.js` once to convert it in place (~15x smaller).
+`node scripts/migrate-library.js` once to convert it in place (~15x smaller).
 
-Edit `build-library.js` to customize which substances are included.
+Edit `scripts/build-library.js` to customize which substances are included.
 
 ### Customizing the Mapping
 
-Edit `frequency-mapper.js` constructor:
+Edit `src/audio/frequency-mapper.js` constructor:
 
 ```javascript
 this.AUDIO_MIN = 100;  // Minimum audio frequency
@@ -245,7 +225,7 @@ this.AUDIO_MAX = 8000; // Maximum audio frequency
 
 ### Adjusting Synthesis
 
-Edit `audio-engine.js` play method:
+Edit `src/audio/audio-engine.js` play method:
 - Change waveform types
 - Modify amplitude scaling
 - Adjust envelope parameters

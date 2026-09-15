@@ -14,14 +14,13 @@ const CACHE_NAME = `spectral-synth-v${VERSION}`;
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/manifest.json',
-    '/sw-register.js'
+    '/manifest.json'
 ];
 
 // Large files that can be cached on demand
 const DYNAMIC_CACHE = `spectral-synth-dynamic-v${VERSION}`;
 const LARGE_FILES = [
-    '/ftir-library.json'
+    '/data/ftir-library.json'
 ];
 
 // Library chunks (lazy loading). Production: dist/library/ served as /library/.

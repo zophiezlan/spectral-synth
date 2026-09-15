@@ -5,24 +5,9 @@
  * Uses mocked Web Audio API from setup.js.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
-const { AudioEngine } = loadBrowserModule('audio-engine.js', {
-    window: {
-        AudioContext: global.AudioContext,
-        webkitAudioContext: global.webkitAudioContext,
-    },
-    AudioContext: global.AudioContext,
-    webkitAudioContext: global.webkitAudioContext,
-    OfflineAudioContext: global.OfflineAudioContext,
-    URL: global.URL,
-    document: {
-        createElement: (tag) => ({
-            click: jest.fn(),
-            href: '',
-            download: '',
-        }),
-    },
-});
+import { jest } from '@jest/globals';
+import { CONFIG } from '../src/core/config.js';
+import { AudioEngine } from '../src/audio/audio-engine.js';
 
 describe('AudioEngine', () => {
     let engine;
@@ -669,10 +654,10 @@ describe('AudioEngine', () => {
                 await engine.init();
                 engine.setLoopEnabled(true);
                 engine.playbackMode = 'sequential';
-                
+
                 await engine.playArpeggio(samplePeaks, 0.1);
                 expect(engine.loopTimeoutId).not.toBeNull();
-                
+
                 engine.stop();
                 expect(engine.loopTimeoutId).toBeNull();
                 expect(engine.isPlaying).toBe(false);

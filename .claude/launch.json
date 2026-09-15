@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "spectral-synth-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "4174", "."],
+      "port": 4174
+    },
+    {
       "name": "spectral-synth-dist",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "-l", "4173", "dist"],

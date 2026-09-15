@@ -8,37 +8,25 @@
  * (and in their own unit files: csv-importer, jcamp-importer, audio-engine).
  */
 
-const { loadBrowserModule } = require('./test-helpers');
+import { jest } from '@jest/globals';
+import { uiStubs } from './test-helpers.js';
+import { ctx } from '../src/core/context.js';
+
+const ui = uiStubs();
+jest.unstable_mockModule('../src/ui/ui-utilities.js', () => ui);
+jest.unstable_mockModule('../src/ui/filter-manager.js', () => ({ FilterManager: { setLibrary: jest.fn(), clearAll: jest.fn() } }));
+jest.unstable_mockModule('../src/ui/substance-selection.js', () => ({ handleSubstanceChange: jest.fn() }));
+
+const handlers = await import('../src/ui/import-export-handlers.js');
 
 function loadHandlers({ peaks = null, lamejsDefined = false } = {}) {
-    const Toast = {
-        info: jest.fn(),
-        success: jest.fn(),
-        warning: jest.fn(),
-        error: jest.fn(),
-    };
-    const ErrorHandler = { handle: jest.fn() };
-    const MicroInteractions = { celebrate: jest.fn() };
-    const LoadingOverlay = { show: jest.fn(), hide: jest.fn() };
-
-    const globals = {
-        document,
-        window,
-        Event,
-        currentPeaks: peaks,
-        durationSlider: document.getElementById('duration'),
-        substanceSelect: document.getElementById('substance'),
-        Toast,
-        ErrorHandler,
-        MicroInteractions,
-        LoadingOverlay,
-    };
+    ctx.currentPeaks = peaks;
     if (lamejsDefined) {
-        globals.lamejs = {};
+        globalThis.lamejs = {};
+    } else {
+        delete globalThis.lamejs;
     }
-
-    const exported = loadBrowserModule('handlers-import-export.js', globals);
-    return { ...exported, Toast, ErrorHandler, MicroInteractions, LoadingOverlay };
+    return { ...handlers, ...ui };
 }
 
 function setupDOM() {

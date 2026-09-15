@@ -4,8 +4,7 @@
  * Tests spectral similarity calculations using cosine similarity.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
-const { calculateSpectralSimilarity } = loadBrowserModule('analysis-utilities.js');
+import { calculateSpectralSimilarity } from '../src/data/analysis-utilities.js';
 
 describe('Analysis Utilities', () => {
     // Helper to generate test spectrum
@@ -191,14 +190,14 @@ describe('Analysis Utilities', () => {
             // Sparse spectrum
             const sparse = [];
             for (let wn = 400; wn <= 4000; wn += 100) {
-                let transmittance = (wn >= 1650 && wn <= 1750) ? 30 : 95;
+                const transmittance = (wn >= 1650 && wn <= 1750) ? 30 : 95;
                 sparse.push({ wavenumber: wn, transmittance });
             }
 
             // Dense spectrum with same pattern
             const dense = [];
             for (let wn = 400; wn <= 4000; wn += 10) {
-                let transmittance = (wn >= 1650 && wn <= 1750) ? 30 : 95;
+                const transmittance = (wn >= 1650 && wn <= 1750) ? 30 : 95;
                 dense.push({ wavenumber: wn, transmittance });
             }
 
@@ -249,7 +248,7 @@ describe('Analysis Utilities', () => {
             const spectrum2 = [];
 
             for (let wn = 400; wn <= 4000; wn += 36) {
-                let base = (wn >= 1650 && wn <= 1750) ? 0.5 : 0.05;  // Absorbance pattern
+                const base = (wn >= 1650 && wn <= 1750) ? 0.5 : 0.05;  // Absorbance pattern
 
                 // Spectrum 1: base intensity
                 spectrum1.push({

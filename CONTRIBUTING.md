@@ -29,15 +29,36 @@ Thank you for your interest in contributing to the Spectral Synthesizer project!
 - Use **const** for constants, **let** for variables (avoid var)
 - Follow existing code formatting conventions
 
+### Working locally
+
+```bash
+npm install
+npm run dev        # serves the repo at http://localhost:4174 (no build step)
+npm test           # Jest, jsdom, native ES modules
+npm run lint
+npm run build      # esbuild → dist/, then splits the library into chunks
+```
+
 ### File Organization
 
-- **app.js** - Main application coordinator
-- **audio-engine.js** - Web Audio API synthesis
-- **frequency-mapper.js** - IR to audio frequency conversion
-- **visualizer.js** - Canvas-based visualization
-- **build-library.js** - JCAMP-DX parser (Node.js)
-- **index.html** - UI structure
-- **style.css** - Styling and layout
+Everything is an ES module under `src/` (see the README's "Architecture" for the full map):
+
+- **src/app.js** — entry point; creates instances into `src/core/context.js` and wires modules
+- **src/core/** — config, logger, shared context, favourites, app state
+- **src/audio/** — synthesis, IR→audio mapping, playback
+- **src/data/** — codec, library loading, importers, categorisation
+- **src/midi/** — MIDI in/out
+- **src/ui/** — everything that touches the DOM; `dom.js` is the only place element IDs live
+- **src/styles/** — CSS (`main.css` imports the rest)
+- **scripts/** — Node tooling (`node scripts/<name>.js`)
+- **tests/** — one test file per module, importing from `../src/...`
+
+Conventions that keep this manageable:
+
+- Import what you use; there are no app globals. ESLint's `no-undef` is the guard.
+- Shared runtime state goes through `ctx` (`src/core/context.js`), not module-level `let`s exported around.
+- A module that needs a callback from the app (e.g. "the selection became invalid") takes it as an option to `init()` rather than importing `app.js`.
+- Tests mock collaborators with `jest.unstable_mockModule` and use `loadFresh()` from `tests/test-helpers.js` for modules that keep state.
 
 ### Adding New Features
 
@@ -89,7 +110,6 @@ Explain what changed and why.
 - [ ] Performance optimizations
 - [ ] Accessibility improvements
 - [ ] Mobile optimization
-- [ ] Unit tests
 
 ### Feature Ideas
 

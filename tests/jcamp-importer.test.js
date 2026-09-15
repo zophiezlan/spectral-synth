@@ -4,8 +4,7 @@
  * Tests JCAMP-DX file parsing, metadata extraction, and spectrum processing.
  */
 
-const { loadBrowserModule } = require('./test-helpers');
-const { JCAMPImporter } = loadBrowserModule('jcamp-importer.js');
+import { JCAMPImporter } from '../src/data/jcamp-importer.js';
 
 describe('JCAMPImporter', () => {
     // Helper to create mock File
