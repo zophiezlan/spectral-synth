@@ -127,17 +127,6 @@ export const TutorialManager = {
         this.showStep();
     },
 
-    /**
-     * Resume tutorial from saved progress
-     */
-    resume() {
-        const progress = this.loadProgress();
-        if (progress && progress.path) {
-            this.currentPath = progress.path;
-            this.currentStep = progress.step || 0;
-            this.start(this.currentPath);
-        }
-    },
 
     /**
      * Show current step
@@ -438,25 +427,10 @@ export const TutorialManager = {
         try {
             const progress = localStorage.getItem('tutorial-progress');
             return progress ? JSON.parse(progress) : null;
-        } catch (_e) {
+        } catch {
             return null;
         }
     },
 
-    /**
-     * Check if tutorial has been completed
-     * @returns {boolean}
-     */
-    isCompleted() {
-        return localStorage.getItem('tutorial-completed') === 'true';
-    },
 
-    /**
-     * Reset tutorial state
-     */
-    reset() {
-        localStorage.removeItem('tutorial-completed');
-        localStorage.removeItem('tutorial-progress');
-        this.end(false);
-    }
 };

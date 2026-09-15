@@ -498,7 +498,7 @@ export class AudioEngine {
                 gain.gain.linearRampToValueAtTime(0, currentTime + 0.05);
 
                 osc.stop(currentTime + 0.05);
-            } catch (e) {
+            } catch {
                 // Oscillator may already be stopped
             }
         });
@@ -579,7 +579,7 @@ export class AudioEngine {
                             osc.disconnect();
                             gain.disconnect();
                         };
-                    } catch (e) {
+                    } catch {
                         // Oscillator may already be stopped
                     }
                 });

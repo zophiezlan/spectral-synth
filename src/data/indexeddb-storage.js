@@ -345,11 +345,8 @@ export const IndexedDBStorage = (function() {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_NAME, INDEX_STORE_NAME], 'readwrite');
 
-            const categoryStore = transaction.objectStore(STORE_NAME);
-            const indexStore = transaction.objectStore(INDEX_STORE_NAME);
-
-            const clearCategories = categoryStore.clear();
-            const clearIndex = indexStore.clear();
+            transaction.objectStore(STORE_NAME).clear();
+            transaction.objectStore(INDEX_STORE_NAME).clear();
 
             transaction.oncomplete = () => {
                 if (typeof Logger !== 'undefined') {

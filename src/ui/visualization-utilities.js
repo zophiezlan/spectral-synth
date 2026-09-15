@@ -126,24 +126,6 @@ export const ColorMapper = {
         return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     },
 
-    /**
-     * Map audio frequency to color
-     * @param {number} audioFreq - Audio frequency in Hz
-     * @returns {string} RGB color string
-     */
-    audioFreqToColor(audioFreq) {
-        // Map audio range (20-8000 Hz) to colors
-        const minFreq = 20;
-        const maxFreq = 8000;
-        const normalized = Math.log(audioFreq / minFreq) / Math.log(maxFreq / minFreq);
-
-        // Similar hue mapping as IR
-        const hue = Math.floor(280 * (1 - normalized));
-        const saturation = 85;
-        const lightness = 60;
-
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    }
 };
 
 // Utility: Responsive canvas handler for mobile optimization

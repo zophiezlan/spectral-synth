@@ -36,6 +36,5 @@ export function uiStubs() {
         ScreenReader: { announce: jest.fn() },
         iOSAudioHelper: { ensureAudioContext: jest.fn().mockResolvedValue() },
         BrowserCompatibility: { check: jest.fn(() => ({ compatible: true, unsupported: [] })), showWarning: jest.fn() },
-        TimeFormatter: { format: jest.fn() },
     };
 }

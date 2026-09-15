@@ -109,7 +109,7 @@ export function handleSubstanceChange() {
 /**
  * Update mapping information display
  */
-export function updateMappingInfo(data, peaks) {
+function updateMappingInfo(data, peaks) {
     if (!peaks || peaks.length === 0) {
         const noPeaksMessage = '<p>No significant peaks detected.</p>';
         if (dom.mappingInfo) {
@@ -223,7 +223,7 @@ export function handleFavoriteToggle() {
  * Update favorite button state
  * @param {boolean} isFavorite - Whether substance is favorited
  */
-export function updateFavoriteButton(isFavorite) {
+function updateFavoriteButton(isFavorite) {
     const favoriteButton = document.getElementById('favorite-toggle');
     if (favoriteButton) {
         favoriteButton.textContent = isFavorite ? '★' : '☆';
@@ -235,7 +235,7 @@ export function updateFavoriteButton(isFavorite) {
  * Show smart substance suggestions
  * @param {Object} currentSubstance - Currently selected substance
  */
-export function showSmartSuggestions(currentSubstance) {
+function showSmartSuggestions(currentSubstance) {
     const suggestionsContainer = document.getElementById('smart-suggestions');
     const suggestionsList = document.getElementById('suggestions-list');
 
@@ -283,7 +283,7 @@ export function showSmartSuggestions(currentSubstance) {
 /**
  * Show peak selection hint for first-time users
  */
-export function showPeakSelectionHint() {
+function showPeakSelectionHint() {
     const hasSeenHint = localStorage.getItem('peak-selection-hint-seen');
 
     if (!hasSeenHint) {

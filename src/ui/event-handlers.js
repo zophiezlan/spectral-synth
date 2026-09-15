@@ -529,7 +529,7 @@ export function setupEventListeners() {
  * @param {HTMLElement} slider - The slider element
  * @param {HTMLElement} valueDisplay - The value display element
  */
-export function showSliderFeedback(slider, valueDisplay) {
+function showSliderFeedback(slider, valueDisplay) {
     // Add flash class to value display
     valueDisplay.classList.add('value-flash');
 

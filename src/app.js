@@ -25,6 +25,7 @@ import { Visualizer } from './ui/visualizer.js';
 import { FilterManager } from './ui/filter-manager.js';
 import { BrowseManager } from './ui/browse-manager.js';
 import { KeyboardShortcuts } from './ui/keyboard-shortcuts.js';
+import { ModalManager } from './ui/modal-manager.js';
 import { setupEventListeners } from './ui/event-handlers.js';
 import { setupMenuModals } from './ui/menu-modals.js';
 import { setupThemeToggle } from './ui/theme-manager.js';
@@ -225,7 +226,8 @@ function setupKeyboardShortcuts() {
         onClearSelection: handleClearSelection,
         onNavigate: navigateSubstance,
         onClearFilters: () => FilterManager.clearAll(),
-        onHelp: () => document.getElementById('help-menu-btn')?.click(),
+        onHelp: () => ModalManager.open('help'),
+        isBlocked: () => ModalManager.isAnyOpen(),
     });
 }
 

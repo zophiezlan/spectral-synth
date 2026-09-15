@@ -4,7 +4,6 @@
  * Purpose: Manages substance filtering (search, category, favorites)
  *
  * Dependencies:
- * - AppState (for state management)
  * - Favorites (for favorites functionality)
  * - DOM elements (substanceSelect, searchInput, categorySelect, resultsCount)
  *
@@ -38,7 +37,6 @@
 
 
 import { CONFIG } from '../core/config.js';
-import { AppState } from '../core/app-state.js';
 import { Favorites } from '../core/favorites.js';
 import { categorizeSubstance } from '../data/substance-utilities.js';
 import { Toast } from './ui-utilities.js';
@@ -52,7 +50,7 @@ export const FilterManager = (function() {
     let lastSelectedId = null; // substance id chosen before the last repopulate
     let onSelectionInvalid = null; // called when the selected substance is filtered out
 
-    // Filter state (mirrors AppState but kept locally for performance)
+    // Filter state
     let currentSearchTerm = '';
     let currentCategory = 'all';
     let showFavoritesOnly = false;
@@ -152,13 +150,6 @@ export const FilterManager = (function() {
         // Update filter status display
         updateFilterStatus(filteredData.length);
         syncCategoryChips();
-
-        // Sync with AppState
-        if (typeof AppState !== 'undefined') {
-            AppState.set('searchTerm', currentSearchTerm);
-            AppState.set('category', currentCategory);
-            AppState.set('showFavoritesOnly', showFavoritesOnly);
-        }
     }
 
     /**
@@ -445,12 +436,6 @@ export const FilterManager = (function() {
          */
         getFilteredLibrary,
 
-        /**
-         * Refresh the substance selector (after library update)
-         */
-        refresh() {
-            populateSubstanceSelector();
-        },
 
         /**
          * Update library data

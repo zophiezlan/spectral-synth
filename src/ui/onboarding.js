@@ -37,7 +37,7 @@ export function checkAndShowQuickStart() {
 /**
  * Set up Quick Start panel event handlers
  */
-export function setupQuickStartHandlers() {
+function setupQuickStartHandlers() {
     const hideButton = document.getElementById('hide-quick-start');
     const tryCaffeineButton = document.getElementById('try-caffeine');
     const startTourButton = document.getElementById('start-tour-from-quickstart');
@@ -85,7 +85,7 @@ export function setupQuickStartHandlers() {
 /**
  * Check if we should show onboarding
  */
-export function checkAndShowOnboarding() {
+function checkAndShowOnboarding() {
     const hasSeenOnboarding = localStorage.getItem('onboarding-completed');
     if (!hasSeenOnboarding) {
         setTimeout(() => {

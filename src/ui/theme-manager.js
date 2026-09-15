@@ -38,7 +38,7 @@ export function setupThemeToggle() {
  * Set theme
  * @param {string} theme - 'light' or 'dark'
  */
-export function setTheme(theme) {
+function setTheme(theme) {
     document.body.setAttribute('data-theme', theme);
     const themeIcon = document.querySelector('.theme-icon');
     if (themeIcon) {

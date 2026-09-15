@@ -99,7 +99,7 @@ export const LibraryLoader = (function() {
             }
 
             return libraryIndex;
-        } catch (_networkError) {
+        } catch {
             // Offline (or no build): fall back to the cached index
             if (idbAvailable) {
                 try {

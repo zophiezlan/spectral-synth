@@ -4,8 +4,6 @@
  * Purpose: Centralized keyboard shortcut handling for the Spectral Synthesizer
  *
  * Dependencies:
- * - ModalManager (for shortcuts overlay)
- * - AppState (for state access)
  * - DOM elements (playButton, selectAllButton, etc.)
  *
  * Exports:
@@ -35,13 +33,11 @@
  * KeyboardShortcuts.disable();
  *
  * // Show help overlay
- * KeyboardShortcuts.showHelp();
  * ```
  */
 
 
 import { ctx } from '../core/context.js';
-import { ModalManager } from './modal-manager.js';
 
 export const KeyboardShortcuts = (function() {
     'use strict';
@@ -82,8 +78,9 @@ export const KeyboardShortcuts = (function() {
      * @private
      */
     function handleKeydown(e) {
-        // Don't trigger shortcuts when typing in input fields
-        if (isInputField(e.target)) {
+        // Don't trigger shortcuts when typing in input fields or while a
+        // dialog is open (Escape belongs to the dialog then)
+        if (isInputField(e.target) || (handlers.isBlocked && handlers.isBlocked())) {
             return;
         }
 
@@ -140,7 +137,7 @@ export const KeyboardShortcuts = (function() {
     function handlePlayStop() {
         const playButton = document.getElementById('play');
         if (playButton && !playButton.disabled) {
-            // Check if currently playing via AppState or audioEngine
+            // Toggle: stop if playing, otherwise play
             const audioEngine = ctx.audioEngine;
 
             if (audioEngine && audioEngine.getIsPlaying()) {
@@ -179,31 +176,6 @@ export const KeyboardShortcuts = (function() {
     function showHelp() {
         if (handlers.onHelp) {
             handlers.onHelp();
-            return;
-        }
-        // Use ModalManager if available
-        if (typeof ModalManager !== 'undefined') {
-            ModalManager.open('shortcuts');
-        } else {
-            // Fallback to direct DOM manipulation
-            const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-            if (shortcutsOverlay) {
-                shortcutsOverlay.style.display = 'flex';
-            }
-        }
-    }
-
-    /**
-     * Hide keyboard shortcuts help overlay
-     */
-    function hideHelp() {
-        if (typeof ModalManager !== 'undefined') {
-            ModalManager.close('shortcuts');
-        } else {
-            const shortcutsOverlay = document.getElementById('shortcuts-overlay');
-            if (shortcutsOverlay) {
-                shortcutsOverlay.style.display = 'none';
-            }
         }
     }
 
@@ -218,6 +190,7 @@ export const KeyboardShortcuts = (function() {
          * @param {Function} [config.onNavigate] - Navigate handler (receives direction: -1 or 1)
          * @param {Function} [config.onClearFilters] - Clear filters handler
          * @param {Function} [config.onHelp] - Opens help (the `?` key)
+         * @param {Function} [config.isBlocked] - Return true to ignore shortcuts (e.g. a modal is open)
          */
         init(config = {}) {
             handlers = {
@@ -227,7 +200,8 @@ export const KeyboardShortcuts = (function() {
                 onClearSelection: config.onClearSelection || null,
                 onNavigate: config.onNavigate || null,
                 onClearFilters: config.onClearFilters || null,
-                onHelp: config.onHelp || null
+                onHelp: config.onHelp || null,
+                isBlocked: config.isBlocked || null
             };
 
             // Create bound handler for cleanup
@@ -255,48 +229,6 @@ export const KeyboardShortcuts = (function() {
 
             document.removeEventListener('keydown', boundKeyHandler);
             isEnabled = false;
-        },
-
-        /**
-         * Check if shortcuts are enabled
-         * @returns {boolean}
-         */
-        isEnabled() {
-            return isEnabled;
-        },
-
-        /**
-         * Show keyboard shortcuts help overlay
-         */
-        showHelp,
-
-        /**
-         * Hide keyboard shortcuts help overlay
-         */
-        hideHelp,
-
-        /**
-         * Update handlers
-         * @param {Object} newHandlers - New handlers to merge
-         */
-        updateHandlers(newHandlers) {
-            handlers = { ...handlers, ...newHandlers };
-        },
-
-        /**
-         * Get shortcut definitions (for documentation/UI)
-         * @returns {Object} Shortcut definitions
-         */
-        getShortcuts() {
-            return {
-                'Space': 'Play/Stop',
-                '↑': 'Previous substance',
-                '↓': 'Next substance',
-                'A': 'Select all peaks',
-                'C': 'Clear selection',
-                'Esc': 'Clear filters',
-                '?': 'Show this help'
-            };
         },
 
         /**

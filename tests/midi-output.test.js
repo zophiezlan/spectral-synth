@@ -6,6 +6,7 @@
  * pitch bends and RPN bend-range setup.
  */
 
+import { jest } from '@jest/globals';
 import { MIDIOutput } from '../src/midi/midi-output.js';
 
 /** Reconstruct the frequency a synth would play from note + bend */
@@ -178,7 +179,8 @@ describe('MIDIOutput', () => {
         it('sends bend + note-on/off with timestamps', async () => {
             const sent = [];
             midi.selectedOutput = { send: (msg, when) => sent.push({ msg, when }) };
-            global.window = { performance: { now: () => 1000 } };
+            // Freeze the clock so scheduled timestamps are deterministic
+            const nowSpy = jest.spyOn(window.performance, 'now').mockReturnValue(1000);
 
             await midi.sendPeaks([{ audioFreq: 454, absorbance: 0.9 }], 'chord');
 
@@ -192,7 +194,7 @@ describe('MIDIOutput', () => {
             // Note-off scheduled noteDuration after note-on
             expect(noteOffs[0].when - noteOns[0].when).toBe(midi.noteDuration);
 
-            delete global.window;
+            nowSpy.mockRestore();
         });
 
         it('rejects when no device is selected', async () => {

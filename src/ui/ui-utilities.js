@@ -125,9 +125,6 @@ export const ErrorHandler = {
 
 // Utility: iOS Safari audio context helper
 export const iOSAudioHelper = {
-    isIOS() {
-        return /iPhone|iPad|iPod/.test(navigator.userAgent);
-    },
 
     async ensureAudioContext(audioEngine) {
         if (!audioEngine || !audioEngine.audioContext) {
@@ -208,37 +205,6 @@ export const MicroInteractions = {
         }
     },
 
-    /**
-     * Add ripple effect to button click
-     * @param {MouseEvent} event - Click event
-     */
-    ripple(event) {
-        const button = event.currentTarget;
-        const ripple = document.createElement('span');
-        const rect = button.getBoundingClientRect();
-
-        const size = Math.max(rect.width, rect.height);
-        const x = event.clientX - rect.left - size / 2;
-        const y = event.clientY - rect.top - size / 2;
-
-        ripple.style.width = ripple.style.height = size + 'px';
-        ripple.style.left = x + 'px';
-        ripple.style.top = y + 'px';
-        ripple.classList.add('ripple-effect');
-
-        button.appendChild(ripple);
-
-        setTimeout(() => ripple.remove(), 600);
-    }
 };
 
 // Utility: Format time with dynamic units
-export const TimeFormatter = {
-    format(ms) {
-        if (ms < 1000) {
-            return `${Math.round(ms)} ms`;
-        } else {
-            return `${(ms / 1000).toFixed(2)} s`;
-        }
-    }
-};

@@ -142,7 +142,7 @@ self.addEventListener('fetch', (event) => {
                     cache.put(request, response.clone());
                 }
                 return response;
-            } catch (error) {
+            } catch {
                 // Fallback to cache if network fails
                 return cache.match(request);
             }

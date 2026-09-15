@@ -37,8 +37,6 @@
  */
 
 
-import { AppState } from '../core/app-state.js';
-
 /**
  * Modal class - Represents a single modal dialog
  */
@@ -150,11 +148,6 @@ export class Modal {
                 console.error(`Modal "${this.modalId}" onOpen error:`, error);
             }
         }
-
-        // Emit event
-        if (typeof AppState !== 'undefined') {
-            AppState.emit('modalOpen', { modalId: this.modalId });
-        }
     }
 
     /**
@@ -182,11 +175,6 @@ export class Modal {
             } catch (error) {
                 console.error(`Modal "${this.modalId}" onClose error:`, error);
             }
-        }
-
-        // Emit event
-        if (typeof AppState !== 'undefined') {
-            AppState.emit('modalClose', { modalId: this.modalId });
         }
     }
 
@@ -311,75 +299,6 @@ export const ModalManager = (function() {
             return Object.entries(modals)
                 .filter(([_, modal]) => modal.isOpen)
                 .map(([name, _]) => name);
-        },
-
-        /**
-         * Initialize all standard application modals
-         * Call this during app initialization
-         */
-        initializeAppModals() {
-            // Settings Modal
-            this.register('settings', {
-                modalId: 'settings-modal',
-                triggerId: 'settings-menu-btn',
-                closeIds: ['settings-close', 'settings-ok']
-            });
-
-            // Import/Export Modal
-            this.register('import-export', {
-                modalId: 'import-export-modal',
-                triggerId: 'import-export-menu-btn',
-                closeIds: ['import-export-close', 'import-export-ok']
-            });
-
-            // MIDI Modal
-            this.register('midi', {
-                modalId: 'midi-modal',
-                triggerId: 'midi-menu-btn',
-                closeIds: ['midi-close', 'midi-ok']
-            });
-
-            // Help Modal
-            this.register('help', {
-                modalId: 'help-modal',
-                triggerId: 'help-menu-btn',
-                closeIds: ['help-close', 'help-ok']
-            });
-
-            // Also allow mapping info button to open help
-            const mappingInfoBtn = document.getElementById('mapping-info-btn');
-            if (mappingInfoBtn) {
-                mappingInfoBtn.addEventListener('click', () => this.open('help'));
-            }
-
-            // Favorites Modal
-            this.register('favorites', {
-                modalId: 'favorites-modal',
-                triggerId: 'favorites-menu-btn',
-                closeIds: ['favorites-close', 'favorites-ok'],
-                onOpen: () => AppState.emit('favoritesModalOpen')
-            });
-
-            // Onboarding Modal
-            this.register('onboarding', {
-                modalId: 'onboarding-modal',
-                closeIds: ['onboarding-close', 'skip-tour'],
-                closeOnEscape: true
-            });
-
-            // Tutorial Path Modal
-            this.register('tutorial-path', {
-                modalId: 'tutorial-path-modal',
-                closeIds: ['tutorial-path-close'],
-                closeOnEscape: true
-            });
-
-            // Keyboard Shortcuts Modal
-            this.register('shortcuts', {
-                modalId: 'shortcuts-overlay',
-                closeIds: ['shortcuts-close', 'shortcuts-ok'],
-                closeOnEscape: true
-            });
         },
 
         /**

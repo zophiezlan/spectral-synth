@@ -765,7 +765,6 @@ export class Visualizer {
         // Create a realistic-looking FTIR spectrum shape
         const padding = 40;
         const plotWidth = width - padding * 2;
-        const plotHeight = height - padding * 2;
 
         ctx.moveTo(padding, padding + 20);
 

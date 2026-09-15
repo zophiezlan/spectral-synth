@@ -112,7 +112,7 @@ export const PerformanceMonitor = (function() {
         try {
             window.performance.mark(name);
             marks[name] = window.performance.now();
-        } catch (error) {
+        } catch {
             // Silently fail if performance API not available
         }
     }
@@ -143,7 +143,7 @@ export const PerformanceMonitor = (function() {
             }
 
             return duration;
-        } catch (error) {
+        } catch {
             // Silently fail if marks don't exist
             return 0;
         }

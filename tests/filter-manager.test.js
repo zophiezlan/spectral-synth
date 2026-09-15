@@ -13,13 +13,11 @@ import { loadFresh, uiStubs } from './test-helpers.js';
 // on them, and `favoritesState` lets each test decide what Favorites returns.
 const favoritesState = { names: [] };
 const ToastStub = uiStubs().Toast;
-const AppStateStub = { set: jest.fn(), emit: jest.fn() };
 
 jest.unstable_mockModule('../src/core/favorites.js', () => ({
     Favorites: { getAll: () => favoritesState.names, isFavorite: (n) => favoritesState.names.includes(n) },
 }));
 jest.unstable_mockModule('../src/ui/ui-utilities.js', () => ({ ...uiStubs(), Toast: ToastStub }));
-jest.unstable_mockModule('../src/core/app-state.js', () => ({ AppState: AppStateStub }));
 jest.unstable_mockModule('../src/data/substance-utilities.js', () => ({ categorizeSubstance: categorizeSubstanceStub }));
 
 const LIBRARY_FIXTURE = [
@@ -82,7 +80,7 @@ function setupDOM() {
 async function loadFilterManager(favoriteNames = []) {
     favoritesState.names = favoriteNames;
     const { FilterManager } = await loadFresh('../src/ui/filter-manager.js');
-    return { FilterManager, Toast: ToastStub, AppState: AppStateStub };
+    return { FilterManager, Toast: ToastStub };
 }
 
 function selectorOptions(select) {
@@ -119,16 +117,6 @@ describe('FilterManager', () => {
             FilterManager.init(LIBRARY_FIXTURE);
 
             expect(document.getElementById('results-count').textContent).toBe('5 substances');
-        });
-
-        it('syncs filter state to AppState', async () => {
-            const { FilterManager, AppState } = await loadFilterManager();
-
-            FilterManager.init(LIBRARY_FIXTURE);
-
-            expect(AppState.set).toHaveBeenCalledWith('searchTerm', '');
-            expect(AppState.set).toHaveBeenCalledWith('category', 'all');
-            expect(AppState.set).toHaveBeenCalledWith('showFavoritesOnly', false);
         });
     });
 

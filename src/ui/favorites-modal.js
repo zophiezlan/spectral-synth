@@ -7,6 +7,7 @@
 import { ctx } from '../core/context.js';
 import { Favorites } from '../core/favorites.js';
 import { dom } from './dom.js';
+import { ModalManager } from './modal-manager.js';
 import { handleSubstanceChange } from './substance-selection.js';
 
 /**
@@ -49,12 +50,7 @@ export function updateFavoritesList() {
             if (substanceId && dom.substanceSelect) {
                 dom.substanceSelect.value = substanceId;
                 handleSubstanceChange();
-                // Close the modal
-                const favoritesModal = document.getElementById('favorites-modal');
-                if (favoritesModal) {
-                    favoritesModal.classList.add('hidden');
-                    favoritesModal.style.display = 'none';
-                }
+                ModalManager.close('favorites');
             }
         });
     });
