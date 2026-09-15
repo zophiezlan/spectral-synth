@@ -79,6 +79,9 @@ function setupDOM() {
             <span id="favorites-filter-tag" class="hidden">
                 <button class="filter-remove" data-filter="favorites"></button>
             </span>
+            <span id="common-filter-tag" class="hidden">
+                <button class="filter-remove" data-filter="common"></button>
+            </span>
             <button id="clear-all-filters">Clear</button>
         </div>
         <div id="no-results" class="hidden">
@@ -200,12 +203,21 @@ describe('FilterManager', () => {
     });
 
     describe('common filtering', () => {
-        it('shows only common substances by default', async () => {
+        it('shows only common substances by default, as a visible active filter', async () => {
             const { FilterManager } = await loadFilterManager([], ['Caffeine', 'Cocaine']);
             FilterManager.init(LIBRARY_FIXTURE);
 
             expect(selectorOptions(document.getElementById('substance'))).toEqual(['-- Select a Substance --', 'Caffeine', 'Cocaine']);
             expect(document.getElementById('show-common').getAttribute('aria-pressed')).toBe('true');
+            expect(document.getElementById('results-count').textContent).toBe('2 of 5 substances');
+            expect(document.getElementById('active-filters').classList.contains('hidden')).toBe(false);
+            expect(document.getElementById('common-filter-tag').classList.contains('hidden')).toBe(false);
+
+            // The tag's × turns the filter off
+            document.querySelector('#common-filter-tag .filter-remove').click();
+            expect(FilterManager.getState().showCommonOnly).toBe(false);
+            expect(document.getElementById('common-filter-tag').classList.contains('hidden')).toBe(true);
+            expect(document.getElementById('results-count').textContent).toBe('5 substances');
         });
 
         it('is bypassed while a search term is active', async () => {
@@ -283,6 +295,7 @@ describe('FilterManager', () => {
         it('reveals the active-filters bar when a filter is set', async () => {
             const { FilterManager } = await loadFilterManager();
             FilterManager.init(LIBRARY_FIXTURE);
+            FilterManager.setShowCommonOnly(false); // Common is itself an active filter
 
             expect(document.getElementById('active-filters').classList.contains('hidden')).toBe(true);
 

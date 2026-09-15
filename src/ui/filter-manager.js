@@ -74,6 +74,7 @@ export const FilterManager = (function() {
             searchFilterTag: document.getElementById('search-filter-tag'),
             categoryFilterTag: document.getElementById('category-filter-tag'),
             favoritesFilterTag: document.getElementById('favorites-filter-tag'),
+            commonFilterTag: document.getElementById('common-filter-tag'),
             searchTermDisplay: document.getElementById('search-term-display'),
             categoryNameDisplay: document.getElementById('category-name-display'),
             noResultsDiv: document.getElementById('no-results'),
@@ -152,7 +153,11 @@ export const FilterManager = (function() {
 
         // Update results count
         if (elements.resultsCount) {
-            elements.resultsCount.textContent = `${filteredData.length} substance${filteredData.length !== 1 ? 's' : ''}`;
+            const total = libraryData.length;
+            const n = filteredData.length;
+            elements.resultsCount.textContent = n < total
+                ? `${n} of ${total.toLocaleString()} substances`
+                : `${n.toLocaleString()} substance${n !== 1 ? 's' : ''}`;
         }
 
         // Update filter status display
@@ -193,6 +198,13 @@ export const FilterManager = (function() {
         } else if (elements.categoryFilterTag) {
             elements.categoryFilterTag.classList.add('hidden');
         }
+
+        // Common filter tag (hidden while a search bypasses the filter)
+        const commonActive = showCommonOnly && !currentSearchTerm;
+        if (elements.commonFilterTag) {
+            elements.commonFilterTag.classList.toggle('hidden', !commonActive);
+        }
+        if (commonActive) hasActiveFilters = true;
 
         // Update favorites filter tag
         if (showFavoritesOnly && elements.favoritesFilterTag) {
