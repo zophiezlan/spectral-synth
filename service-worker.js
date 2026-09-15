@@ -4,7 +4,7 @@
  * Provides offline functionality and caching for improved performance
  */
 
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 const CACHE_NAME = `spectral-synth-v${VERSION}`;
 
 // Minimal pre-cache list: only assets that exist in BOTH dev (source layout) and
