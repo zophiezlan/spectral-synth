@@ -132,7 +132,10 @@ export function handleExportPeaksJSON() {
                 name: record.name,
                 formula: record.formula || null,
                 mw: record.mw || null,
-                casName: record.casName || null,
+                iupac: record.iupac || record.casName || null,
+                inchikey: record.inchikey || null,
+                form: record.form || null,
+                measurement: record.measurement || null,
                 category: record.category || null,
                 source: record.source || null
             } : { name: dom.substanceSelect.options[dom.substanceSelect.selectedIndex].text },

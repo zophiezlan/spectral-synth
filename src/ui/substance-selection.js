@@ -11,8 +11,10 @@ import { ctx } from '../core/context.js';
 import { Logger } from '../core/logger.js';
 import { Favorites } from '../core/favorites.js';
 import { calculateSpectralSimilarity } from '../data/analysis-utilities.js';
+import { describeSubstance } from '../data/substance-utilities.js';
 import { updateMIDISendButton } from '../midi/midi-handlers.js';
 import { dom } from './dom.js';
+import { FilterManager } from './filter-manager.js';
 import { Toast } from './ui-utilities.js';
 
 /**
@@ -121,8 +123,14 @@ function updateMappingInfo(data, peaks) {
         return;
     }
 
-    let html = `<p><strong>${data.name}</strong></p>`;
-    html += `<p>${data.description}</p>`;
+    let html = `<p><strong>${data.name}</strong>`;
+    if (data.aliases && data.aliases.length) {
+        html += ` <span class="mapping-note">also known as ${data.aliases.slice(0, 3).join(', ')}</span>`;
+    }
+    html += '</p>';
+    const meta = describeSubstance(data);
+    if (meta) html += `<p class="mapping-note">${meta}</p>`;
+    if (data.iupac) html += `<p class="mapping-note">${data.iupac}</p>`;
     html += `<p>${peaks.length} significant absorption peaks <span class="mapping-note">(click a row to hear that peak)</span></p>`;
     html += '<table class="peak-table"><thead><tr>';
     html += '<th>IR (cm⁻¹)</th>';
@@ -193,12 +201,19 @@ export function navigateSubstance(direction) {
 export function selectSubstanceByName(searchTerm) {
     if (!ctx.libraryData) return;
 
-    const substance = ctx.libraryData.find(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const term = searchTerm.toLowerCase();
+    // Exact name, then exact alias, then substring — so "mdma" is MDMA, not 6-Bromo-MDMA
+    const substance = ctx.libraryData.find(item => item.name.toLowerCase() === term)
+        || ctx.libraryData.find(item => (item.aliases || []).some(a => a.toLowerCase() === term))
+        || ctx.libraryData.find(item => item.name.toLowerCase().includes(term));
 
     if (substance) {
         dom.substanceSelect.value = substance.id;
+        if (dom.substanceSelect.value !== substance.id) {
+            // Hidden by the current filters (e.g. Common) — clear them and retry
+            FilterManager.clearAll();
+            dom.substanceSelect.value = substance.id;
+        }
         handleSubstanceChange();
         // Scroll to substance selector
         dom.substanceSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });

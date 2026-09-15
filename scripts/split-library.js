@@ -93,7 +93,7 @@ function splitLibrary() {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([name, stats]) => ({
                 name: name,
-                displayName: name.charAt(0).toUpperCase() + name.slice(1),
+                displayName: name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' '),
                 count: stats.count,
                 sizeBytes: stats.sizeBytes,
                 filename: stats.filename

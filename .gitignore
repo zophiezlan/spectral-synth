@@ -19,3 +19,7 @@ dist/
 Thumbs.db
 midi-export/
 *.zip
+
+# Raw .JDX data and spreadsheet exports
+*.JDX
+*.xlsx

@@ -1,50 +1,86 @@
 /**
  * Common Substances
  *
- * The names most people will recognise, used for the default "Common"
- * filter so a first visit isn't a scroll through 900+ research chemicals.
- * Names must match the library records exactly (case-insensitive); anything
- * not in the library is simply ignored, so this list can be edited freely.
+ * The compounds most people will recognise, used for the default "Common"
+ * filter so a first visit isn't a scroll through 1,300+ research chemicals.
+ *
+ * Matched on the InChIKey connectivity block (first 14 characters of the
+ * key on each library record), so renaming a compound in the library data
+ * doesn't break the list. Names are kept alongside for readability and as
+ * a fallback for records without a key (user imports).
  */
 
-const COMMON_NAMES = [
+const COMMON = [
     // Stimulants
-    'MDMA', 'MDMA-HCl', 'MDA', 'Methylone / bk-MDMA',
-    'cocaine-HCl', 'Cocaine base',
-    'methamphetamine-HCl', 'Methamphetamine base',
-    'Amphetamine sulphate', 'Amphetamine',
-    'caffeine',
-    'Mephedrone HCl', '3-Methylmethcathinone HCl / 3-MMC HCl', '4-Fluoroamphetamine / 4-FA',
-    '3,4-Methylenedioxypyrovalerone / MDPV',
+    ['SHXWCVYOXRDMCX', 'MDMA'],
+    ['NGBBVGZWCFBOGO', 'MDA'],
+    ['VKEQBMCRQDSRET', 'Methylone'],
+    ['ZPUCINDJVBIVPJ', 'Cocaine'],
+    ['MYWUZJCMWCOHBA', 'Methamphetamine'],
+    ['KWTSXDURSIMDCE', 'Amphetamine'],
+    ['RYYVLZVUVIJVGH', 'Caffeine'],
+    ['YELGFTGWJGBAQU', 'Mephedrone'],
+    ['QDNXSIYWHYGMCD', '3-MMC'],
+    ['DGXWNDGLEOIEGT', '4-FA'],
+    ['SYHGEUNFJIGTRX', 'MDPV'],
+    ['YDIIDRWHPFMLGR', 'alpha-PVP'],
+    ['DUGOZIWVEXMGBE', 'Methylphenidate'],
+    ['YFGHCGITMMYXAQ', 'Modafinil'],
 
     // Dissociatives
-    'Ketamine HCl', 'Ketamine', 'DXM HBr monohydrate', 'PCP HCl',
+    ['YQEZLKZALYSWHR', 'Ketamine'],
+    ['MKXZASYAUGDDCJ', 'DXM'],
+    ['JTJMJGYZQZDUJJ', 'PCP'],
 
-    // Psychedelics
-    'LSD base', 'Psilocin', 'Psilocybin base',
-    'DMT', '5-MeO-DMT base / 5-MeO-N,N-DMT base', '4-AcO-DMT base',
-    'mescaline-HCl', '2C-B HCl', '2C-I base', '25I-NBOMe',
+    // Psychedelics & tryptamines
+    ['VAYOSLLFUXYJDT', 'LSD'],
+    ['SPCIYGNTAMCTRO', 'Psilocin'],
+    ['QVDSEJDULKLHCG', 'Psilocybin'],
+    ['DMULVCHRPCFFGV', 'DMT'],
+    ['ZSTKHSQDNIGFLM', '5-MeO-DMT'],
+    ['QIJLOAPCCJQEEZ', '4-AcO-DMT'],
+    ['RHCSKNNOAZULRK', 'Mescaline'],
+    ['YMHOBZXQZVXHBM', '2C-B'],
+    ['PQHQBRJAAZQXHL', '2C-I'],
+    ['ZFUOLNAKPBFDIJ', '25I-NBOMe'],
 
     // Cannabinoids
-    'Cannabidiol', 'Hexahydrocannabinol / HHC',
+    ['ZTGXAWYVTLUPDT', 'Cannabidiol'],
+    ['XKRHRBJLCLXSGE', 'Hexahydrocannabinol'],
 
     // Opioids
-    'Heroin HCl', 'Heroin base', 'morphine-HCl', 'Morphine base',
-    'Fentanyl HCl', 'Codeine base', 'methadone-HCl', 'Buprenorphine base',
+    ['GVGLGOZIDCSQPN', 'Heroin'],
+    ['BQJCRHHNABKAKU', 'Morphine'],
+    ['PJMPHNIQZUBGLI', 'Fentanyl'],
+    ['OROGSEYTTFOCAN', 'Codeine'],
+    ['USSIQXCVUWKGNF', 'Methadone'],
+    ['NBCQXGKYRFJDHM', 'Buprenorphine'],
 
     // Benzodiazepines & depressants
-    'Diazepam', 'alprazolam', 'Clonazepam', 'Etizolam', 'flunitrazepam', 'GHB',
+    ['AAOVKJBEBIDNHE', 'Diazepam'],
+    ['VREFGVBLTWBCJP', 'Alprazolam'],
+    ['DGBIGWXXNGSACT', 'Clonazepam'],
+    ['VMZUTJCNQWMAGF', 'Etizolam'],
+    ['PPTYJKAXVCCBDU', 'Flunitrazepam'],
+    ['SJZRECIVHVDYJC', 'GHB'],
+    ['AYXYPKUFHZROOJ', 'Pregabalin'],
 
     // Other
-    'Testosterone',
+    ['OKJCFMUGMSVJBG', 'Testosterone'],
+    ['BPICBUSOMSTKRF', 'Xylazine'],
 ];
 
-const COMMON_SET = new Set(COMMON_NAMES.map(n => n.toLowerCase()));
+const COMMON_KEYS = new Set(COMMON.map(([key]) => key));
+const COMMON_NAMES = new Set(COMMON.map(([, name]) => name.toLowerCase()));
 
 /**
- * @param {{name: string}} substance - Library record
+ * @param {{inchikey?: string, name?: string}} substance - Library record
  * @returns {boolean} True if the substance is on the common list
  */
 export function isCommonSubstance(substance) {
-    return COMMON_SET.has(String(substance?.name || '').toLowerCase());
+    if (!substance) return false;
+    if (substance.inchikey) {
+        return COMMON_KEYS.has(substance.inchikey.slice(0, 14));
+    }
+    return COMMON_NAMES.has(String(substance.name || '').toLowerCase());
 }

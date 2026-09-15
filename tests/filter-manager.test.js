@@ -18,7 +18,12 @@ jest.unstable_mockModule('../src/core/favorites.js', () => ({
     Favorites: { getAll: () => favoritesState.names, isFavorite: (n) => favoritesState.names.includes(n) },
 }));
 jest.unstable_mockModule('../src/ui/ui-utilities.js', () => ({ ...uiStubs(), Toast: ToastStub }));
-jest.unstable_mockModule('../src/data/substance-utilities.js', () => ({ categorizeSubstance: categorizeSubstanceStub }));
+jest.unstable_mockModule('../src/data/substance-utilities.js', () => ({
+    categorizeSubstance: categorizeSubstanceStub,
+    matchesSearch: (item, term) => !term
+        || item.name.toLowerCase().includes(term.toLowerCase())
+        || (item.formula || '').toLowerCase().includes(term.toLowerCase()),
+}));
 
 // The Common filter is on by default; most tests want the whole fixture visible,
 // so "common" means everything unless a test narrows it.

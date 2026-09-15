@@ -8,7 +8,7 @@ Spectral Synthesizer explores the fascinating connection between audio and spect
 
 Each molecule has a unique "fingerprint" based on how its chemical bonds absorb infrared light. This tool maps those infrared absorption patterns down to audible frequencies, letting you **hear what molecules sound like**.
 
-**✨ Now with real data!** Includes **943 authentic FTIR spectra** from the [ENFSI DWG IR Library](https://enfsi.eu/) (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints from forensic laboratories.
+**✨ Real data.** Includes **1,384 compounds with authentic FTIR spectra** (chosen from 4,061 measurements) in the [ENFSI DWG IR Library](https://enfsi.eu/) (European Network of Forensic Science Institutes), providing scientifically accurate molecular fingerprints from forensic laboratories.
 
 ## The Core Concept
 
@@ -88,7 +88,7 @@ Both visualizations use the same mathematical transformation, just on different 
 ```
 index.html                  Page shell (markup for the app + all dialogs)
 service-worker.js           PWA offline cache
-data/ftir-library.json      Real FTIR spectra (943 substances, ~2.6 MB compact format)
+data/ftir-library.json      Real FTIR spectra (1,384 compounds, ~4 MB compact format)
 src/
   app.js                    Entry point: creates instances, loads the library, wires modules
   core/                     config, constants, logger, app-state, favorites, context (shared instances)
@@ -140,7 +140,7 @@ audioFreq = exp(log(AUDIO_MIN) + normalized * (log(AUDIO_MAX) - log(AUDIO_MIN)))
 
 ## Data Source
 
-The library includes **943 curated FTIR spectra** from the ENFSI DWG IR Library, covering a comprehensive range of recreational drugs:
+The library includes **1,384 compounds** from the ENFSI DWG IR Library (release 2026-03-06). ENFSI distributes 4,061 measurements — the same compound as HCl salt and free base, by ATR and by GC-IR, from several labs — and the builder keeps one representative spectrum per compound (ATR direct measurement preferred), with the other names as searchable aliases. It covers:
 
 - **Stimulants**: Amphetamines (100+ variants), MDMA, MDA, Cocaine, Methamphetamine, Mephedrone, Cathinones, Caffeine
 - **Opioids**: Morphine, Heroin, Codeine, Oxycodone, Hydrocodone, Buprenorphine, Methadone
@@ -328,7 +328,7 @@ Export the analysis, not just the audio:
 - Note timing uses Web MIDI timestamped sends, so notes don't stick when the tab is backgrounded
 
 ### Library Browser
-Click **🔬 Browse** for a searchable card grid of all 943 substances with lazily rendered spectrum sparklines, formula/MW metadata, and category chips. Clicking any peak row in the mapping table auditions that single peak.
+Click **🔬 Browse** for a searchable card grid of every compound with lazily rendered spectrum sparklines, formula/MW metadata, and category chips. Clicking any peak row in the mapping table auditions that single peak.
 
 ### Playback Modes
 Six different ways to experience molecular fingerprints:

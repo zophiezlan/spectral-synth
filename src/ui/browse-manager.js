@@ -23,7 +23,7 @@
  */
 
 
-import { categorizeSubstance } from '../data/substance-utilities.js';
+import { categorizeSubstance, matchesSearch } from '../data/substance-utilities.js';
 import { ThumbnailGenerator } from './visualization-utilities.js';
 
 export const BrowseManager = (function() {
@@ -126,9 +126,7 @@ export const BrowseManager = (function() {
                 ? categorizeSubstance(item)
                 : (item.category || 'other');
             if (category !== 'all' && itemCategory !== category) return false;
-            if (!term) return true;
-            return item.name.toLowerCase().includes(term)
-                || (item.formula || '').toLowerCase().includes(term);
+            return matchesSearch(item, term);
         });
     }
 
@@ -193,7 +191,7 @@ export const BrowseManager = (function() {
 
             const meta = document.createElement('span');
             meta.className = 'browse-card-meta';
-            meta.textContent = [substance.formula, substance.mw ? `MW ${substance.mw}` : null]
+            meta.textContent = [substance.formula, substance.mw ? `MW ${substance.mw}` : null, substance.form]
                 .filter(Boolean).join(' · ');
 
             const chip = document.createElement('span');

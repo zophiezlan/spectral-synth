@@ -38,7 +38,7 @@
 
 import { CONFIG } from '../core/config.js';
 import { Favorites } from '../core/favorites.js';
-import { categorizeSubstance } from '../data/substance-utilities.js';
+import { categorizeSubstance, matchesSearch } from '../data/substance-utilities.js';
 import { isCommonSubstance } from '../data/common-substances.js';
 import { Toast } from './ui-utilities.js';
 
@@ -114,11 +114,8 @@ export const FilterManager = (function() {
                 : 'other';
             const categoryMatch = currentCategory === 'all' || itemCategory === currentCategory;
 
-            // Search filter
-            const searchLower = currentSearchTerm.toLowerCase();
-            const nameMatch = item.name.toLowerCase().includes(searchLower);
-            const formulaMatch = (item.formula || '').toLowerCase().includes(searchLower);
-            const searchMatch = !currentSearchTerm || nameMatch || formulaMatch;
+            // Search filter (name, aliases, formula)
+            const searchMatch = matchesSearch(item, currentSearchTerm);
 
             return categoryMatch && searchMatch;
         });
