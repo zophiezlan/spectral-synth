@@ -96,7 +96,8 @@ src/
                             playback-controller, mp3-encoder
   data/                     spectrum-codec, library-loader (lazy chunks + IndexedDB), importers
                             (CSV, JCAMP-DX), substance categorisation, spectral similarity
-  midi/                     midi-output (pitch-accurate, per-note bend), midi-input, midi-handlers
+  midi/                     midi-output (pitch-accurate, per-note bend), midi-pack (DAW-ready SMF
+                            builder for the batch export), midi-input, midi-handlers
   ui/                       dom accessors, filter-manager, browse-manager, visualizer, modals,
                             onboarding/tutorial, keyboard shortcuts, theme, event wiring
   styles/                   base / components / modals / responsive (main.css imports them)
@@ -324,6 +325,7 @@ Export the analysis, not just the audio:
 ### MIDI
 - **Pitch-accurate output** (default) - spectral peaks rarely land on 12-TET semitones, and those microtonal offsets are part of the molecular fingerprint. Notes are spread across MIDI channels with per-note pitch bends (MPE-style, bend range configurable and announced via RPN 0), so external synths and DAWs play the exact peak frequencies. Disable for single-channel synths (quantizes to nearest semitone).
 - **MIDI file export** - Standard MIDI File (.mid) with the same pitch-bend treatment, honoring the current playback mode and tempo
+- **Batch MIDI pack** - `npm run export-midi` renders the whole library as DAW-ready Type 1 files: one per substance with a named chord track and a 1/16-grid sequence track (top 16 peaks, one bar, velocities normalised, same-semitone peaks merged), plus an `index.csv` with formula, closest key and note list. Flags for grid, peak cap, chord length, octave folding and Euclidean spreading — `node scripts/batch-export-midi.js --help`
 - **MIDI input** - play the selected substance from a MIDI keyboard: C4 = native pitch, other keys transpose the whole peak set, velocity controls loudness, notes sustain until released (polyphonic)
 - Note timing uses Web MIDI timestamped sends, so notes don't stick when the tab is backgrounded
 
