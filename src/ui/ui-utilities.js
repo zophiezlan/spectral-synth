@@ -4,7 +4,7 @@
  * Purpose: Provides common UI utilities for user feedback and error handling
  *
  * Dependencies:
- * - Logger (for error logging)
+ * - iOSAudio (for audio context creation/resume)
  *
  * Exports:
  * - LoadingOverlay object - Show/hide loading spinner
@@ -42,7 +42,7 @@
  */
 
 
-import { Logger } from '../core/logger.js';
+import { iOSAudio } from '../audio/ios-audio.js';
 
 // Utility: Loading overlay
 export const LoadingOverlay = {
@@ -126,20 +126,27 @@ export const ErrorHandler = {
 // Utility: iOS Safari audio context helper
 export const iOSAudioHelper = {
 
+    /**
+     * Make sure a live, running audio context exists before playback.
+     *
+     * Creates the context if the first gesture handler has not got to it yet,
+     * then resumes it. Resuming covers the iOS-only 'interrupted' state as well
+     * as 'suspended' — see src/audio/ios-audio.js for why that matters.
+     *
+     * @param {Object} audioEngine - AudioEngine instance
+     */
     async ensureAudioContext(audioEngine) {
-        if (!audioEngine || !audioEngine.audioContext) {
+        if (!audioEngine) {
             return;
         }
 
-        if (audioEngine.audioContext.state === 'suspended') {
-            try {
-                await audioEngine.audioContext.resume();
-                Logger.log('✓ Audio context resumed');
-            } catch (error) {
-                Logger.error('Failed to resume audio context:', error);
-                throw error;
-            }
+        // The context normally exists already (created on the first tap), but
+        // synthetic clicks and keyboard shortcuts can reach playback first.
+        if (!audioEngine.audioContext) {
+            iOSAudio.unlock(audioEngine);
         }
+
+        await iOSAudio.resumeContext(audioEngine.audioContext);
     }
 };
 

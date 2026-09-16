@@ -58,6 +58,7 @@
 
 import { CONFIG } from '../core/config.js';
 import { MP3Encoder } from './mp3-encoder.js';
+import { iOSAudio } from './ios-audio.js';
 
 export class AudioEngine {
     constructor() {
@@ -117,6 +118,26 @@ export class AudioEngine {
      * @throws {Error} If Web Audio API is not supported
      */
     async init() {
+        this.ensureContextSync();
+
+        // Resume context if suspended (required by browser autoplay policies)
+        // or iOS-interrupted (phone call, Siri, backgrounded tab).
+        await iOSAudio.resumeContext(this.audioContext);
+    }
+
+    /**
+     * Create the audio context and graph without awaiting anything.
+     *
+     * iOS only allows an AudioContext to start inside a user gesture, and it
+     * requires the call to happen in the same task as that gesture — an `await`
+     * beforehand can drop the activation and leave the context suspended
+     * forever. So context creation is kept synchronous and `init()` layers the
+     * async resume on top. Safe to call repeatedly; builds the graph once.
+     *
+     * @returns {AudioContext} The live audio context
+     * @throws {Error} If Web Audio API is not supported
+     */
+    ensureContextSync() {
         if (!this.audioContext) {
             // Check for Web Audio API support
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -138,7 +159,7 @@ export class AudioEngine {
 
             // Create convolver for reverb
             this.convolver = this.audioContext.createConvolver();
-            await this.createReverbImpulse();
+            this.createReverbImpulse();
 
             // Create dry/wet mixing for reverb
             this.dryGain = this.audioContext.createGain();
@@ -168,18 +189,18 @@ export class AudioEngine {
             this.analyser.connect(this.audioContext.destination);
         }
 
-        // Resume context if suspended (required by browser autoplay policies)
-        if (this.audioContext.state === 'suspended') {
-            await this.audioContext.resume();
-        }
+        return this.audioContext;
     }
 
     /**
      * Create impulse response for reverb
      *
      * Generates an exponentially decaying noise impulse for natural-sounding reverb.
+     *
+     * Synchronous: it is called while building the graph inside a user gesture,
+     * where awaiting would cost the gesture activation on iOS.
      */
-    async createReverbImpulse() {
+    createReverbImpulse() {
         const sampleRate = this.audioContext.sampleRate;
         const duration = this.REVERB_DURATION;
         const length = sampleRate * duration;
@@ -1115,7 +1136,11 @@ export class AudioEngine {
 
         // Create an offline audio context for rendering
         const sampleRate = this.audioContext.sampleRate;
-        const offlineContext = new OfflineAudioContext(2, sampleRate * duration, sampleRate);
+        const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!OfflineContext) {
+            throw new Error('Offline audio rendering is not supported in this browser');
+        }
+        const offlineContext = new OfflineContext(2, sampleRate * duration, sampleRate);
 
         // Create master gain
         const masterGain = offlineContext.createGain();
@@ -1267,7 +1292,11 @@ export class AudioEngine {
 
         // Create an offline audio context for rendering
         const sampleRate = this.audioContext.sampleRate;
-        const offlineContext = new OfflineAudioContext(2, sampleRate * duration, sampleRate);
+        const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!OfflineContext) {
+            throw new Error('Offline audio rendering is not supported in this browser');
+        }
+        const offlineContext = new OfflineContext(2, sampleRate * duration, sampleRate);
 
         // Create master gain
         const masterGain = offlineContext.createGain();

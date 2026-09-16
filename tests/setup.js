@@ -13,6 +13,17 @@ class MockAudioContext {
         this.sampleRate = 44100;
         this.state = 'running';
         this.currentTime = 0;
+        this.destination = { connect: jest.fn(), disconnect: jest.fn() };
+    }
+
+    createBufferSource() {
+        return {
+            buffer: null,
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
+            disconnect: jest.fn(),
+        };
     }
 
     createOscillator() {
